@@ -8,3 +8,9 @@ __pycache__/
 
 data/
 aau/data/
+pages_backup/
+inject_sidebar_auth.py
+inject_sidebar_auth_v2.py
+inject_sidebar_auth_v3.py
+inject_sidebar_auth_v4.py
+test_auth.py

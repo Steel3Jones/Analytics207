@@ -19,12 +19,17 @@ from layout import (
     render_page_header,
     render_footer,
 )
+from auth import login_gate, logout_button, is_subscribed
 
 import os
 
 
 # ---------- PREDICTION HELPERS ----------
 
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 @dataclass
 class WalkForwardConfig:
     min_games_before_scoring: int = 25
@@ -162,12 +167,38 @@ st.set_page_config(
 )
 
 apply_global_layout_tweaks()
+login_gate(required=False)
+logout_button()
 render_logo()
 render_page_header(
     title="🧠 THE MODEL",
     definition="Model (n.): A calibrated predictive engine built to forecast outcomes statewide.",
     subtitle="Statewide matchup forecasts driven by a world class calibrated analytics engine.",
 )
+
+# ══════════════════════════════════════════════════════════════════════════
+#  🔒 SUBSCRIBER GATE — entire page is locked
+# ══════════════════════════════════════════════════════════════════════════
+if not is_subscribed():
+    components.html("""
+<style>* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: #f1f5f9; }</style>
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(245,158,11,0.3);border-radius:14px;
+            padding:32px 28px;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🔒</div>
+  <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">
+    THE MODEL — Subscriber Only
+  </div>
+  <div style="font-size:0.85rem;color:#94a3b8;max-width:460px;margin:0 auto;">
+    Subscribe to unlock head-to-head matchup predictions, win probabilities,
+    projected scores, confidence ratings, and the full analytics breakdown
+    powered by our calibrated prediction engine.
+  </div>
+</div>
+""", height=200, scrolling=False)
+    render_footer()
+    st.stop()
 
 
 # ---------- GLOBAL CSS ----------
@@ -256,8 +287,6 @@ def load_v50_data():
     if "TeamKey" in teams.columns:
         teams["TeamKey"] = teams["TeamKey"].astype(str).str.replace(r"\s+", "", regex=True).str.strip()
 
-
-    # ── Build TeamKey from components if blank ────────────────────────────
     if "TeamKey" not in teams.columns or teams["TeamKey"].eq("").all():
         teams["TeamKey"] = (
             teams["Team"].str.replace(r"\s+", "", regex=True).str.strip()
@@ -265,9 +294,7 @@ def load_v50_data():
             + teams["Class"].str.strip()
             + teams["Region"].str.strip()
         )
-    # ─────────────────────────────────────────────────────────────────────
 
-    # ── Merge PIR (PowerIndex_Display) from power index parquet ──────────
     pir_raw = read_parquet_safe(PIR_FILE)
     if not pir_raw.empty and "PowerIndex_Display" in pir_raw.columns:
         pir_small = pir_raw[["TeamKey", "Gender", "PowerIndex_Display"]].copy()
@@ -278,7 +305,6 @@ def load_v50_data():
     else:
         teams["PIR"] = np.nan
 
-    # Rating column = PIR (our model), fallback to TI, then PI
     if "PIR" in teams.columns and pd.to_numeric(teams["PIR"], errors="coerce").notna().any():
         teams["Rating"] = pd.to_numeric(teams["PIR"], errors="coerce")
     elif "TI" in teams.columns:
@@ -291,15 +317,12 @@ def load_v50_data():
     if not games.empty:
         if "Date" in games.columns:
             games["Date"] = pd.to_datetime(games["Date"], errors="coerce")
-        # ── Normalize HomeKey / AwayKey to match teams_df TeamKey format ──
         if "HomeKey" in games.columns:
             games["HomeKey"] = games["HomeKey"].astype(str).str.replace(r"\s+", "", regex=True).str.strip()
         if "AwayKey" in games.columns:
             games["AwayKey"] = games["AwayKey"].astype(str).str.replace(r"\s+", "", regex=True).str.strip()
-        # ──────────────────────────────────────────────────────────────────
         games = _ensure_pred_cols(games)
         games = _compute_actuals(games)
-
 
     return teams, games
 
@@ -332,7 +355,6 @@ with st.expander("🔧 Debug: TeamKey check", expanded=False):
             games_df["Away"].str.contains("Hodgdon", case=False, na=False)
         )
         st.write(games_df[mask][["Home","Away","HomeKey","AwayKey","PredHomeWinProb"]].to_dict("records"))
-# ─────────────────────────────────────────────────────────────────────────
 
 if teams_df.empty or games_df.empty:
     st.info("THE MODEL data is not available yet.")
@@ -382,7 +404,6 @@ if len(lab_teams) < 2:
     render_footer()
     st.stop()
 
-# Build TeamKey lookup
 name_to_key = dict(zip(teams_filtered["Team"], teams_filtered["TeamKey"]))
 key_to_name = dict(zip(teams_filtered["TeamKey"], teams_filtered["Team"]))
 
@@ -390,7 +411,6 @@ col_h, col_a = st.columns(2)
 with col_h:
     home_team = st.selectbox("Home Team (Team 1)", lab_teams, key="lab_v50_home")
 
-# Resolve home TeamKey and find scheduled opponents from games_df
 home_key = name_to_key.get(home_team, "")
 gdf_gender = games_df[games_df["Gender"] == selected_gender] if "Gender" in games_df.columns else games_df
 
@@ -403,13 +423,11 @@ if home_key and "HomeKey" in gdf_gender.columns:
         gdf_gender.loc[gdf_gender["AwayKey"] == home_key, "HomeKey"].dropna().tolist()
     )
 
-# Map opponent keys back to display names, keep only those in current filter
 away_options = sorted([
     key_to_name[k] for k in scheduled_opponent_keys
     if k in key_to_name and key_to_name[k] in lab_teams and key_to_name[k] != home_team
 ])
 
-# Safety fallback: if no scheduled opponents found, show all filtered teams
 if not away_options:
     away_options = [t for t in lab_teams if t != home_team]
 
@@ -453,7 +471,6 @@ def lookup_prediction(home_row: pd.Series, away_row: pd.Series):
     if not hk or not ak or "HomeKey" not in games_df.columns:
         return None
 
-    # Try home=hk / away=ak first, then flipped
     sub = games_df[(games_df["HomeKey"] == hk) & (games_df["AwayKey"] == ak)].copy()
     flipped = False
     if sub.empty:
@@ -469,7 +486,6 @@ def lookup_prediction(home_row: pd.Series, away_row: pd.Series):
     score_a = float(row.get("PredAwayScore",   np.nan))
     total   = float(row.get("PredTotalPoints", np.nan))
 
-    # Flip perspective if teams were stored in reverse order
     if flipped:
         p_home  = 1.0 - p_home if np.isfinite(p_home) else p_home
         margin  = -margin      if np.isfinite(margin)  else margin
@@ -484,11 +500,9 @@ def lookup_prediction(home_row: pd.Series, away_row: pd.Series):
     }
 
 
-
 # ---------- HEAD-TO-HEAD & RECENT FORM HELPERS ----------
 
 def head_to_head_games(games: pd.DataFrame, key_a: str, key_b: str) -> pd.DataFrame:
-    """Return up to 10 most recent played games between two teams."""
     if not {"HomeKey", "AwayKey"}.issubset(games.columns):
         return pd.DataFrame()
     played_col = "Played" if "Played" in games.columns else "PlayedBool"
@@ -501,7 +515,6 @@ def head_to_head_games(games: pd.DataFrame, key_a: str, key_b: str) -> pd.DataFr
 
 
 def recent_form_games(games: pd.DataFrame, team_key: str, n: int = 5) -> pd.DataFrame:
-    """Return the last n played games for a team."""
     if not {"HomeKey", "AwayKey"}.issubset(games.columns):
         return pd.DataFrame()
     played_col = "Played" if "Played" in games.columns else "PlayedBool"
@@ -512,7 +525,6 @@ def recent_form_games(games: pd.DataFrame, team_key: str, n: int = 5) -> pd.Data
 
 pred = lookup_prediction(h_row, a_row)
 
-# Hard stop — no math fallback, only real predictions
 if pred is None or not np.isfinite(pred.get("PredHomeWinProb", np.nan)):
     st.warning(
         f"⚠️ No prediction found for **{away_team} at {home_team}**. "
@@ -538,7 +550,6 @@ fav_row      = h_row     if fav_is_home else a_row
 dog_row      = a_row     if fav_is_home else h_row
 dog_team     = away_team if fav_is_home else home_team
 
-# ── PIR edge from our model rating ───────────────────────────────────────
 pir_fav  = _safe_float(fav_row.get("PIR"), None)
 pir_dog  = _safe_float(dog_row.get("PIR"), None)
 pir_edge = (pir_fav - pir_dog) if (pir_fav is not None and pir_dog is not None) else np.nan
@@ -1012,7 +1023,6 @@ with tab_h2h:
   </span>
 </div>"""
 
-        # Tally card
         tally_html = f"""
 <div style="display:flex;gap:16px;margin-top:12px;
             font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">

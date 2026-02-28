@@ -9,9 +9,13 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
+from auth import login_gate, logout_button, is_subscribed
 
 import layout as L
 from components.home_card import inject_home_card_css
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
 
 # ─────────────────────────────────────────────
 # PAGE CONFIG
@@ -29,6 +33,24 @@ DATA_DIR = APP_ROOT / "data"
 
 inject_home_card_css()
 
+# ── SIDEBAR AUTH — top of sidebar, above page nav ──
+with st.sidebar:
+    if "user" in st.session_state and st.session_state["user"]:
+        profile = st.session_state.get("profile", {}) or {}
+        name = profile.get("display_name", "User")
+        st.markdown(f"👤 **{name}**")
+        if st.button("Log Out", key="sidebar_logout_top"):
+            from auth import get_supabase
+            try:
+                get_supabase().auth.sign_out()
+            except Exception:
+                pass
+            for k in ["user", "session", "profile"]:
+                st.session_state[k] = None
+            st.rerun()
+    else:
+        login_gate(required=False)
+
 # ─────────────────────────────────────────────
 # TEAM KEY PARSER
 # ─────────────────────────────────────────────
@@ -40,6 +62,7 @@ def parse_team_key(key: str) -> dict:
     if m:
         return dict(name=m.group(1).strip(), gender=m.group(2), cls=m.group(3), region=m.group(4))
     return dict(name=str(key).strip(), gender="", cls="", region="")
+
 
 # ─────────────────────────────────────────────
 # LAYOUT HELPERS
@@ -66,6 +89,7 @@ def _sp(n: int = 1) -> None:
             pass
     for _ in range(max(0, int(n))):
         st.write("")
+
 
 # ─────────────────────────────────────────────
 # DATA LOADING
@@ -128,7 +152,6 @@ def load_all():
             pir["Gender"] = pir["Gender"].str.title()
         if "PowerIndex_Display" in pir.columns:
             pir["PowerIndex_Display"] = pd.to_numeric(pir["PowerIndex_Display"], errors="coerce")
-        # Parse Team/Class/Region out of TeamKey — pir has no separate columns for these
         parsed = pir["TeamKey"].apply(lambda k: pd.Series(parse_team_key(k)))
         pir["Team"]   = parsed["name"]
         pir["Class"]  = parsed["cls"]
@@ -137,6 +160,7 @@ def load_all():
     return teams, games, preds, pir
 
 teams_df, games_df, preds_df, pir_df = load_all()
+
 
 # ─────────────────────────────────────────────
 # TEAM NAME CLEANER
@@ -154,6 +178,7 @@ def clean_name(row: pd.Series) -> str:
     if key and key in _key_to_name:
         return _key_to_name[key]
     return parse_team_key(key)["name"]
+
 
 # ─────────────────────────────────────────────
 # DATA HELPERS
@@ -217,7 +242,6 @@ def top_ti_teams(gender: str, n: int = 5) -> pd.DataFrame:
     sub = teams_df[teams_df["Gender"] == gender.title()].copy()
     sub = sub.sort_values("TI", ascending=False).head(n).reset_index(drop=True)
     sub["_DisplayName"] = sub["Team"].astype(str).str.strip()
-
     return sub
 
 def featured_game() -> Optional[dict]:
@@ -302,6 +326,7 @@ def top_tonight_games(n: int = 10) -> list[dict]:
     results.sort(key=lambda x: x["diff"])
     return results[:n]
 
+
 # ─────────────────────────────────────────────
 # CSS
 # ─────────────────────────────────────────────
@@ -309,6 +334,31 @@ def top_tonight_games(n: int = 10) -> list[dict]:
 st.markdown("""
 <style>
 .block-container { padding-top: 0.7rem; }
+/* AAU sidebar separator */
+[data-testid="stSidebarNav"] ul li:nth-last-child(3)::before {
+    content: "🏀  AAU (BETA)";
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    color: rgba(245,158,11,0.7);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 14px 0 6px 12px;
+    margin-top: 6px;
+    border-top: 1px solid rgba(245,158,11,0.25);
+    pointer-events: none;
+}
+/* ── MOVE auth expander ABOVE page nav ── */
+[data-testid="stSidebarContent"] {
+    display: flex;
+    flex-direction: column;
+}
+[data-testid="stSidebarContent"] [data-testid="stSidebarNav"] {
+    order: 2;
+}
+[data-testid="stSidebarContent"] > div:not([data-testid="stSidebarNav"]) {
+    order: 1;
+}
 
 /* ── HERO ── */
 .a207-hero-card {
@@ -471,6 +521,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
 # ─────────────────────────────────────────────
 # HEADER
 # ─────────────────────────────────────────────
@@ -478,6 +529,7 @@ st.markdown("""
 if callable(render_logo):
     render_logo()
 _sp(1)
+
 
 # ─────────────────────────────────────────────
 # HERO

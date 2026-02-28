@@ -1,3 +1,4 @@
+# pages/XX__The_Mover_Board.py
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,13 +17,20 @@ from layout import (
     render_page_header,
     render_footer,
 )
+from auth import login_gate, logout_button, is_subscribed
 
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="📈 The Mover Board | Analytics207",
     page_icon="📈",
     layout="wide",
 )
 apply_global_layout_tweaks()
+login_gate(required=False)
+logout_button()
 
 PROJECT_ROOT  = Path(__file__).resolve().parent.parent
 DATA_DIR      = Path(os.environ.get("DATA_DIR", PROJECT_ROOT / "data"))
@@ -86,7 +94,6 @@ teams_df = load_teams()
 games_df = load_games()
 ti_ana   = load_analytics_ti()
 
-# Attach analytics TI by TeamKey only
 if not ti_ana.empty:
     ti_src = ti_ana.dropna(subset=["TeamKey"]).copy()
     teams_df["TeamKey"] = teams_df["TeamKey"].astype(str).str.strip()
@@ -97,7 +104,6 @@ if not ti_ana.empty:
         suffixes=("", "_ana"),
     )
     if "TI_ana" in teams_df.columns:
-        # Use analytics TI when present, otherwise keep existing TI
         teams_df["TI"] = teams_df["TI_ana"].where(
             teams_df["TI_ana"].notna(), teams_df.get("TI")
         )
@@ -133,7 +139,6 @@ def compute_recent_form(games: pd.DataFrame, n: int = 5) -> pd.DataFrame:
         wins    = sum(m > 0 for m in margins)
         losses  = sum(m < 0 for m in margins)
 
-        # Current streak
         streak_count = 0
         streak_dir   = ""
         for m in reversed(margins):
@@ -146,7 +151,6 @@ def compute_recent_form(games: pd.DataFrame, n: int = 5) -> pd.DataFrame:
             else:
                 break
 
-        # Last 5 as W/L string e.g. "W W L W W"
         last5 = " ".join("W" if m > 0 else "L" for m in margins[-5:])
 
         rows.append({
@@ -202,7 +206,7 @@ if sel_region != "All":
 st.write("")
 
 # ─────────────────────────────────────────────
-# HERO SUMMARY CARDS
+# HERO SUMMARY CARDS (FREE)
 # ─────────────────────────────────────────────
 
 def render_mover_hero(df: pd.DataFrame) -> None:
@@ -248,6 +252,29 @@ def render_mover_hero(df: pd.DataFrame) -> None:
 
 render_mover_hero(view)
 st.write("")
+
+# ══════════════════════════════════════════════════════════════════════════
+#  🔒 SUBSCRIBER GATE — tabs and detailed breakdowns locked below
+# ══════════════════════════════════════════════════════════════════════════
+if not is_subscribed():
+    components.html("""
+<style>* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: #f1f5f9; }</style>
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(245,158,11,0.3);border-radius:14px;
+            padding:32px 28px;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🔒</div>
+  <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">
+    The Mover Board — Subscriber Only
+  </div>
+  <div style="font-size:0.85rem;color:#94a3b8;max-width:460px;margin:0 auto;">
+    Subscribe to unlock risers, fallers, streak leaders, and the full
+    momentum board with last-5 margins, streaks, and TI trajectory.
+  </div>
+</div>
+""", height=200, scrolling=False)
+    render_footer()
+    st.stop()
 
 # ─────────────────────────────────────────────
 # STREAK BADGE

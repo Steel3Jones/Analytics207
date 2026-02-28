@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+
 from pathlib import Path
 from typing import Optional
 import os
 
+
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
+
 
 from layout import (
     apply_global_layout_tweaks,
@@ -13,11 +17,57 @@ from layout import (
     render_page_header,
     render_footer,
 )
+from auth import login_gate, logout_button, is_subscribed
+
+
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
+st.set_page_config(
+    page_title="Power Index Rating – Analytics207.com",
+    page_icon="🧠",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("DATA_DIR", PROJECT_ROOT / "data"))
 PIR_PATH   = DATA_DIR / "core" / "teams_power_index_v50.parquet"
 TEAMS_PATH = DATA_DIR / "core" / "teams_team_season_core_v50.parquet"
+
+
+SHOW_LOCKS = True
+
+
+_BASE_CSS = """
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: transparent;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  color: #f1f5f9;
+}
+</style>
+"""
+
+
+def _render_lock_wall(section_name: str) -> None:
+    components.html(f"""{_BASE_CSS}
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(245,158,11,0.3);border-radius:14px;
+            padding:32px 28px;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🔒</div>
+  <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">
+    {section_name} — Subscriber Only
+  </div>
+  <div style="font-size:0.85rem;color:#94a3b8;max-width:420px;margin:0 auto;">
+    Subscribe to unlock the full Power Index Ratings, model rankings,
+    and Heal Point comparison analysis.
+  </div>
+</div>
+""", height=160, scrolling=False)
 
 
 def inject_true_strength_ratings_css() -> None:
@@ -199,14 +249,13 @@ def render_table(df: pd.DataFrame) -> None:
 def main() -> None:
     apply_global_layout_tweaks()
     inject_true_strength_ratings_css()
-    st.set_page_config(
-        page_title="Power Index Rating – Analytics207.com",
-        page_icon="🧠",
-        layout="wide",
-    )
+
+    user = login_gate(required=False)
+    logout_button()
+
     render_logo()
     render_page_header(
-        title="📊POWER INDEX RATINGS",
+        title="📊 POWER INDEX RATINGS",
         definition="Power Index Rating (PIR) (n.): How 🧠 The model stacks up against the Heal Point system.",
         subtitle=(
             "Compare data-driven strength numbers to official Heal Points to see when the model and the system "
@@ -237,6 +286,11 @@ def main() -> None:
         cls = st.selectbox("Class", ["A", "B", "C", "D", "S"], index=0)
     with cols[2]:
         region = st.selectbox("Region", ["North", "South"], index=0)
+
+    if not is_subscribed():
+        _render_lock_wall("Power Index Ratings")
+        render_footer()
+        return
 
     table = build_table(teams, gender=gender, cls=cls, region=region)
 

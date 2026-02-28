@@ -8,10 +8,15 @@ import os
 
 import streamlit as st
 import layout as L
+from auth import login_gate, logout_button
 
 # ----------------------------
 # Config
 # ----------------------------
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="💡 Insights | ANALYTICS207",
     page_icon="💡",
@@ -49,6 +54,9 @@ def _sp(n: int = 1) -> None:
 
 if apply_layout:
     apply_layout()
+login_gate(required=False)
+logout_button()
+
 if render_logo:
     render_logo()
 if render_header:
@@ -64,7 +72,7 @@ else:
 # ----------------------------
 # Filesystem
 # ----------------------------
-PROJECT_ROOT = Path(__file__).resolve().parents[1]  # pages/ -> project root
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 INSIGHTS_DIR = PROJECT_ROOT / "Insights"
 IMAGES_DIR   = INSIGHTS_DIR / "images"
 
@@ -194,7 +202,7 @@ with left:
         )
 
     _sp(1)
-    st.caption("Format tip: put `IMAGE: filename.jpg` near the top of the .md")
+    
 
 with right:
     if not selected:

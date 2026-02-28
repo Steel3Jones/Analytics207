@@ -1,4 +1,4 @@
-# 06__Team_Center.py  –  Team Center v4.1 (TeamKey fix)
+# 06__Team_Center.py  –  Team Center v4.2 (Subscriber Lock)
 # Analytics207.com  |  Primary source: teams_team_season_analytics_v50.parquet
 from __future__ import annotations
 import re
@@ -9,21 +9,61 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 from layout import apply_global_layout_tweaks, render_logo, render_page_header, render_footer
 from components.cards import inject_card_css
 from components.cards_team_center import inject_team_center_card_css
+from auth import login_gate, logout_button, is_subscribed
 
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(page_title="🏫 Team Center – Analytics207.com", page_icon="🏫", layout="wide")
 apply_global_layout_tweaks()
 inject_card_css()
 inject_team_center_card_css()
+
+user = login_gate(required=False)
+logout_button()
+
 render_logo()
 render_page_header(
     title="🏫 Team Center",
     definition="Team Center (n.): The complete story of any Maine program, on one page.",
     subtitle="Search any school — records, model grades, tournament outlook, milestones, and more.",
 )
+
+# ══════════════════════════════════════════════════════════════════════════
+#  LOCK WALL
+# ══════════════════════════════════════════════════════════════════════════
+_BASE_CSS = """
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: transparent;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  color: #f1f5f9;
+}
+</style>
+"""
+
+def _render_lock_wall(section_name: str) -> None:
+    components.html(f"""{_BASE_CSS}
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(245,158,11,0.3);border-radius:14px;
+            padding:32px 28px;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🔒</div>
+  <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">
+    {section_name} — Subscriber Only
+  </div>
+  <div style="font-size:0.85rem;color:#94a3b8;max-width:420px;margin:0 auto;">
+    Subscribe to unlock full analytics, model rankings, spreads,
+    tournament simulations, and more.
+  </div>
+</div>
+""", height=160, scrolling=False)
 
 # ══════════════════════════════════════════════════════════════════════════
 #  FILE PATHS
@@ -280,7 +320,7 @@ ana_latest  = _latest(ana_df)
 phase_badge = phase()
 
 # ══════════════════════════════════════════════════════════════════════════
-#  SCHOOL DROPDOWN
+#  SCHOOL DROPDOWN  (FREE — always visible)
 # ══════════════════════════════════════════════════════════════════════════
 all_schools = sorted(ana_latest["Team"].dropna().unique().tolist())
 _qp      = st.query_params.get("school", "")
@@ -432,7 +472,7 @@ def ats_summary(team_key: str, gender: str):
     return covers, no_cover, pushes, pct, avg_m
 
 # ══════════════════════════════════════════════════════════════════════════
-#  SECTION 1 – HERO CARDS
+#  SECTION 1 – HERO CARDS  (FREE — always visible)
 # ══════════════════════════════════════════════════════════════════════════
 def hero_card(gender_label, row, cls, reg, pi_row):
     if row is None:
@@ -508,93 +548,101 @@ with h1: hero_card("Boys",  boys_row,  boys_cls,  boys_reg,  boys_pi)
 with h2: hero_card("Girls", girls_row, girls_cls, girls_reg, girls_pi)
 
 # ══════════════════════════════════════════════════════════════════════════
-#  SECTION 2 – RICH SNAPSHOT
+#  🔒  SUBSCRIBER GATE — everything below hero cards requires subscription
+# ══════════════════════════════════════════════════════════════════════════
+_subscribed = is_subscribed()
+
+# ══════════════════════════════════════════════════════════════════════════
+#  SECTION 2 – RICH SNAPSHOT  (🔒 LOCKED)
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown('<div class="section-head">&#x1F4CA; Program Snapshot</div>', unsafe_allow_html=True)
 
-def snap_block(row, gender_label, cls, reg, pi_row, team_key):
-    if row is None:
-        st.markdown(
-            f'<div class="card"><div class="lbl">{gender_label}</div>'
-            '<div style="color:#475569;font-size:0.85rem;margin-top:6px;">No data this season</div></div>',
-            unsafe_allow_html=True,
-        )
-        return
+if not _subscribed:
+    _render_lock_wall("Program Snapshot")
+else:
+    def snap_block(row, gender_label, cls, reg, pi_row, team_key):
+        if row is None:
+            st.markdown(
+                f'<div class="card"><div class="lbl">{gender_label}</div>'
+                '<div style="color:#475569;font-size:0.85rem;margin-top:6px;">No data this season</div></div>',
+                unsafe_allow_html=True,
+            )
+            return
 
-    wpct       = sf(row.get("WinPct",         0.0))
-    record     = get(row, "Record")
-    g_rem      = int(sf(row.get("GamesRemaining", 0)))
-    ppg        = sf(row.get("PPG",            np.nan), np.nan)
-    oppg       = sf(row.get("OPPG",           np.nan), np.nan)
-    mpg        = sf(row.get("MarginPG",       np.nan), np.nan)
-    l5mpg      = sf(row.get("L5MarginPG",     np.nan), np.nan)
-    l10mpg     = sf(row.get("Last10MarginPG", np.nan), np.nan)
-    hi_score   = sf(row.get("HighestScore",   np.nan), np.nan)
-    lo_score   = sf(row.get("LowestScore",    np.nan), np.nan)
+        wpct       = sf(row.get("WinPct",         0.0))
+        record     = get(row, "Record")
+        g_rem      = int(sf(row.get("GamesRemaining", 0)))
+        ppg        = sf(row.get("PPG",            np.nan), np.nan)
+        oppg       = sf(row.get("OPPG",           np.nan), np.nan)
+        mpg        = sf(row.get("MarginPG",       np.nan), np.nan)
+        l5mpg      = sf(row.get("L5MarginPG",     np.nan), np.nan)
+        l10mpg     = sf(row.get("Last10MarginPG", np.nan), np.nan)
+        hi_score   = sf(row.get("HighestScore",   np.nan), np.nan)
+        lo_score   = sf(row.get("LowestScore",    np.nan), np.nan)
 
-    off_eff    = sf(row.get("OffEff",  np.nan), np.nan)
-    def_eff    = sf(row.get("DefEff",  np.nan), np.nan)
-    net_eff    = sf(row.get("NetEff",  np.nan), np.nan)
-    off_ridge  = sf(pi_row["OffRating_Ridge"],    np.nan) if pi_row is not None else np.nan
-    def_ridge  = sf(pi_row["DefRating_Ridge"],    np.nan) if pi_row is not None else np.nan
-    pi_display = sf(pi_row["PowerIndex_Display"], np.nan) if pi_row is not None else np.nan
+        off_eff    = sf(row.get("OffEff",  np.nan), np.nan)
+        def_eff    = sf(row.get("DefEff",  np.nan), np.nan)
+        net_eff    = sf(row.get("NetEff",  np.nan), np.nan)
+        off_ridge  = sf(pi_row["OffRating_Ridge"],    np.nan) if pi_row is not None else np.nan
+        def_ridge  = sf(pi_row["DefRating_Ridge"],    np.nan) if pi_row is not None else np.nan
+        pi_display = sf(pi_row["PowerIndex_Display"], np.nan) if pi_row is not None else np.nan
 
-    ti         = sf(row.get("TI",        np.nan), np.nan)
-    rpi        = sf(row.get("RPI",       np.nan), np.nan)
-    sos        = sf(row.get("SOS_EWP",   np.nan), np.nan)
-    luckz      = sf(row.get("LuckZ",     np.nan), np.nan)
-    exp_w      = sf(row.get("ExpectedWins",    np.nan), np.nan)
-    sadj_w     = sf(row.get("ScheduleAdjWins", np.nan), np.nan)
-    proj_seed  = sf(row.get("ProjectedSeed",   np.nan), np.nan)
-    rank_n     = sf(row.get("Rank",            np.nan), np.nan)
+        ti         = sf(row.get("TI",        np.nan), np.nan)
+        rpi        = sf(row.get("RPI",       np.nan), np.nan)
+        sos        = sf(row.get("SOS_EWP",   np.nan), np.nan)
+        luckz      = sf(row.get("LuckZ",     np.nan), np.nan)
+        exp_w      = sf(row.get("ExpectedWins",    np.nan), np.nan)
+        sadj_w     = sf(row.get("ScheduleAdjWins", np.nan), np.nan)
+        proj_seed  = sf(row.get("ProjectedSeed",   np.nan), np.nan)
+        rank_n     = sf(row.get("Rank",            np.nan), np.nan)
 
-    streak_lbl = get(row, "StreakLabel", default="—")
+        streak_lbl = get(row, "StreakLabel", default="—")
 
-    h_w   = int(sf(row.get("HomeWins",   0))); h_l  = int(sf(row.get("HomeLosses",  0)))
-    h_mpg = sf(row.get("HomeMarginPG",   np.nan), np.nan)
-    r_w   = int(sf(row.get("RoadWins",   0))); r_l  = int(sf(row.get("RoadLosses",  0)))
-    r_mpg = sf(row.get("RoadMarginPG",   np.nan), np.nan)
+        h_w   = int(sf(row.get("HomeWins",   0))); h_l  = int(sf(row.get("HomeLosses",  0)))
+        h_mpg = sf(row.get("HomeMarginPG",   np.nan), np.nan)
+        r_w   = int(sf(row.get("RoadWins",   0))); r_l  = int(sf(row.get("RoadLosses",  0)))
+        r_mpg = sf(row.get("RoadMarginPG",   np.nan), np.nan)
 
-    cl_w  = int(sf(row.get("CloseWins",  0))); cl_l = int(sf(row.get("CloseLosses", 0)))
-    cl_wp = sf(row.get("CloseWinPct",    np.nan), np.nan)
+        cl_w  = int(sf(row.get("CloseWins",  0))); cl_l = int(sf(row.get("CloseLosses", 0)))
+        cl_wp = sf(row.get("CloseWinPct",    np.nan), np.nan)
 
-    q1w = int(sf(row.get("Q1_Wins",0))); q1l = int(sf(row.get("Q1_Losses",0)))
-    q2w = int(sf(row.get("Q2_Wins",0))); q2l = int(sf(row.get("Q2_Losses",0)))
-    q3w = int(sf(row.get("Q3_Wins",0))); q3l = int(sf(row.get("Q3_Losses",0)))
-    q4w = int(sf(row.get("Q4_Wins",0))); q4l = int(sf(row.get("Q4_Losses",0)))
-    q_wins  = int(sf(row.get("QualityWins", 0)))
-    bad_l   = int(sf(row.get("BadLosses",   0)))
-    top25_w = int(sf(row.get("Top25Wins",   0)))
+        q1w = int(sf(row.get("Q1_Wins",0))); q1l = int(sf(row.get("Q1_Losses",0)))
+        q2w = int(sf(row.get("Q2_Wins",0))); q2l = int(sf(row.get("Q2_Losses",0)))
+        q3w = int(sf(row.get("Q3_Wins",0))); q3l = int(sf(row.get("Q3_Losses",0)))
+        q4w = int(sf(row.get("Q4_Wins",0))); q4l = int(sf(row.get("Q4_Losses",0)))
+        q_wins  = int(sf(row.get("QualityWins", 0)))
+        bad_l   = int(sf(row.get("BadLosses",   0)))
+        top25_w = int(sf(row.get("Top25Wins",   0)))
 
-    best_win   = get(row, "BestWin",   default="")
-    best_mar   = sf(row.get("BestWinMargin",   np.nan), np.nan)
-    worst_loss = get(row, "WorstLoss", default="")
-    worst_mar  = sf(row.get("WorstLossMargin", np.nan), np.nan)
+        best_win   = get(row, "BestWin",   default="")
+        best_mar   = sf(row.get("BestWinMargin",   np.nan), np.nan)
+        worst_loss = get(row, "WorstLoss", default="")
+        worst_mar  = sf(row.get("WorstLossMargin", np.nan), np.nan)
 
-    in_div_w = int(sf(row.get("InDivisionWins",    0)))
-    xdiv_w   = int(sf(row.get("CrossDivisionWins", 0)))
+        in_div_w = int(sf(row.get("InDivisionWins",    0)))
+        xdiv_w   = int(sf(row.get("CrossDivisionWins", 0)))
 
-    ats_info = ats_summary(team_key, gender_label) if team_key else None
-    if ats_info:
-        covers, no_cover, pushes, pct_val, avg_m = ats_info
-        ats_clr = "#22c55e" if pct_val >= 0.5 else "#ef4444"
-        avg_clr = "#22c55e" if (not np.isnan(avg_m) and avg_m >= 0) else "#ef4444"
-        ats_rec = f'<span style="color:{ats_clr};font-weight:700;">{covers}-{no_cover}-{pushes}</span>'
-        ats_pct = f'<span style="color:{ats_clr};font-weight:700;">{pct_val:.0%}</span>'
-        ats_avg = (f'<span style="color:{avg_clr};font-weight:700;">{avg_m:+.1f}</span>'
-                   if not np.isnan(avg_m) else "—")
-    else:
-        ats_rec = ats_pct = ats_avg = "—"
+        ats_info = ats_summary(team_key, gender_label) if team_key else None
+        if ats_info:
+            covers, no_cover, pushes, pct_val, avg_m = ats_info
+            ats_clr = "#22c55e" if pct_val >= 0.5 else "#ef4444"
+            avg_clr = "#22c55e" if (not np.isnan(avg_m) and avg_m >= 0) else "#ef4444"
+            ats_rec = f'<span style="color:{ats_clr};font-weight:700;">{covers}-{no_cover}-{pushes}</span>'
+            ats_pct = f'<span style="color:{ats_clr};font-weight:700;">{pct_val:.0%}</span>'
+            ats_avg = (f'<span style="color:{avg_clr};font-weight:700;">{avg_m:+.1f}</span>'
+                       if not np.isnan(avg_m) else "—")
+        else:
+            ats_rec = ats_pct = ats_avg = "—"
 
-    bar       = win_bar(wpct)
-    ht        = heat(luckz)
-    seed_s    = f"#{int(proj_seed)}" if not np.isnan(proj_seed) else "?"
-    cl_wp_c   = "#22c55e" if (not np.isnan(cl_wp) and cl_wp >= 0.5) else "#ef4444"
-    cl_wp_s   = f"{cl_wp:.0%}" if not np.isnan(cl_wp) else "—"
-    best_m_s  = f" <span style='color:#22c55e;'>+{best_mar:.0f}</span>" if not np.isnan(best_mar)  else ""
-    worst_m_s = f" <span style='color:#ef4444;'>{worst_mar:.0f}</span>" if not np.isnan(worst_mar) else ""
+        bar       = win_bar(wpct)
+        ht        = heat(luckz)
+        seed_s    = f"#{int(proj_seed)}" if not np.isnan(proj_seed) else "?"
+        cl_wp_c   = "#22c55e" if (not np.isnan(cl_wp) and cl_wp >= 0.5) else "#ef4444"
+        cl_wp_s   = f"{cl_wp:.0%}" if not np.isnan(cl_wp) else "—"
+        best_m_s  = f" <span style='color:#22c55e;'>+{best_mar:.0f}</span>" if not np.isnan(best_mar)  else ""
+        worst_m_s = f" <span style='color:#ef4444;'>{worst_mar:.0f}</span>" if not np.isnan(worst_mar) else ""
 
-    st.markdown(f"""
+        st.markdown(f"""
 <div class="card">
 
   <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;">
@@ -723,69 +771,71 @@ def snap_block(row, gender_label, cls, reg, pi_row, team_key):
 </div>
 """, unsafe_allow_html=True)
 
-
-sc1, sc2 = st.columns(2)
-with sc1: snap_block(boys_row,  "Boys",  boys_cls,  boys_reg,  boys_pi,  boys_key)
-with sc2: snap_block(girls_row, "Girls", girls_cls, girls_reg, girls_pi, girls_key)
+    sc1, sc2 = st.columns(2)
+    with sc1: snap_block(boys_row,  "Boys",  boys_cls,  boys_reg,  boys_pi,  boys_key)
+    with sc2: snap_block(girls_row, "Girls", girls_cls, girls_reg, girls_pi, girls_key)
 
 # ══════════════════════════════════════════════════════════════════════════
-#  SECTION 3 – RECENT GAMES + NEXT UP
+#  SECTION 3 – RECENT GAMES + NEXT UP  (🔒 LOCKED)
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown('<div class="section-head">&#x1F5D3; Recent Games &amp; Next Up</div>', unsafe_allow_html=True)
 
-def games_block(team_key: str, gender_label: str):
-    if not team_key or games_df.empty:
-        st.markdown(f"*No schedule data for {gender_label}.*"); return
+if not _subscribed:
+    _render_lock_wall("Recent Games & Next Up")
+else:
+    def games_block(team_key: str, gender_label: str):
+        if not team_key or games_df.empty:
+            st.markdown(f"*No schedule data for {gender_label}.*"); return
 
-    g = games_for(team_key, gender_label)
-    if g.empty:
-        st.markdown(f"*No games found for {gender_label}.*"); return
-    g = perspective(g, team_key)
+        g = games_for(team_key, gender_label)
+        if g.empty:
+            st.markdown(f"*No games found for {gender_label}.*"); return
+        g = perspective(g, team_key)
 
-    played   = g[g["Played"] == True].copy()  if "Played" in g.columns else pd.DataFrame()
-    upcoming = g[g["Played"] == False].copy() if "Played" in g.columns else pd.DataFrame()
-    if "Date" in played.columns:   played   = played.sort_values("Date", ascending=False)
-    if "Date" in upcoming.columns: upcoming = upcoming.sort_values("Date", ascending=True)
+        played   = g[g["Played"] == True].copy()  if "Played" in g.columns else pd.DataFrame()
+        upcoming = g[g["Played"] == False].copy() if "Played" in g.columns else pd.DataFrame()
+        if "Date" in played.columns:   played   = played.sort_values("Date", ascending=False)
+        if "Date" in upcoming.columns: upcoming = upcoming.sort_values("Date", ascending=True)
 
-    st.markdown(f"**{gender_label} — Last 5 Results**")
-    if played.empty:
-        st.markdown("*No completed games yet.*")
-    else:
-        for _, row in played.head(5).iterrows():
-            tm    = sf(row.get("TeamMargin", np.nan), np.nan)
-            rc    = "game-row-w" if tm > 0 else "game-row-l"
-            icon  = "✅" if tm > 10 else ("💚" if tm > 0 else ("🧡" if tm > -10 else "❌"))
-            opp   = str(row.get("OppName","Opponent"))
-            dv    = pd.to_datetime(row.get("Date", pd.NaT))
-            ds    = dv.strftime("%b %d") if pd.notna(dv) else ""
-            tp    = sf(row.get("TeamPts", np.nan), np.nan)
-            op_   = sf(row.get("OppPts",  np.nan), np.nan)
-            sc_s  = f"{int(tp)}-{int(op_)}" if not (np.isnan(tp) or np.isnan(op_)) else "—"
-            mar_s = f"{tm:+.0f}" if not np.isnan(tm) else "—"
+        st.markdown(f"**{gender_label} — Last 5 Results**")
+        if played.empty:
+            st.markdown("*No completed games yet.*")
+        else:
+            for _, row in played.head(5).iterrows():
+                tm    = sf(row.get("TeamMargin", np.nan), np.nan)
+                rc    = "game-row-w" if tm > 0 else "game-row-l"
+                icon  = "✅" if tm > 10 else ("💚" if tm > 0 else ("🧡" if tm > -10 else "❌"))
+                opp   = str(row.get("OppName","Opponent"))
+                dv    = pd.to_datetime(row.get("Date", pd.NaT))
+                ds    = dv.strftime("%b %d") if pd.notna(dv) else ""
+                tp    = sf(row.get("TeamPts", np.nan), np.nan)
+                op_   = sf(row.get("OppPts",  np.nan), np.nan)
+                sc_s  = f"{int(tp)}-{int(op_)}" if not (np.isnan(tp) or np.isnan(op_)) else "—"
+                mar_s = f"{tm:+.0f}" if not np.isnan(tm) else "—"
 
-            ats_r  = str(row.get("ATSResult",""))
-            ats_m  = sf(row.get("ATSMargin",  np.nan), np.nan)
-            spread = sf(row.get("TeamSpread", np.nan), np.nan)
-            if ats_r in ("COVER","NO_COVER","PUSH"):
-                ac  = "#22c55e" if ats_r == "COVER" else ("#ef4444" if ats_r == "NO_COVER" else "#eab308")
-                al  = "COV" if ats_r == "COVER" else ("NO" if ats_r == "NO_COVER" else "PSH")
-                am_s = f"{ats_m:+.1f}" if not np.isnan(ats_m) else ""
-                sp_s = f"sprd {spread:+.1f}" if not np.isnan(spread) else ""
-                ats_html = (
-                    f'<div style="min-width:80px;text-align:right;">'
-                    f'<div style="color:{ac};font-weight:700;font-size:0.78rem;">{al} {am_s}</div>'
-                    f'<div style="font-size:0.66rem;color:#475569;">{sp_s}</div>'
-                    f'</div>'
-                )
-            else:
-                ats_html = '<div style="min-width:80px;"></div>'
+                ats_r  = str(row.get("ATSResult",""))
+                ats_m  = sf(row.get("ATSMargin",  np.nan), np.nan)
+                spread = sf(row.get("TeamSpread", np.nan), np.nan)
+                if ats_r in ("COVER","NO_COVER","PUSH"):
+                    ac  = "#22c55e" if ats_r == "COVER" else ("#ef4444" if ats_r == "NO_COVER" else "#eab308")
+                    al  = "COV" if ats_r == "COVER" else ("NO" if ats_r == "NO_COVER" else "PSH")
+                    am_s = f"{ats_m:+.1f}" if not np.isnan(ats_m) else ""
+                    sp_s = f"sprd {spread:+.1f}" if not np.isnan(spread) else ""
+                    ats_html = (
+                        f'<div style="min-width:80px;text-align:right;">'
+                        f'<div style="color:{ac};font-weight:700;font-size:0.78rem;">{al} {am_s}</div>'
+                        f'<div style="font-size:0.66rem;color:#475569;">{sp_s}</div>'
+                        f'</div>'
+                    )
+                else:
+                    ats_html = '<div style="min-width:80px;"></div>'
 
-            opp_rank  = sf(row.get("OppRank", np.nan), np.nan)
-            rank_tag  = f'<span style="color:#64748b;font-size:0.68rem;margin-left:4px;">#{int(opp_rank)}</span>' if not np.isnan(opp_rank) else ""
-            close_tag = '<span style="color:#eab308;font-size:0.66rem;margin-left:4px;">CLOSE</span>' if str(row.get("IsClose","")) == "1" else ""
-            blow_tag  = '<span style="color:#64748b;font-size:0.66rem;margin-left:4px;">BLW</span>'   if str(row.get("IsBlowout","")) == "1" else ""
+                opp_rank  = sf(row.get("OppRank", np.nan), np.nan)
+                rank_tag  = f'<span style="color:#64748b;font-size:0.68rem;margin-left:4px;">#{int(opp_rank)}</span>' if not np.isnan(opp_rank) else ""
+                close_tag = '<span style="color:#eab308;font-size:0.66rem;margin-left:4px;">CLOSE</span>' if str(row.get("IsClose","")) == "1" else ""
+                blow_tag  = '<span style="color:#64748b;font-size:0.66rem;margin-left:4px;">BLW</span>'   if str(row.get("IsBlowout","")) == "1" else ""
 
-            st.markdown(f"""
+                st.markdown(f"""
 <div class="game-row {rc}">
   <div style="font-size:1.0rem;min-width:20px;">{icon}</div>
   <div class="game-opp">{opp}{rank_tag}{close_tag}{blow_tag}
@@ -797,26 +847,26 @@ def games_block(team_key: str, gender_label: str):
 </div>
 """, unsafe_allow_html=True)
 
-    st.markdown(f"**{gender_label} — Next 3 Games**")
-    if upcoming.empty:
-        st.markdown("*No upcoming games scheduled.*")
-    else:
-        for _, row in upcoming.head(3).iterrows():
-            opp    = str(row.get("OppName","Opponent"))
-            dv     = pd.to_datetime(row.get("Date", pd.NaT))
-            ds     = dv.strftime("%b %d") if pd.notna(dv) else "TBD"
-            loc    = "vs" if row.get("IsHome", True) else "@"
-            wp     = sf(row.get("TeamWinProb", np.nan), np.nan)
-            spread = sf(row.get("TeamSpread",  np.nan), np.nan)
-            wp_s   = f"{wp:.0%}"      if not np.isnan(wp)     else "—"
-            wp_c   = "#22c55e"        if (not np.isnan(wp) and wp >= 0.5) else "#f97316"
-            sp_s   = f"{spread:+.1f}" if not np.isnan(spread) else ""
-            opp_r  = sf(row.get("OppRank", np.nan), np.nan)
-            rank_s = f'<span style="color:#64748b;font-size:0.70rem;margin-left:4px;">#{int(opp_r)}</span>' if not np.isnan(opp_r) else ""
-            blow_w  = " 💥" if str(row.get("BlowoutMode",""))   == "True" else ""
-            rematch = ' <span style="color:#eab308;font-size:0.68rem;">REMATCH</span>' if str(row.get("SecondMeeting","")) == "True" else ""
+        st.markdown(f"**{gender_label} — Next 3 Games**")
+        if upcoming.empty:
+            st.markdown("*No upcoming games scheduled.*")
+        else:
+            for _, row in upcoming.head(3).iterrows():
+                opp    = str(row.get("OppName","Opponent"))
+                dv     = pd.to_datetime(row.get("Date", pd.NaT))
+                ds     = dv.strftime("%b %d") if pd.notna(dv) else "TBD"
+                loc    = "vs" if row.get("IsHome", True) else "@"
+                wp     = sf(row.get("TeamWinProb", np.nan), np.nan)
+                spread = sf(row.get("TeamSpread",  np.nan), np.nan)
+                wp_s   = f"{wp:.0%}"      if not np.isnan(wp)     else "—"
+                wp_c   = "#22c55e"        if (not np.isnan(wp) and wp >= 0.5) else "#f97316"
+                sp_s   = f"{spread:+.1f}" if not np.isnan(spread) else ""
+                opp_r  = sf(row.get("OppRank", np.nan), np.nan)
+                rank_s = f'<span style="color:#64748b;font-size:0.70rem;margin-left:4px;">#{int(opp_r)}</span>' if not np.isnan(opp_r) else ""
+                blow_w  = " 💥" if str(row.get("BlowoutMode",""))   == "True" else ""
+                rematch = ' <span style="color:#eab308;font-size:0.68rem;">REMATCH</span>' if str(row.get("SecondMeeting","")) == "True" else ""
 
-            st.markdown(f"""
+                st.markdown(f"""
 <div class="upcoming-row">
   <div class="upcoming-date">{ds}</div>
   <div class="upcoming-opp">{loc} {opp}{blow_w}{rematch}{rank_s}</div>
@@ -827,63 +877,65 @@ def games_block(team_key: str, gender_label: str):
 </div>
 """, unsafe_allow_html=True)
 
-
-gc1, gc2 = st.columns(2)
-with gc1: games_block(boys_key,  "Boys")
-with gc2: games_block(girls_key, "Girls")
+    gc1, gc2 = st.columns(2)
+    with gc1: games_block(boys_key,  "Boys")
+    with gc2: games_block(girls_key, "Girls")
 
 # ══════════════════════════════════════════════════════════════════════════
-#  SECTION 4 – TOURNAMENT OUTLOOK
+#  SECTION 4 – TOURNAMENT OUTLOOK  (🔒 LOCKED)
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown('<div class="section-head">&#x1F3C6; Tournament Outlook</div>', unsafe_allow_html=True)
 
-def tourn_block(row, team_key, gender_label, cls, reg, pi_row):
-    if row is None:
-        st.markdown(f"*No tournament data for {gender_label}.*"); return
+if not _subscribed:
+    _render_lock_wall("Tournament Outlook")
+else:
+    def tourn_block(row, team_key, gender_label, cls, reg, pi_row):
+        if row is None:
+            st.markdown(f"*No tournament data for {gender_label}.*"); return
 
-    ti      = sf(row.get("TI",           np.nan), np.nan)
-    pi_disp = sf(pi_row["PowerIndex_Display"], np.nan) if pi_row is not None else np.nan
-    seed    = sf(row.get("ProjectedSeed", np.nan), np.nan)
-    rank_n  = sf(row.get("Rank",          np.nan), np.nan)
-    qual    = is_qualified(rank_n, gender_label, cls, reg)
-    rpi     = sf(row.get("RPI",           np.nan), np.nan)
-    sos     = sf(row.get("SOS_EWP",       np.nan), np.nan)
-    q1w = int(sf(row.get("Q1_Wins",0))); q1l = int(sf(row.get("Q1_Losses",0)))
-    q2w = int(sf(row.get("Q2_Wins",0))); q2l = int(sf(row.get("Q2_Losses",0)))
-    q_wins  = int(sf(row.get("QualityWins", 0)))
-    bad_l   = int(sf(row.get("BadLosses",   0)))
-    l5mpg   = sf(row.get("L5MarginPG",   np.nan), np.nan)
-    best_w  = get(row, "BestWin", default="")
-    best_m  = sf(row.get("BestWinMargin", np.nan), np.nan)
+        ti      = sf(row.get("TI",           np.nan), np.nan)
+        pi_disp = sf(pi_row["PowerIndex_Display"], np.nan) if pi_row is not None else np.nan
+        seed    = sf(row.get("ProjectedSeed", np.nan), np.nan)
+        rank_n  = sf(row.get("Rank",          np.nan), np.nan)
+        qual    = is_qualified(rank_n, gender_label, cls, reg)
+        rpi     = sf(row.get("RPI",           np.nan), np.nan)
+        sos     = sf(row.get("SOS_EWP",       np.nan), np.nan)
+        q1w = int(sf(row.get("Q1_Wins",0))); q1l = int(sf(row.get("Q1_Losses",0)))
+        q2w = int(sf(row.get("Q2_Wins",0))); q2l = int(sf(row.get("Q2_Losses",0)))
+        q_wins  = int(sf(row.get("QualityWins", 0)))
+        bad_l   = int(sf(row.get("BadLosses",   0)))
+        l5mpg   = sf(row.get("L5MarginPG",   np.nan), np.nan)
+        best_w  = get(row, "BestWin", default="")
+        best_m  = sf(row.get("BestWinMargin", np.nan), np.nan)
 
-    champ_pct = np.nan; r1_opp = "—"; r1_wp = np.nan
-    if not sim_df.empty and team_key:
-        kc = next((c for c in sim_df.columns if "key" in c.lower()), None)
-        if kc:
-            sr = sim_df[sim_df[kc].astype(str) == team_key]
-            if not sr.empty:
-                s0        = sr.iloc[0]
-                champ_pct = sf(s0.get("SimChampPct", np.nan), np.nan) / 100.0
-                r1_opp    = get(s0, "R1Opponent", "Round1Opp", "FirstRoundOpp")
-                r1_wp     = sf(s0.get("R1WinProb", s0.get("Round1WinProb", np.nan)), np.nan)
+        champ_pct = np.nan; r1_opp = "—"; r1_wp = np.nan
+        if not sim_df.empty and team_key:
+            kc = next((c for c in sim_df.columns if "key" in c.lower()), None)
+            if kc:
+                sr = sim_df[sim_df[kc].astype(str) == team_key]
+                if not sr.empty:
+                    s0        = sr.iloc[0]
+                    champ_pct = sf(s0.get("SimChampPct", np.nan), np.nan) / 100.0
+                    r1_opp    = get(s0, "R1Opponent", "Round1Opp", "FirstRoundOpp")
+                    r1_wp     = sf(s0.get("R1WinProb", s0.get("Round1WinProb", np.nan)), np.nan)
 
-    qual_badge = '<span class="badge-qualified">&#x2705; QUALIFIED</span>' if qual \
-        else '<span class="badge-bubble">Bubble</span>'
-    seed_s   = f"#{int(seed)}"    if not np.isnan(seed)       else "?"
-    rank_s   = f"#{int(rank_n)}"  if not np.isnan(rank_n)     else "—"
-    champ_s  = f"{champ_pct:.1%}" if not np.isnan(champ_pct)  else "—"
-    r1_wp_s  = f"{r1_wp:.0%}"     if not np.isnan(r1_wp)      else "—"
-    r1_clr   = "#22c55e" if (not np.isnan(r1_wp) and r1_wp >= 0.5) else "#f97316"
-    best_m_s = f" (+{best_m:.0f})" if not np.isnan(best_m)    else ""
+        qual_badge = '<span class="badge-qualified">&#x2705; QUALIFIED</span>' if qual \
+            else '<span class="badge-bubble">Bubble</span>'
+        seed_s   = f"#{int(seed)}"    if not np.isnan(seed)       else "?"
+        rank_s   = f"#{int(rank_n)}"  if not np.isnan(rank_n)     else "—"
+        champ_s  = f"{champ_pct:.1%}" if not np.isnan(champ_pct)  else "—"
+        r1_wp_s  = f"{r1_wp:.0%}"     if not np.isnan(r1_wp)      else "—"
+        r1_clr   = "#22c55e" if (not np.isnan(r1_wp) and r1_wp >= 0.5) else "#f97316"
+        best_m_s = f" (+{best_m:.0f})" if not np.isnan(best_m)    else ""
 
-    r1_line = (
-        f'<div style="margin-top:10px;padding-top:10px;border-top:1px solid #166534;'
-        f'font-size:0.88rem;color:#d1fae5;">'
-        f'If season ended today &rarr; Round 1 vs <b>{r1_opp}</b>'
-        f' &nbsp; <span style="color:{r1_clr};font-weight:700;">Win prob: {r1_wp_s}</span></div>'
-    ) if not np.isnan(r1_wp) else ""
+        r1_line = (
+            f'<div style="margin-top:10px;padding-top:10px;border-top:1px solid #166534;'
+            f'font-size:0.88rem;color:#d1fae5;">'
+            f'If season ended today &rarr; Round 1 vs <b>{r1_opp}</b>'
+            f' &nbsp; <span style="color:{r1_clr};font-weight:700;">Win prob: {r1_wp_s}</span></div>'
+        ) if not np.isnan(r1_wp) else ""
 
-    st.markdown(f"""
+        st.markdown(f"""
 <div class="tourn-card">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
     <span style="font-size:0.70rem;color:#86efac;text-transform:uppercase;letter-spacing:.05em;">
@@ -928,15 +980,14 @@ def tourn_block(row, team_key, gender_label, cls, reg, pi_row):
 </div>
 """, unsafe_allow_html=True)
 
-
-col_b, col_g = st.columns(2)
-with col_b:
-    tourn_block(boys_row,  boys_key,  "Boys",  boys_cls,  boys_reg,  boys_pi)
-with col_g:
-    tourn_block(girls_row, girls_key, "Girls", girls_cls, girls_reg, girls_pi)
+    col_b, col_g = st.columns(2)
+    with col_b:
+        tourn_block(boys_row,  boys_key,  "Boys",  boys_cls,  boys_reg,  boys_pi)
+    with col_g:
+        tourn_block(girls_row, girls_key, "Girls", girls_cls, girls_reg, girls_pi)
 
 # ══════════════════════════════════════════════════════════════════════════
-#  SECTION 5 – SCHOOL RECORD BOOK
+#  SECTION 5 – SCHOOL RECORD BOOK  (FREE — community content)
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown('<div class="section-head">&#x1F4D6; School Record Book</div>', unsafe_allow_html=True)
 
@@ -982,41 +1033,41 @@ else:
     )
 
 # ══════════════════════════════════════════════════════════════════════════
-#  SECTION 6 – ROAD TRIP
+#  SECTION 6 – ROAD TRIP  (🔒 LOCKED)
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown('<div class="section-head">&#x1F68C; Road Trip</div>', unsafe_allow_html=True)
 
-@st.cache_data(show_spinner=False, ttl=3600)
-def load_travel():
-    tp = DATA_DIR / "travel_core_v50.parquet"
-    return pd.read_parquet(tp) if tp.exists() else pd.DataFrame()
+if not _subscribed:
+    _render_lock_wall("Road Trip")
+else:
+    @st.cache_data(show_spinner=False, ttl=3600)
+    def load_travel():
+        tp = DATA_DIR / "travel_core_v50.parquet"
+        return pd.read_parquet(tp) if tp.exists() else pd.DataFrame()
 
-travel_df = load_travel()
+    travel_df = load_travel()
 
-def travel_block(team_key: str, gender_label: str):
-    if travel_df.empty or not team_key:
-        st.markdown(f"*No travel data for {gender_label}.*")
-        return
-    
-    # Filter to this team's away games
-    away_games = travel_df[travel_df["AwayKey"] == team_key].copy()
-    if away_games.empty:
-        st.markdown(f"*No away games found for {gender_label}.*")
-        return
-    
-    # Compute summary
-    total_miles = away_games["MilesRoundTrip"].sum()
-    total_hours = away_games["BusHours"].sum()
-    avg_miles = away_games["MilesRoundTrip"].mean()
-    longest = away_games["MilesOneWay"].max()
-    trips = len(away_games)
-    
-    # Road record
-    played = away_games[away_games["Played"].fillna(False)]
-    road_w = (played["WinnerTeam"] == played["Away"]).sum()
-    road_l = len(played) - road_w
-    
-    st.markdown(f"""
+    def travel_block(team_key: str, gender_label: str):
+        if travel_df.empty or not team_key:
+            st.markdown(f"*No travel data for {gender_label}.*")
+            return
+
+        away_games = travel_df[travel_df["AwayKey"] == team_key].copy()
+        if away_games.empty:
+            st.markdown(f"*No away games found for {gender_label}.*")
+            return
+
+        total_miles = away_games["MilesRoundTrip"].sum()
+        total_hours = away_games["BusHours"].sum()
+        avg_miles = away_games["MilesRoundTrip"].mean()
+        longest = away_games["MilesOneWay"].max()
+        trips = len(away_games)
+
+        played = away_games[away_games["Played"].fillna(False)]
+        road_w = (played["WinnerTeam"] == played["Away"]).sum()
+        road_l = len(played) - road_w
+
+        st.markdown(f"""
 <div class="card">
   <div class="lbl">{gender_label} Travel Summary</div>
   <div class="stat-row" style="margin-top:8px;">
@@ -1041,23 +1092,22 @@ def travel_block(team_key: str, gender_label: str):
       <div class="sm">{road_w}-{road_l}</div>
     </div>
   </div>
-  
+
   <div style="margin-top:12px;">
     <div class="lbl">Last 5 Road Trips</div>
 """, unsafe_allow_html=True)
-    
-    # Mini table
-    recent = played.sort_values("Date", ascending=False).head(5)
-    for _, row in recent.iterrows():
-        opp = row.get("Home", "Opponent")
-        miles = row["MilesRoundTrip"]
-        result = "W" if row["WinnerTeam"] == row["Away"] else "L"
-        margin = row.get("AwayScore", 0) - row.get("HomeScore", 0)
-        date_str = pd.to_datetime(row["Date"]).strftime("%b %d")
-        
-        color = "#22c55e" if result == "W" else "#ef4444"
-        
-        st.markdown(f"""
+
+        recent = played.sort_values("Date", ascending=False).head(5)
+        for _, row in recent.iterrows():
+            opp = row.get("Home", "Opponent")
+            miles = row["MilesRoundTrip"]
+            result = "W" if row["WinnerTeam"] == row["Away"] else "L"
+            margin = row.get("AwayScore", 0) - row.get("HomeScore", 0)
+            date_str = pd.to_datetime(row["Date"]).strftime("%b %d")
+
+            color = "#22c55e" if result == "W" else "#ef4444"
+
+            st.markdown(f"""
 <div style="display:flex;gap:8px;padding:6px 0;font-size:0.82rem;border-bottom:1px solid #1e293b;">
   <div style="min-width:48px;color:#64748b;">{date_str}</div>
   <div style="flex:1;color:#cbd5e1;">{opp}</div>
@@ -1066,9 +1116,9 @@ def travel_block(team_key: str, gender_label: str):
   <div style="min-width:36px;text-align:right;color:{color};">{margin:+.0f}</div>
 </div>
 """, unsafe_allow_html=True)
-    
-    enc = selected.replace(" ", "+")
-    st.markdown(f"""
+
+        enc = selected.replace(" ", "+")
+        st.markdown(f"""
   </div>
   <div style="margin-top:12px;text-align:center;">
     <a href="/Road_Trips" target="_self" style="color:#38bdf8;font-size:0.82rem;font-weight:600;text-decoration:none;">
@@ -1078,9 +1128,9 @@ def travel_block(team_key: str, gender_label: str):
 </div>
 """, unsafe_allow_html=True)
 
-col_b, col_g = st.columns(2)
-with col_b: travel_block(boys_key, "Boys")
-with col_g: travel_block(girls_key, "Girls")
+    col_b, col_g = st.columns(2)
+    with col_b: travel_block(boys_key, "Boys")
+    with col_g: travel_block(girls_key, "Girls")
 
 
 render_footer()

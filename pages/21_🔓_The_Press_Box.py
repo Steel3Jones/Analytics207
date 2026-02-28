@@ -1,3 +1,4 @@
+# pages/XX__The_Pressbox.py
 from __future__ import annotations
 
 import re
@@ -8,7 +9,12 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 import layout as L
+from auth import login_gate, logout_button
 
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="🏟️ The Pressbox | ANALYTICS207",
     page_icon="🏟️",
@@ -39,6 +45,8 @@ def _sp(n: int = 1) -> None:
     for _ in range(max(0, int(n))): st.write("")
 
 if apply_layout: apply_layout()
+login_gate(required=False)
+logout_button()
 if render_logo:  render_logo()
 if render_header:
     render_header(
@@ -194,15 +202,18 @@ with tab_correction:
 - Team name spelling / duplicates
 - Stat anomalies (PPG, margin, NetEff)
 
+
 **What happens after you submit:**
 1. Submission lands in our review queue
 2. We verify against source data (MPA, live stats)
 3. Fix is applied in the next nightly build
 4. Data refreshes automatically across all pages
 
+
 **Turnaround:** Most corrections go live within 24 hours.
 
-**Source of truth:** We use MPA official results as the primary source. 
+
+**Source of truth:** We use MPA official results as the primary source.
 If something conflicts, official MPA data wins.
         """)
 
@@ -260,19 +271,22 @@ with tab_content:
 - Bracket analysis and tournament breakdowns
 - Opinion pieces backed by numbers
 
+
 **Photography:**
 - Game action from gyms across Maine
 - Student sections, atmosphere shots
 - High resolution preferred (JPG/PNG)
 - Rights must be yours to share
 
+
 **Analytics contributions:**
 - Novel metrics or model ideas
 - Opponent breakdown templates
-- Anything that helps coaches or fans 
+- Anything that helps coaches or fans
   understand the game better
 
-All contributors are credited. Reach out — 
+
+All contributors are credited. Reach out —
 we want to build something worth reading.
         """)
 
@@ -331,20 +345,24 @@ with tab_partner:
 - Model-driven prep packages
 - End-of-season analytics reports
 
+
 **For media & journalists:**
 - Data feeds and stat exports
 - Embeddable rankings and tables
 - Story angles backed by the model
+
 
 **For sponsors & businesses:**
 - Branded placement on rankings pages
 - Weekly email sponsorship
 - Custom integrations with your brand
 
+
 **For coaches & ADs:**
 - Program-specific analytics tools
 - Recruit evaluation frameworks
 - Schedule strength and performance context
+
 
 ---
 📧 Prefer email?

@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+
 from pathlib import Path
 import os
 import datetime as dt
+
 
 import numpy as np
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
+
 
 from layout import (
     apply_global_layout_tweaks,
@@ -15,13 +18,23 @@ from layout import (
     render_page_header,
     render_footer,
 )
+from auth import login_gate, logout_button, is_subscribed
 
+
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="📊 The Aftermath",
     page_icon="🏀",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+SHOW_LOCKS = True
+
 
 # ══════════════════════════════════════════════════════════════════════════
 #  PATHS
@@ -30,6 +43,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("DATA_DIR", PROJECT_ROOT / "data"))
 ANALYTICS_PATH = DATA_DIR / "core" / "games_analytics_v50.parquet"
 PREDS_PATH     = DATA_DIR / "predictions" / "games_predictions_current.parquet"
+
 
 # ══════════════════════════════════════════════════════════════════════════
 #  SHARED IFRAME STYLES
@@ -44,6 +58,7 @@ body {
 }
 </style>
 """
+
 
 # ══════════════════════════════════════════════════════════════════════════
 #  DATA
@@ -117,6 +132,7 @@ def load_games() -> pd.DataFrame:
 
     return df.reset_index(drop=True)
 
+
 # ══════════════════════════════════════════════════════════════════════════
 #  HELPERS
 # ══════════════════════════════════════════════════════════════════════════
@@ -161,26 +177,62 @@ def _section_header(icon: str, label: str) -> None:
         unsafe_allow_html=True
     )
 
+
 # ══════════════════════════════════════════════════════════════════════════
-#  NIGHT SUMMARY BANNER
+#  LOCK WALL — shown to non-subscribers in place of detailed sections
+# ══════════════════════════════════════════════════════════════════════════
+def _render_lock_wall(section_name: str) -> None:
+    components.html(f"""{_BASE_CSS}
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(245,158,11,0.3);border-radius:14px;
+            padding:32px 28px;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🔒</div>
+  <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">
+    {section_name} — Subscriber Only
+  </div>
+  <div style="font-size:0.85rem;color:#94a3b8;max-width:420px;margin:0 auto;">
+    Subscribe to unlock full model breakdowns, spread performance,
+    upset analysis, and the complete game log.
+  </div>
+</div>
+""", height=160, scrolling=False)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  NIGHT SUMMARY BANNER  (visible to all — scores are public)
 # ══════════════════════════════════════════════════════════════════════════
 def render_night_banner(dfy: pd.DataFrame, yday: dt.date, gender: str) -> None:
-    n         = len(dfy)
-    n_correct = int(dfy["ModelCorrect"].fillna(0).sum())
-    n_upsets  = int((dfy["ModelCorrect"].fillna(1) == 0).sum())
-    acc       = n_correct / n if n > 0 else 0.0
-    _, gcol   = _grade(acc)
+    n = len(dfy)
+    sub = is_subscribed()
 
-    avg_miss_s = "—"
-    if "AbsSpreadError" in dfy.columns and dfy["AbsSpreadError"].notna().any():
-        avg_miss_s = f"{dfy['AbsSpreadError'].mean():.1f} pts"
+    if sub:
+        n_correct = int(dfy["ModelCorrect"].fillna(0).sum())
+        n_upsets  = int((dfy["ModelCorrect"].fillna(1) == 0).sum())
+        acc       = n_correct / n if n > 0 else 0.0
+        _, gcol   = _grade(acc)
 
-    if n_upsets == 0:
-        headline = f"The Model ran the table — {n_correct}/{n} correct picks"
-    elif n_upsets >= 3:
-        headline = f"Chaos night — {n_upsets} upsets rattled the model"
+        avg_miss_s = "—"
+        if "AbsSpreadError" in dfy.columns and dfy["AbsSpreadError"].notna().any():
+            avg_miss_s = f"{dfy['AbsSpreadError'].mean():.1f} pts"
+
+        if n_upsets == 0:
+            headline = f"The Model ran the table — {n_correct}/{n} correct picks"
+        elif n_upsets >= 3:
+            headline = f"Chaos night — {n_upsets} upsets rattled the model"
+        else:
+            headline = f"{n_correct}/{n} correct · {n_upsets} upset{'s' if n_upsets != 1 else ''} shook things up"
+
+        detail_line = (
+            f"{n} games played &nbsp;·&nbsp;"
+            f"Model accuracy: <strong style=\"color:{gcol};\">{acc:.0%}</strong> &nbsp;·&nbsp;"
+            f"Avg spread miss: <strong style=\"color:#f1f5f9;\">{avg_miss_s}</strong>"
+        )
     else:
-        headline = f"{n_correct}/{n} correct · {n_upsets} upset{'s' if n_upsets != 1 else ''} shook things up"
+        headline = f"{n} games were played last night"
+        detail_line = (
+            f"{n} games played &nbsp;·&nbsp;"
+            f"<span style=\"color:#fbbf24;\">🔒 Subscribe to see model accuracy &amp; spread analysis</span>"
+        )
 
     html = f"""{_BASE_CSS}
 <div style="
@@ -197,18 +249,21 @@ def render_night_banner(dfy: pd.DataFrame, yday: dt.date, gender: str) -> None:
   <div style="font-size:2.0rem;font-weight:900;color:#f8fafc;
               line-height:1.1;margin-bottom:8px;">{headline}</div>
   <div style="font-size:0.88rem;color:#94a3b8;">
-    {n} games played &nbsp;·&nbsp;
-    Model accuracy: <strong style="color:{gcol};">{acc:.0%}</strong> &nbsp;·&nbsp;
-    Avg spread miss: <strong style="color:#f1f5f9;">{avg_miss_s}</strong>
+    {detail_line}
   </div>
 </div>
 """
     components.html(html, height=145, scrolling=False)
 
+
 # ══════════════════════════════════════════════════════════════════════════
 #  MODEL REPORT CARD
 # ══════════════════════════════════════════════════════════════════════════
 def render_report_card(dfy: pd.DataFrame) -> None:
+    if not is_subscribed():
+        _render_lock_wall("Model Report Card")
+        return
+
     n           = len(dfy)
     n_correct   = int(dfy["ModelCorrect"].fillna(0).sum())
     n_upsets    = int((dfy["ModelCorrect"].fillna(1) == 0).sum())
@@ -264,10 +319,15 @@ def render_report_card(dfy: pd.DataFrame) -> None:
     _pill(c4, str(blowout),  "Big Misses (≥15)", "whiffs",              "#f87171")
     _pill(c5, str(n_upsets), "Upsets",           "fav lost",            "#f59e0b")
 
+
 # ══════════════════════════════════════════════════════════════════════════
 #  UPSET SPOTLIGHT
 # ══════════════════════════════════════════════════════════════════════════
 def render_upset_spotlight(dfy: pd.DataFrame) -> None:
+    if not is_subscribed():
+        _render_lock_wall("Upset Spotlight")
+        return
+
     upsets = dfy[
         (dfy["ModelCorrect"].fillna(1) == 0) &
         (pd.to_numeric(dfy["FavProb"], errors="coerce").fillna(0) >= 0.65)
@@ -327,10 +387,15 @@ def render_upset_spotlight(dfy: pd.DataFrame) -> None:
 </div>
 """, height=130, scrolling=False)
 
+
 # ══════════════════════════════════════════════════════════════════════════
 #  SPREAD PERFORMANCE
 # ══════════════════════════════════════════════════════════════════════════
 def render_spread_performance(dfy: pd.DataFrame) -> None:
+    if not is_subscribed():
+        _render_lock_wall("Spread Performance")
+        return
+
     if "AbsSpreadError" not in dfy.columns:
         st.caption("Spread error data not available.")
         return
@@ -395,10 +460,15 @@ def render_spread_performance(dfy: pd.DataFrame) -> None:
         tbl   = _build_spread_table(worst)
         st.dataframe(_style_spread(tbl, "miss"), use_container_width=True, hide_index=True)
 
+
 # ══════════════════════════════════════════════════════════════════════════
 #  FULL GAME LOG
 # ══════════════════════════════════════════════════════════════════════════
 def render_full_game_log(dfy: pd.DataFrame) -> None:
+    if not is_subscribed():
+        _render_lock_wall("Full Game Log")
+        return
+
     _section_header("📋", "Full Game Log")
 
     df = dfy.copy()
@@ -477,6 +547,7 @@ def render_full_game_log(dfy: pd.DataFrame) -> None:
 
     st.dataframe(styled, use_container_width=True, height=min(600, 38 + len(tbl) * 35))
 
+
 # ══════════════════════════════════════════════════════════════════════════
 #  TONIGHT'S CARD
 # ══════════════════════════════════════════════════════════════════════════
@@ -508,6 +579,10 @@ def render_tonight(df_day: pd.DataFrame, day: dt.date, gender: str) -> None:
 
     if df_day.empty:
         st.info("No games on the card tonight for these filters.")
+        return
+
+    if not is_subscribed():
+        _render_lock_wall("Tonight's Card")
         return
 
     tagged = tag_games(df_day)
@@ -553,11 +628,16 @@ def render_tonight(df_day: pd.DataFrame, day: dt.date, gender: str) -> None:
 </div>
 """, height=95, scrolling=False)
 
+
 # ══════════════════════════════════════════════════════════════════════════
 #  MAIN
 # ══════════════════════════════════════════════════════════════════════════
 def main() -> None:
     apply_global_layout_tweaks()
+
+    user = login_gate(required=False)
+    logout_button()
+
     render_logo()
     render_page_header(
         title="⚡ The Aftermath",

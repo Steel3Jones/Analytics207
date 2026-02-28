@@ -1,3 +1,4 @@
+# The Report Card
 from __future__ import annotations
 
 import os
@@ -5,6 +6,7 @@ import os
 import numpy as np
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from layout import (
     apply_global_layout_tweaks,
@@ -12,22 +14,52 @@ from layout import (
     render_page_header,
     render_footer,
 )
+from auth import login_gate, logout_button, is_subscribed
 
 # ----------------------------
 # PAGE CONFIG
 # ----------------------------
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="🚀 The Report Card – Analytics207.com",
     page_icon="🚀",
     layout="wide",
 )
 apply_global_layout_tweaks()
+login_gate(required=False)
+logout_button()
 render_logo()
 render_page_header(
     title="🚀 The Report Card",
     definition="Report Card (n.): how The Model behaves under pressure—accuracy, calibration, and misses.",
     subtitle="Every prediction vs every final score. How sharp are the picks, how honest are the percentages, and where did things go sideways?",
 )
+
+# ══════════════════════════════════════════════════════════════════════════
+#  🔒 SUBSCRIBER GATE — entire page is locked
+# ══════════════════════════════════════════════════════════════════════════
+if not is_subscribed():
+    components.html("""
+<style>* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: #f1f5f9; }</style>
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(245,158,11,0.3);border-radius:14px;
+            padding:32px 28px;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🔒</div>
+  <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">
+    The Report Card — Subscriber Only
+  </div>
+  <div style="font-size:0.85rem;color:#94a3b8;max-width:420px;margin:0 auto;">
+    Subscribe to unlock full model performance analytics,
+    calibration data, and biggest-miss breakdowns.
+  </div>
+</div>
+""", height=160, scrolling=False)
+    render_footer()
+    st.stop()
 
 # ----------------------------
 # DATA PATHS (bundle)
@@ -165,10 +197,6 @@ girls_mae = gender_mae(played, "Girls")
 # ----------------------------
 @st.cache_data(ttl=300, show_spinner=False)
 def compute_hindsight_baselines(perf_games: pd.DataFrame) -> dict:
-    """
-    Compute 'hindsight' baselines using CURRENT (end-of-season) TI and WinPct.
-    These use future information the model never had at prediction time.
-    """
     result = {
         "ti_hit": float("nan"), "ti_games": 0,
         "rec_hit": float("nan"), "rec_games": 0,
@@ -218,7 +246,6 @@ def compute_hindsight_baselines(perf_games: pd.DataFrame) -> dict:
         if dropcol in merged.columns:
             merged.drop(columns=[dropcol], inplace=True)
 
-    # ---- TI baseline (hindsight) ----
     merged["HomeTI"] = pd.to_numeric(merged["HomeTI"], errors="coerce")
     merged["AwayTI"] = pd.to_numeric(merged["AwayTI"], errors="coerce")
     ti_valid = merged.dropna(subset=["HomeTI", "AwayTI"]).copy()
@@ -234,7 +261,6 @@ def compute_hindsight_baselines(perf_games: pd.DataFrame) -> dict:
             result["ti_hit"] = float((ti_valid["TI_Fav"] == ti_valid["Winner"]).mean()) * 100.0
             result["ti_games"] = len(ti_valid)
 
-    # ---- Record (WinPct) baseline (hindsight) ----
     merged["HomeWinPct"] = pd.to_numeric(merged["HomeWinPct"], errors="coerce")
     merged["AwayWinPct"] = pd.to_numeric(merged["AwayWinPct"], errors="coerce")
     rec_valid = merged.dropna(subset=["HomeWinPct", "AwayWinPct"]).copy()
@@ -396,7 +422,6 @@ with tab_overview:
         "Within 5 / 10 pts shows how often the spread was basically on the money."
     )
 
-    # Benchmarks: model (real-time) vs hindsight vs dumb baselines
     st.markdown("#### How hard is it to pick winners?")
 
     model_hit = overall_pct
@@ -420,7 +445,6 @@ with tab_overview:
             if mask_winner.any():
                 home_hit = float((base.loc[mask_winner, "Home"] == base.loc[mask_winner, "Winner"]).mean()) * 100.0
 
-    # Row 1: Real-time (model + home + coin flip)
     st.markdown(
         '<p style="margin-bottom:2px;font-size:0.85rem;color:#4ade80;font-weight:600;">'
         '📡 REAL‑TIME — picks made before tipoff, zero future information</p>',
@@ -437,7 +461,6 @@ with tab_overview:
     with r1c3:
         st.metric("Coin flip", "50.0%", "reference only")
 
-    # Row 2: Hindsight (TI + WinPct)
     st.markdown(
         '<p style="margin-bottom:2px;font-size:0.85rem;color:#f59e0b;font-weight:600;">'
         '🔮 HINDSIGHT — these strategies use end‑of‑season data the model never had</p>',
@@ -470,17 +493,16 @@ with tab_overview:
             line-height:1.55;
         ">
             <strong>💡 Why this matters:</strong> The hindsight strategies get to cheat —
-            they use each team’s <em>final</em> Heal points and win–loss record,
-            information that didn’t exist when the games were actually played.
+            they use each team's <em>final</em> Heal points and win–loss record,
+            information that didn't exist when the games were actually played.
             Our model made every single pick <strong>before tipoff</strong>,
             using only what was known at that moment — and still hit the mid‑80s.
-            That’s nearly as good as reading tomorrow’s newspaper.
+            That's nearly as good as reading tomorrow's newspaper.
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Season-over-season scoreboard
     st.markdown("#### 📅 Season-over-season scoreboard")
 
     season_rows = [
@@ -495,7 +517,6 @@ with tab_overview:
     ]
     st.dataframe(pd.DataFrame(season_rows), hide_index=True, use_container_width=True)
 
-    # Team predictability leaderboard
     st.markdown("#### Which teams are easiest (and hardest) to predict?")
 
     if played is None or played.empty:
@@ -582,8 +603,8 @@ with tab_overview:
                 )
 
             st.caption(
-                "High hit rate and low margin error → the model ‘gets’ that team. "
-                "Low hit rate or big errors → they’re volatile, streaky, or just weird."
+                "High hit rate and low margin error → the model 'gets' that team. "
+                "Low hit rate or big errors → they're volatile, streaky, or just weird."
             )
 
 # ----------------------------
@@ -622,7 +643,7 @@ with tab_conf:
         st.markdown(
             """
             - If **Actual win %** is higher than **Avg predicted %** in a band, the model is *under‑confident* there.
-            - If it’s lower, the model is *over‑confident* in that range.
+            - If it's lower, the model is *over‑confident* in that range.
             """
         )
 

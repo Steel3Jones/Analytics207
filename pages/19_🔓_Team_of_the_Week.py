@@ -1,3 +1,4 @@
+# pages/XX__Team_Of_The_Week.py
 from __future__ import annotations
 
 from pathlib import Path
@@ -5,14 +6,19 @@ from typing import Callable, Optional, Dict, Any
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 import layout as L
 from components.cards_trophy import inject_trophy_card_css, render_trophy_card
-
+from auth import login_gate, logout_button
 
 # ============================================================
 # Helpers
 # ============================================================
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 def _pick(mod, *names: str) -> Optional[Callable]:
     for n in names:
         fn = getattr(mod, n, None)
@@ -20,12 +26,10 @@ def _pick(mod, *names: str) -> Optional[Callable]:
             return fn
     return None
 
-
 def _safe_str(x) -> str:
     if x is None:
         return ""
     return str(x).strip()
-
 
 def _safe_float(x, default: float = 0.0) -> float:
     try:
@@ -37,7 +41,6 @@ def _safe_float(x, default: float = 0.0) -> float:
     except Exception:
         return default
 
-
 def _safe_int(x, default: int = 0) -> int:
     try:
         if x is None:
@@ -48,16 +51,13 @@ def _safe_int(x, default: int = 0) -> int:
     except Exception:
         return default
 
-
 def _fmt_signed(x: Optional[float], digits: int = 1) -> str:
     if x is None or (isinstance(x, float) and pd.isna(x)):
         return "—"
     return f"{float(x):+.{digits}f}"
 
-
 def _week_label_from_weekid(weekid: str) -> str:
     return _safe_str(weekid).replace("_to_", " → ")
-
 
 def _segment_label(segment: str) -> str:
     try:
@@ -65,7 +65,6 @@ def _segment_label(segment: str) -> str:
         return f"{g} • Class {c} • {r}"
     except Exception:
         return segment
-
 
 def class_from_segment(segment: str) -> str:
     try:
@@ -75,7 +74,6 @@ def class_from_segment(segment: str) -> str:
     except Exception:
         pass
     return ""
-
 
 # ============================================================
 # Class -> Trophy variant mapping
@@ -88,11 +86,9 @@ CLASS_TO_VARIANT = {
     "S": "red",
 }
 
-
 def variant_for_segment(segment: str) -> str:
     cls = class_from_segment(segment)
     return CLASS_TO_VARIANT.get(cls, "gold")
-
 
 # ============================================================
 # Trophy card wrapper for TOTW
@@ -141,7 +137,6 @@ def render_totw_card(
     container.caption(supporting)
     container.caption(f"WeeklyScore {weekly_score:.3f}")
 
-
 # ============================================================
 # Page config + layout
 # ============================================================
@@ -158,7 +153,6 @@ render_header = _pick(L, "render_page_header", "renderpageheader")
 render_footer = _pick(L, "render_footer", "renderfooter")
 spacer        = _pick(L, "spacer", "spacerlines")
 
-
 def _sp(n: int = 1) -> None:
     if callable(spacer):
         try:
@@ -169,9 +163,11 @@ def _sp(n: int = 1) -> None:
     for _ in range(max(0, int(n))):
         st.write("")
 
-
 if apply_layout:
     apply_layout()
+login_gate(required=False)
+logout_button()
+
 if render_logo:
     render_logo()
 if render_header:
@@ -186,6 +182,11 @@ else:
 inject_trophy_card_css()
 _sp(1)
 
+# ─────────────────────────────────────────────
+# AUTH: signed-in check for participation (voting)
+# ─────────────────────────────────────────────
+_user = st.session_state.get("user")
+_signed_in = _user is not None
 
 # ============================================================
 # Data paths
@@ -195,7 +196,6 @@ DATA = ROOT / "data"
 
 NOMINEES_PATH = DATA / "totw" / "team_of_week_nominees_v50.parquet"
 VOTES_PATH    = DATA / "totw" / "team_of_week_votes.csv"
-
 
 # ============================================================
 # Loaders
@@ -210,7 +210,6 @@ def load_nominees() -> pd.DataFrame:
             df[c] = df[c].astype(str).str.strip()
     return df
 
-
 def load_votes() -> pd.DataFrame:
     cols = ["Timestamp", "WeekID", "Segment", "Pick", "TeamKey"]
     if not VOTES_PATH.exists():
@@ -223,7 +222,6 @@ def load_votes() -> pd.DataFrame:
         if c not in df.columns:
             df[c] = ""
     return df[cols].copy()
-
 
 def append_vote(weekid: str, segment: str, pick: str, teamkey: str) -> None:
     VOTES_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -240,7 +238,6 @@ def append_vote(weekid: str, segment: str, pick: str, teamkey: str) -> None:
     else:
         out = row
     out.to_csv(VOTES_PATH, index=False, encoding="utf-8")
-
 
 # ============================================================
 # Main UI
@@ -260,7 +257,6 @@ if not weeks:
         _sp(2)
         render_footer()
     st.stop()
-
 
 # ============================================================
 # Filters
@@ -304,16 +300,13 @@ if not segments:
 votes    = load_votes()
 votes_wk = votes[votes["WeekID"].astype(str) == str(week_sel)].copy()
 
-
 def tally_for_segment(segment: str) -> pd.DataFrame:
     v = votes_wk[votes_wk["Segment"].astype(str) == str(segment)].copy()
     if v.empty:
         return pd.DataFrame({"TeamKey": [], "Votes": []})
     return v.groupby("TeamKey", dropna=False).size().reset_index(name="Votes")
 
-
 st.divider()
-
 
 # ============================================================
 # Matchup renderer
@@ -369,9 +362,10 @@ def render_matchup(segment: str) -> None:
             pill_text=pill_text,
             variant=variant,
         )
-        if st.button(f"Vote: {teamA}", key=f"voteA_{segment}", use_container_width=True, disabled=(teamA_key == "")):
-            append_vote(week_sel, segment, "A", teamA_key)
-            st.rerun()
+        if _signed_in:
+            if st.button(f"Vote: {teamA}", key=f"voteA_{segment}", use_container_width=True, disabled=(teamA_key == "")):
+                append_vote(week_sel, segment, "A", teamA_key)
+                st.rerun()
         if total > 0:
             st.progress(int(pctA), text=f"{votesA} vote(s) — {pctA:.0f}%")
         else:
@@ -395,20 +389,23 @@ def render_matchup(segment: str) -> None:
             pill_text=pill_text,
             variant=variant,
         )
-        if st.button(f"Vote: {teamB}", key=f"voteB_{segment}", use_container_width=True, disabled=(teamB_key == "")):
-            append_vote(week_sel, segment, "B", teamB_key)
-            st.rerun()
+        if _signed_in:
+            if st.button(f"Vote: {teamB}", key=f"voteB_{segment}", use_container_width=True, disabled=(teamB_key == "")):
+                append_vote(week_sel, segment, "B", teamB_key)
+                st.rerun()
         if total > 0:
             st.progress(int(pctB), text=f"{votesB} vote(s) — {pctB:.0f}%")
         else:
             st.caption("No votes yet")
 
-    st.divider()
+    # Sign-in prompt shown once per matchup for non-signed-in users
+    if not _signed_in:
+        st.info("🔑 **Sign in with a free account** to cast your vote.")
 
+    st.divider()
 
 for seg in segments:
     render_matchup(seg)
-
 
 # ============================================================
 # Past winners (respects filters)
@@ -455,7 +452,6 @@ else:
             use_container_width=True,
             hide_index=True,
         )
-
 
 _sp(2)
 if render_footer:

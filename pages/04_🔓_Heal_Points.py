@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+
 from pathlib import Path
 import os
+
 
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
+
 
 from layout import (
     apply_global_layout_tweaks,
@@ -13,7 +16,13 @@ from layout import (
     render_page_header,
     render_footer,
 )
+from auth import login_gate, logout_button, is_subscribed
 
+
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="📊 The Heal Points",
     page_icon="🏀",
@@ -21,29 +30,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ============================================================
-# AUTH / LOCKING
-# ============================================================
 
 SHOW_LOCKS = False
-
-
-def render_auth_demo_toggle() -> None:
-    with st.sidebar:
-        st.toggle(
-            "Subscriber demo",
-            value=bool(st.session_state.get("is_subscriber", False)),
-            key="is_subscriber",
-            help="Dev toggle: simulates signed-in subscriber access.",
-        )
-
-
-def _is_subscriber() -> bool:
-    return bool(st.session_state.get("is_subscriber", False))
-
-
-def _lock_it() -> bool:
-    return bool(SHOW_LOCKS) and (not _is_subscriber())
 
 
 # ============================================================
@@ -86,6 +74,7 @@ def _inject_heal_css() -> None:
 }
 .heal-table tr.row-in td  { border-left: 3px solid rgba(34,197,94,0.7); }
 .heal-table tr.row-out td { border-left: 3px solid rgba(239,68,68,0.5); }
+
 
 
 .pill-base {
@@ -140,6 +129,7 @@ def render_heal_filters() -> None:
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("DATA_DIR", PROJECT_ROOT / "data"))
 TEAMS_SEASON_PATH = DATA_DIR / "core" / "teams_team_season_core_v50.parquet"
+
 
 BRACKET_SIZES: dict[tuple[str, str, str], int] = {
     ("Boys",  "A", "North"):  8,
@@ -234,7 +224,7 @@ def build_heal_table(heal: pd.DataFrame) -> tuple[pd.DataFrame, int | None, str]
     if cls != "All" and region != "All":
         cut = BRACKET_SIZES.get((gender.title(), cls.upper(), region.title()))
         if cut is None:
-            cut = 10  # fallback only if truly missing
+            cut = 10
         q["IN/OUT"] = q["SEED"].apply(lambda s: "IN" if s <= cut else "OUT")
     else:
         q["IN/OUT"] = ""
@@ -417,7 +407,10 @@ def render_heal_strength_snapshot(heal_table: pd.DataFrame, cut: int | None) -> 
 def main() -> None:
     apply_global_layout_tweaks()
     _inject_heal_css()
-    render_auth_demo_toggle()
+
+    user = login_gate(required=False)
+    logout_button()
+
     render_logo()
     render_page_header(
         title="📋 Maine Heal Points",

@@ -14,13 +14,21 @@ from layout import (
     render_page_header,
     render_footer,
 )
+from auth import login_gate, logout_button
 
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="🏆 Milestones & Records | Analytics207",
     page_icon="🏆",
     layout="wide",
 )
 apply_global_layout_tweaks()
+
+user = login_gate(required=False)
+logout_button()
 
 ROOT       = Path(__file__).resolve().parents[1]
 DATA_DIR   = Path(os.environ.get("DATA_DIR", ROOT / "data"))
@@ -29,6 +37,41 @@ CATS_FILE   = DATA_DIR / "milestone_categories.json"
 CLAIMS_FILE = DATA_DIR / "milestone_claims.csv"
 VOTES_FILE  = DATA_DIR / "milestone_votes.csv"
 RATINGSFILE = DATA_DIR / "core" / "teams_team_season_core_v50.parquet"
+
+# Helper — True when a user is logged in (free or paid, doesn't matter)
+_signed_in = user is not None
+
+# ══════════════════════════════════════════════════════════════════════════
+#  SIGN-IN WALL (not a paywall — just needs an account)
+# ══════════════════════════════════════════════════════════════════════════
+_SIGN_IN_CSS = """
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: transparent;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  color: #f1f5f9;
+}
+</style>
+"""
+
+def _render_sign_in_wall(action: str) -> None:
+    import streamlit.components.v1 as components
+    components.html(f"""{_SIGN_IN_CSS}
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(59,130,246,0.35);border-radius:14px;
+            padding:32px 28px;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🔑</div>
+  <div style="font-size:1.1rem;font-weight:800;color:#93c5fd;margin-bottom:6px;">
+    Sign In to {action}
+  </div>
+  <div style="font-size:0.85rem;color:#94a3b8;max-width:420px;margin:0 auto;">
+    Create a free account or sign in to submit milestones,
+    vote on records, and help build Maine's basketball history.
+    No subscription required.
+  </div>
+</div>
+""", height=170, scrolling=False)
 
 # ══════════════════════════════════════════════════════════════════════════
 #  CATEGORIES  (expanded)
@@ -333,6 +376,9 @@ def compute_claim_statuses() -> pd.DataFrame:
     return merged
 
 def get_user_id() -> str:
+    """Use the auth user's ID if signed in, otherwise a session UUID."""
+    if user is not None:
+        return str(user.get("id", user.get("email", str(uuid.uuid4()))))
     if "milestones_user_id" not in st.session_state:
         st.session_state["milestones_user_id"] = str(uuid.uuid4())
     return st.session_state["milestones_user_id"]
@@ -370,7 +416,8 @@ def render_trophy_banner(total: int, verified: int, contested: int, schools: int
 # ══════════════════════════════════════════════════════════════════════════
 #  MILESTONE CARD
 # ══════════════════════════════════════════════════════════════════════════
-def render_milestone_card(row: pd.Series, cat_cfg: dict, user_id: str, show_votes: bool = True) -> None:
+def render_milestone_card(row: pd.Series, cat_cfg: dict, user_id: str,
+                          show_votes: bool = True) -> None:
     status   = str(row.get("status", "pending")).lower()
     icon     = cat_cfg.get("icon", "🏅")
     label    = cat_cfg.get("label", row.get("category_id",""))
@@ -384,7 +431,6 @@ def render_milestone_card(row: pd.Series, cat_cfg: dict, user_id: str, show_vote
     disputes = int(row.get("dispute_count", 0))
     claim_id = str(row.get("claim_id",""))
 
-    # Headline
     if subject and pd.notna(val_num):
         headline = f"{subject} — {int(val_num)} {val_lbl}"
     elif subject:
@@ -427,20 +473,24 @@ def render_milestone_card(row: pd.Series, cat_cfg: dict, user_id: str, show_vote
         unsafe_allow_html=True,
     )
 
+    # ── Vote buttons: only for signed-in users ──
     if show_votes and claim_id:
-        vc1, vc2, vc3, _ = st.columns([1, 1, 1, 4])
-        with vc1:
-            if st.button("✅ Confirm", key=f"confirm_{claim_id}", use_container_width=True):
-                upsert_vote(claim_id, "confirm", user_id)
-                st.rerun()
-        with vc2:
-            if st.button("⚠️ Dispute", key=f"dispute_{claim_id}", use_container_width=True):
-                upsert_vote(claim_id, "dispute", user_id)
-                st.rerun()
-        with vc3:
-            if st.button("🔍 Needs Source", key=f"source_{claim_id}", use_container_width=True):
-                upsert_vote(claim_id, "needs_source", user_id)
-                st.rerun()
+        if _signed_in:
+            vc1, vc2, vc3, _ = st.columns([1, 1, 1, 4])
+            with vc1:
+                if st.button("✅ Confirm", key=f"confirm_{claim_id}", use_container_width=True):
+                    upsert_vote(claim_id, "confirm", user_id)
+                    st.rerun()
+            with vc2:
+                if st.button("⚠️ Dispute", key=f"dispute_{claim_id}", use_container_width=True):
+                    upsert_vote(claim_id, "dispute", user_id)
+                    st.rerun()
+            with vc3:
+                if st.button("🔍 Needs Source", key=f"source_{claim_id}", use_container_width=True):
+                    upsert_vote(claim_id, "needs_source", user_id)
+                    st.rerun()
+        else:
+            st.caption("🔑 Sign in to vote on this milestone.")
 
 # ══════════════════════════════════════════════════════════════════════════
 #  BROWSE VIEW
@@ -448,19 +498,17 @@ def render_milestone_card(row: pd.Series, cat_cfg: dict, user_id: str, show_vote
 def render_browse(df: pd.DataFrame, cats: list, id_to_cfg: dict, user_id: str) -> None:
     st.markdown('<div class="ms-section">📖 Browse Records</div>', unsafe_allow_html=True)
 
-    # Needs Your Vote banner
     pending = df[df["status"] == "pending"]
     if not pending.empty:
         st.markdown(
             f'<div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);'
             f'border-radius:10px;padding:12px 18px;margin-bottom:18px;font-size:0.85rem;color:#fbbf24;">'
             f'🗳️ <strong>{len(pending)} milestone{"s" if len(pending)>1 else ""} awaiting community votes</strong>'
-            f' — confirm or dispute below.'
+            f' — {"sign in to " if not _signed_in else ""}confirm or dispute below.'
             f'</div>',
             unsafe_allow_html=True,
         )
 
-    # Filters
     f1, f2, f3, f4 = st.columns([2, 1, 1, 1])
     with f1:
         school_filter = st.selectbox("School", ["All Schools"] + load_schools(), key="ms_school")
@@ -472,7 +520,6 @@ def render_browse(df: pd.DataFrame, cats: list, id_to_cfg: dict, user_id: str) -
     with f4:
         gender_filter = st.selectbox("Gender", ["All", "Boys", "Girls"], key="ms_gender")
 
-    # Apply filters
     view = df.copy()
     if school_filter != "All Schools":
         view = view[view["school"].astype(str).str.strip() == school_filter]
@@ -488,7 +535,6 @@ def render_browse(df: pd.DataFrame, cats: list, id_to_cfg: dict, user_id: str) -
         st.info("No milestones found for these filters yet — be the first to submit one!")
         return
 
-    # Render
     if school_filter == "All Schools":
         schools_in_view = view["school"].dropna().unique()
         for school in sorted(schools_in_view):
@@ -503,7 +549,6 @@ def render_browse(df: pd.DataFrame, cats: list, id_to_cfg: dict, user_id: str) -
                 cfg = id_to_cfg.get(str(row.get("category_id", "")), {})
                 render_milestone_card(row, cfg, user_id, show_votes=True)
     else:
-        # Single school — sorted verified → contested → pending
         st.markdown(
             f'<div style="font-size:1.4rem;font-weight:900;color:#fbbf24;margin-bottom:16px;">'
             f'{school_filter} Record Book</div>',
@@ -516,10 +561,15 @@ def render_browse(df: pd.DataFrame, cats: list, id_to_cfg: dict, user_id: str) -
             render_milestone_card(row, cfg, user_id, show_votes=True)
 
 # ══════════════════════════════════════════════════════════════════════════
-#  SUBMIT FORM
+#  SUBMIT FORM — requires sign-in
 # ══════════════════════════════════════════════════════════════════════════
 def render_submit_form(cats: list, label_to_id: dict, id_to_cfg: dict) -> None:
     st.markdown('<div class="ms-section">➕ Submit a Milestone</div>', unsafe_allow_html=True)
+
+    # ── Gate: must be signed in to submit ──
+    if not _signed_in:
+        _render_sign_in_wall("Submit Milestones")
+        return
 
     st.markdown("""
 <div class="submit-box">
@@ -552,7 +602,9 @@ def render_submit_form(cats: list, label_to_id: dict, id_to_cfg: dict) -> None:
             evidence_url = st.text_input("Evidence URL (optional)")
         with fd2:
             source_note = st.text_area("Source / Notes", height=80)
-            submitted_by = st.text_input("Your Name (optional)")
+
+        # Auto-fill submitter from auth
+        submitted_by = str(user.get("name", user.get("email", ""))) if user else ""
 
         submitted = st.form_submit_button("🏆 Submit Milestone", use_container_width=True)
 

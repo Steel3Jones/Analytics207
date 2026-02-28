@@ -1,6 +1,8 @@
+# pages/XX__Trophy_Room.py
 from __future__ import annotations
 
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
@@ -14,7 +16,12 @@ from layout import (
 )
 
 from components.cards_trophy import inject_trophy_card_css, render_trophy_card
+from auth import login_gate, logout_button, is_subscribed
 
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="🏆 Trophy Room – Analytics207.com",
     page_icon="🏆",
@@ -81,6 +88,8 @@ def _render_update_note(df: pd.DataFrame) -> None:
     )
 
 apply_global_layout_tweaks()
+login_gate(required=False)
+logout_button()
 render_logo()
 
 render_page_header(
@@ -94,6 +103,29 @@ render_page_header(
         "home/road splits, and consistency."
     ),
 )
+
+# ══════════════════════════════════════════════════════════════════════════
+#  🔒 SUBSCRIBER GATE — entire page is locked
+# ══════════════════════════════════════════════════════════════════════════
+if not is_subscribed():
+    components.html("""
+<style>* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: #f1f5f9; }</style>
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(245,158,11,0.3);border-radius:14px;
+            padding:32px 28px;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🔒</div>
+  <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">
+    Trophy Room — Subscriber Only
+  </div>
+  <div style="font-size:0.85rem;color:#94a3b8;max-width:420px;margin:0 auto;">
+    Subscribe to unlock statewide trophy leaders, category awards,
+    and nightly-updated season honors.
+  </div>
+</div>
+""", height=160, scrolling=False)
+    render_footer()
+    st.stop()
 
 inject_trophy_card_css()
 
@@ -232,7 +264,6 @@ def ribbon_for(cat_name: str, trophy_name: str) -> str:
     if "consistent" in t or "std" in t:
         return "STEADY"
 
-    # "top 25% wins" and plain "win%" both route here
     if "25%" in t or "top 25" in t:
         return "GIANT KILLER"
     if "win%" in t:

@@ -1,3 +1,4 @@
+# pages/XX__The_Projector.py
 from __future__ import annotations
 
 from pathlib import Path
@@ -14,13 +15,20 @@ from layout import (
     render_page_header,
     render_footer,
 )
+from auth import login_gate, logout_button, is_subscribed
 
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="🎯 The Projector | Analytics207",
     page_icon="🎯",
     layout="wide",
 )
 apply_global_layout_tweaks()
+login_gate(required=False)
+logout_button()
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 GAMES_PATH   = PROJECT_ROOT / "data" / "core"        / "games_game_core_v50.parquet"
@@ -37,14 +45,12 @@ def load_data():
     preds = pd.read_parquet(PRED_PATH)
     teams = pd.read_parquet(TEAMS_PATH)
 
-    # Normalize GameID
     for df in [games, preds]:
         df["GameID"] = (
             df["GameID"].astype(str).str.strip()
             .str.replace(r"\.0$", "", regex=True)
         )
 
-    # Drop any pred-like cols from games before merge
     drop_cols = ["PredHomeWinProb", "PredMargin", "FavoriteTeamKey",
                  "FavProb", "PredHomeScore", "PredAwayScore"]
     games = games.drop(columns=[c for c in drop_cols if c in games.columns], errors="ignore")
@@ -66,7 +72,6 @@ def load_data():
     if "Gender" in df.columns:
         df["Gender"] = df["Gender"].str.title()
 
-    # Derived columns
     df["FavProb"] = df["PredHomeWinProb"].apply(
         lambda p: max(float(p), 1.0 - float(p)) if pd.notna(p) else np.nan
     )
@@ -83,7 +88,6 @@ def load_data():
     df["Favorite"] = df.apply(_fav, axis=1)
     df["Underdog"]  = df.apply(_dog, axis=1)
 
-    # Team TI lookup for travel risk context
     for col in ["TeamKey", "Team", "Gender", "Class", "Region", "TI"]:
         if col in teams.columns:
             teams[col] = teams[col].astype(str).str.strip()
@@ -104,7 +108,6 @@ upcoming = df_all[
     (df_all["Date"] <= week_end) &
     df_all["PredHomeWinProb"].notna()
 ].copy()
-
 
 # ─────────────────────────────────────────────
 # PAGE HEADER
@@ -144,7 +147,7 @@ if sel_region != "All" and "HomeRegion" in view.columns:
 st.write("")
 
 # ─────────────────────────────────────────────
-# HERO SUMMARY CARDS
+# HERO SUMMARY CARDS (FREE — visible to everyone)
 # ─────────────────────────────────────────────
 
 def render_projector_hero(df: pd.DataFrame) -> None:
@@ -182,6 +185,29 @@ def render_projector_hero(df: pd.DataFrame) -> None:
 
 render_projector_hero(view)
 st.write("")
+
+# ══════════════════════════════════════════════════════════════════════════
+#  🔒 SUBSCRIBER GATE — tabs and game cards locked below this line
+# ══════════════════════════════════════════════════════════════════════════
+if not is_subscribed():
+    components.html("""
+<style>* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: #f1f5f9; }</style>
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(245,158,11,0.3);border-radius:14px;
+            padding:32px 28px;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🔒</div>
+  <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">
+    The Projector — Subscriber Only
+  </div>
+  <div style="font-size:0.85rem;color:#94a3b8;max-width:460px;margin:0 auto;">
+    Subscribe to unlock must-watch games, upset alerts, lock of the week,
+    and the full weekly schedule with model projections.
+  </div>
+</div>
+""", height=200, scrolling=False)
+    render_footer()
+    st.stop()
 
 # ─────────────────────────────────────────────
 # GAME CARD HTML
@@ -347,7 +373,6 @@ with tab_lock:
         prob_s   = f"{fav_prob*100:.1f}%" if pd.notna(fav_prob) else "—"
         margin_s = f"{abs(margin):.1f}"   if pd.notna(margin)   else "—"
 
-        # Confidence label
         if pd.notna(fav_prob):
             if fav_prob >= 0.92:   conf, conf_color = "ELITE LOCK",  "#22c55e"
             elif fav_prob >= 0.85: conf, conf_color = "STRONG LOCK", "#10b981"
@@ -459,5 +484,6 @@ with tab_full:
             hide_index=True,
             use_container_width=True,
         )
+
 
 render_footer()

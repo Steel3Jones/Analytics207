@@ -16,13 +16,20 @@ from layout import (
     render_page_header,
     render_footer,
 )
+from auth import login_gate, logout_button, is_subscribed
 
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="All-State Analytics Team | Analytics207",
     page_icon="medal",
     layout="wide",
 )
 apply_global_layout_tweaks()
+login_gate(required=False)
+logout_button()
 
 PROJECT_ROOT    = Path(__file__).resolve().parent.parent
 DATA_DIR        = Path(os.environ.get("DATA_DIR", PROJECT_ROOT / "data"))
@@ -92,7 +99,6 @@ def load_teams() -> pd.DataFrame:
             df["Losses"].fillna(0).astype(int).astype(str)
         )
 
-    # Always compute Games from Wins+Losses to fill any NaN values
     if {"Wins", "Losses"}.issubset(df.columns):
         computed = df["Wins"].fillna(0) + df["Losses"].fillna(0)
         if "Games" in df.columns:
@@ -151,9 +157,32 @@ with fc1:
 with fc2:
     sel_class = st.selectbox("Class", ["All", "A", "B", "C", "D", "S"], key="as_class")
 
-sel_region = "All"  # always statewide
+sel_region = "All"
 
 st.write("")
+
+# ══════════════════════════════════════════════════════════════════════════
+#  🔒 SUBSCRIBER GATE — everything below filters is locked
+# ══════════════════════════════════════════════════════════════════════════
+if not is_subscribed():
+    components.html("""
+<style>* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: #f1f5f9; }</style>
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(245,158,11,0.3);border-radius:14px;
+            padding:32px 28px;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🔒</div>
+  <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">
+    All-State Analytics Team — Subscriber Only
+  </div>
+  <div style="font-size:0.85rem;color:#94a3b8;max-width:460px;margin:0 auto;">
+    Subscribe to unlock the full All-State selections, methodology breakdown,
+    complete rankings, and composite scores for every eligible team.
+  </div>
+</div>
+""", height=200, scrolling=False)
+    render_footer()
+    st.stop()
 
 view = teams_df[teams_df["Gender"] == sel_gender].copy()
 
@@ -371,17 +400,23 @@ with tab_method:
 150+ metrics collected throughout the season. No human votes. No politics.
 Just the numbers.
 
+
 #### The Process
 
+
 1. **Eligibility** -- Teams must have played at least 10 games to qualify.
+
 
 2. **Z-Score Normalization** -- Every metric is converted to a z-score
    within the filtered group so teams are judged relative to peers.
 
+
 3. **Weighted Composite** -- Z-scores are weighted and summed into a
    single All-State Score.
 
+
 4. **Penalty Deductions** -- Bad losses subtract from the score.
+
 
 5. **Statewide Pool** -- Rankings always use the full state pool for each class.
    North/South splits are excluded to prevent small-pool inflation.

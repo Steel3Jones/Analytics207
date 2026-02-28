@@ -3,11 +3,11 @@ from __future__ import annotations
 
 from pathlib import Path
 from datetime import datetime
-import hashlib
 
 import numpy as np
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from layout import (
     apply_global_layout_tweaks,
@@ -15,7 +15,12 @@ from layout import (
     render_footer,
     render_page_header,
 )
+from auth import login_gate, logout_button
 
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="💎 Pick 5 Challenge – Analytics207",
     page_icon="💎",
@@ -23,12 +28,20 @@ st.set_page_config(
 )
 
 apply_global_layout_tweaks()
+login_gate(required=False)
+logout_button()
 render_logo()
 render_page_header(
     title="💎 PICK 5 CHALLENGE",
     definition="Pick 5 Challenge (n.): One game per class. Pick a side. Bold upsets pay more.",
     subtitle="Powered by THE MODEL — upset bonus points scale with prediction confidence. Max 20 pts/week.",
 )
+
+# ─────────────────────────────────────────────
+# AUTH: signed-in check for participation
+# ─────────────────────────────────────────────
+_user = st.session_state.get("user")
+_signed_in = _user is not None
 
 # ─────────────────────────────────────────────
 # PATHS
@@ -40,7 +53,6 @@ GAMES_ANALYTICS_FILE = DATA_DIR / "core"        / "games_analytics_v50.parquet"
 PRED_FILE            = DATA_DIR / "predictions" / "games_predictions_current.parquet"
 ROSTERS_FILE         = DATA_DIR / "pick5"       / "pick5_rosters_v50.csv"
 WEEKLY_WINNERS_FILE  = DATA_DIR / "pick5"       / "pick5_weekly_winners_v50.parquet"
-PARTICIPANTS_FILE    = DATA_DIR / "pick5"       / "pick5_participants.csv"
 
 # ─────────────────────────────────────────────
 # CONSTANTS
@@ -54,100 +66,8 @@ TOP_N_GAMES  = 6
 HIDDEN = ["_gid", "_team", "_upset", "_pts", "_fav", "_fav_pct", "_played", "_final"]
 
 # ─────────────────────────────────────────────
-# PIN HELPERS
+# POINT HELPERS
 # ─────────────────────────────────────────────
-def _hash_pin(pin: str) -> str:
-    return hashlib.sha256(pin.encode()).hexdigest()[:16]
-
-def load_participants() -> pd.DataFrame:
-    PARTICIPANTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    if not PARTICIPANTS_FILE.exists():
-        df = pd.DataFrame(columns=["Name", "PIN_hash"])
-        df.to_csv(PARTICIPANTS_FILE, index=False)
-        return df
-    try:
-        return pd.read_csv(PARTICIPANTS_FILE, dtype=str, keep_default_na=False)
-    except Exception:
-        return pd.DataFrame(columns=["Name", "PIN_hash"])
-
-def save_participant(name: str, pin: str) -> None:
-    df = load_participants()
-    new_row = pd.DataFrame([{"Name": name, "PIN_hash": _hash_pin(pin)}])
-    df = pd.concat([df, new_row], ignore_index=True)
-    df.to_csv(PARTICIPANTS_FILE, index=False)
-
-def verify_pin(name: str, pin: str) -> bool:
-    df = load_participants()
-    if df.empty or "Name" not in df.columns:
-        return False
-    row = df[df["Name"].str.strip() == name.strip()]
-    if row.empty:
-        return False
-    return row.iloc[0]["PIN_hash"] == _hash_pin(pin)
-
-def name_is_registered(name: str) -> bool:
-    df = load_participants()
-    if df.empty or "Name" not in df.columns:
-        return False
-    return not df[df["Name"].str.strip() == name.strip()].empty
-
-# ─────────────────────────────────────────────
-# PIN AUTH UI  — returns True if user is verified
-# ─────────────────────────────────────────────
-def render_pin_auth(manager_name: str) -> bool:
-    """
-    Show register or login PIN flow.
-    Returns True only when the user is authenticated for this session.
-    """
-    # Already verified this session?
-    if st.session_state.get("pin_verified_for") == manager_name:
-        return True
-
-    registered = name_is_registered(manager_name)
-
-    if not registered:
-        st.info(f"👋 **{manager_name}** — looks like you're new! Set a 4-digit PIN to protect your picks.")
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            new_pin = st.text_input(
-                "Choose a PIN (4 digits)", max_chars=4,
-                type="password", key="new_pin_input",
-                placeholder="e.g. 1234"
-            )
-            confirm_pin = st.text_input(
-                "Confirm PIN", max_chars=4,
-                type="password", key="confirm_pin_input"
-            )
-        if st.button("🔐 Register & Continue", key="register_btn"):
-            if len(new_pin) != 4 or not new_pin.isdigit():
-                st.error("PIN must be exactly 4 digits.")
-            elif new_pin != confirm_pin:
-                st.error("PINs don't match — try again.")
-            else:
-                save_participant(manager_name, new_pin)
-                st.session_state["pin_verified_for"] = manager_name
-                st.success(f"✅ Registered! Welcome to Pick 5, **{manager_name}**.")
-                st.rerun()
-        return False
-
-    else:
-        st.info(f"🔒 Welcome back, **{manager_name}**! Enter your PIN to unlock your picks.")
-        col1, _ = st.columns([1, 2])
-        with col1:
-            entered_pin = st.text_input(
-                "Your PIN", max_chars=4,
-                type="password", key="login_pin_input",
-                placeholder="4-digit PIN"
-            )
-        if st.button("🔓 Unlock", key="login_btn"):
-            if verify_pin(manager_name, entered_pin):
-                st.session_state["pin_verified_for"] = manager_name
-                st.success("✅ PIN accepted!")
-                st.rerun()
-            else:
-                st.error("❌ Wrong PIN. Try again or contact the admin to reset it.")
-        return False
-
 def upset_pts(fav_pct: float) -> int:
     if fav_pct >= 80: return 4
     if fav_pct >= 70: return 3
@@ -373,12 +293,36 @@ w_start, w_end = week_bounds(today)
 week_id        = f"{w_start.strftime('%Y-%m-%d')}_to_{w_end.strftime('%Y-%m-%d')}"
 wlabel         = fmt_week(today)
 
+# Manager name from auth
+manager_name = ""
+if _signed_in:
+    _meta = _user.get("user_metadata", {}) or {}
+    manager_name = (
+        _meta.get("display_name")
+        or _meta.get("full_name")
+        or _user.get("email", "").split("@")[0]
+    )
+
 ctrl1, ctrl2, ctrl3 = st.columns([2, 1, 1])
 with ctrl1:
-    manager_name = st.text_input(
-        "Your name", value="", max_chars=40,
-        placeholder="Enter your name to save picks…"
-    ).strip()
+    if _signed_in:
+        st.markdown(f"**Playing as:** {manager_name}")
+    else:
+        components.html("""
+<style>* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: #f1f5f9; }</style>
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(96,165,250,0.3);border-radius:14px;
+            padding:20px 24px;text-align:center;">
+  <div style="font-size:1.5rem;margin-bottom:6px;">🔑</div>
+  <div style="font-size:0.95rem;font-weight:700;color:#93c5fd;margin-bottom:4px;">
+    Sign in to make your picks
+  </div>
+  <div style="font-size:0.78rem;color:#94a3b8;">
+    Free account required to participate. Leaderboard visible to everyone.
+  </div>
+</div>
+""", height=120, scrolling=False)
 with ctrl2:
     slate_mode = st.selectbox("Gender slate", ["Boys", "Girls", "Both"], index=0)
 with ctrl3:
@@ -415,72 +359,72 @@ with st.expander("📐 How point values work", expanded=False):
 st.divider()
 
 # ─────────────────────────────────────────────
-# PIN AUTHENTICATION GATE
+# SIGN-IN GATE — viewing continues, picks require auth
 # ─────────────────────────────────────────────
-pin_verified = False
-if manager_name:
-    pin_verified = render_pin_auth(manager_name)
-    if not pin_verified:
-        st.divider()
-        # Show leaderboard below auth wall so others can still view it
-        st.markdown("### 🏆 Leaderboard")
-        tab_week, tab_season = st.tabs(["This Week", "Season"])
-        rosters = load_rosters()
-        with tab_week:
-            if rosters.empty or "WeekID" not in rosters.columns:
-                st.info("No picks submitted yet.")
+if not _signed_in:
+    st.markdown("### 🎯 Pick Slate")
+    st.info("🔑 **Sign in with a free account** to make your picks. Browse the leaderboard below!")
+    st.divider()
+
+    # Show leaderboard for non-signed-in users
+    st.markdown("### 🏆 Leaderboard")
+    tab_week, tab_season = st.tabs(["This Week", "Season"])
+    rosters = load_rosters()
+    with tab_week:
+        if rosters.empty or "WeekID" not in rosters.columns:
+            st.info("No picks submitted yet.")
+        else:
+            wk_data = rosters[rosters["WeekID"].astype(str) == str(week_id)].copy()
+            if wk_data.empty:
+                st.info("No picks for this week yet — be the first!")
             else:
-                wk_data = rosters[rosters["WeekID"].astype(str) == str(week_id)].copy()
-                if wk_data.empty:
-                    st.info("No picks for this week yet — be the first!")
-                else:
-                    wk_data["Pts"] = pd.to_numeric(
-                        wk_data.get("ActualPts", pd.Series(dtype=str)), errors="coerce"
-                    ).fillna(0)
-                    lb = (
-                        wk_data.groupby("Manager", dropna=False)
-                        .agg(TotalPts=("Pts", "sum"), Picks=("Class", "count"))
-                        .reset_index()
-                        .sort_values("TotalPts", ascending=False)
-                        .reset_index(drop=True)
-                    )
-                    for i, row in lb.iterrows():
-                        rank = i + 1
-                        icon = "🥇" if rank==1 else ("🥈" if rank==2 else ("🥉" if rank==3 else f"#{rank}"))
-                        c1, c2, c3 = st.columns([1, 6, 2])
-                        c1.markdown(f"**{icon}**")
-                        c2.markdown(f"**{row['Manager']}** · {int(row['Picks'])} picks")
-                        c3.markdown(
-                            f'<div style="text-align:right;color:#fde68a;font-weight:900;">'
-                            f'+{int(row["TotalPts"])} pts</div>',
-                            unsafe_allow_html=True,
-                        )
-        with tab_season:
-            src = rosters if not rosters.empty else pd.DataFrame()
-            if not src.empty and "ActualPts" in src.columns:
-                src["Pts"] = pd.to_numeric(src["ActualPts"], errors="coerce").fillna(0)
-                season_lb = (
-                    src.groupby("Manager", dropna=False)
-                    .agg(TotalPts=("Pts", "sum"), Weeks=("WeekID", "nunique"))
+                wk_data["Pts"] = pd.to_numeric(
+                    wk_data.get("ActualPts", pd.Series(dtype=str)), errors="coerce"
+                ).fillna(0)
+                lb = (
+                    wk_data.groupby("Manager", dropna=False)
+                    .agg(TotalPts=("Pts", "sum"), Picks=("Class", "count"))
                     .reset_index()
                     .sort_values("TotalPts", ascending=False)
                     .reset_index(drop=True)
                 )
-                for i, row in season_lb.iterrows():
+                for i, row in lb.iterrows():
                     rank = i + 1
                     icon = "🥇" if rank==1 else ("🥈" if rank==2 else ("🥉" if rank==3 else f"#{rank}"))
                     c1, c2, c3 = st.columns([1, 6, 2])
                     c1.markdown(f"**{icon}**")
-                    c2.markdown(f"**{row['Manager']}** · {int(row['Weeks'])} week(s)")
+                    c2.markdown(f"**{row['Manager']}** · {int(row['Picks'])} picks")
                     c3.markdown(
                         f'<div style="text-align:right;color:#fde68a;font-weight:900;">'
                         f'+{int(row["TotalPts"])} pts</div>',
                         unsafe_allow_html=True,
                     )
-            else:
-                st.info("Season standings available once weekly results are scored.")
-        render_footer()
-        st.stop()
+    with tab_season:
+        src = rosters if not rosters.empty else pd.DataFrame()
+        if not src.empty and "ActualPts" in src.columns:
+            src["Pts"] = pd.to_numeric(src["ActualPts"], errors="coerce").fillna(0)
+            season_lb = (
+                src.groupby("Manager", dropna=False)
+                .agg(TotalPts=("Pts", "sum"), Weeks=("WeekID", "nunique"))
+                .reset_index()
+                .sort_values("TotalPts", ascending=False)
+                .reset_index(drop=True)
+            )
+            for i, row in season_lb.iterrows():
+                rank = i + 1
+                icon = "🥇" if rank==1 else ("🥈" if rank==2 else ("🥉" if rank==3 else f"#{rank}"))
+                c1, c2, c3 = st.columns([1, 6, 2])
+                c1.markdown(f"**{icon}**")
+                c2.markdown(f"**{row['Manager']}** · {int(row['Weeks'])} week(s)")
+                c3.markdown(
+                    f'<div style="text-align:right;color:#fde68a;font-weight:900;">'
+                    f'+{int(row["TotalPts"])} pts</div>',
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.info("Season standings available once weekly results are scored.")
+    render_footer()
+    st.stop()
 
 # ─────────────────────────────────────────────
 # FILTER WEEK GAMES
@@ -710,8 +654,6 @@ st.write("")
 # ─────────────────────────────────────────────
 if dev_mode:
     st.info("🛠 Dev mode — submit disabled.")
-elif not manager_name:
-    st.info("👆 Enter your name at the top to lock in your picks.")
 elif not all_picked:
     missing = [f"Class {c}" for c in CLASS_ORDER if not picks.get(c)]
     st.warning(f"Still need: {', '.join(missing)}")

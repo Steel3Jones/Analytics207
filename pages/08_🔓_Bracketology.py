@@ -12,7 +12,12 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from layout import apply_global_layout_tweaks, render_logo, render_page_header, render_footer
+from auth import login_gate, logout_button, is_subscribed
 
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 PROJECT_ROOT   = Path(__file__).resolve().parent.parent
 DATA_DIR       = Path(os.environ.get("DATA_DIR", PROJECT_ROOT / "data"))
 TEAMS_PATH     = DATA_DIR / "core" / "teams_team_season_core_v50.parquet"
@@ -22,6 +27,9 @@ BRACKET_PATH   = DATA_DIR / "tournament" / "2026" / "tournament_2026.parquet"
 
 st.set_page_config(page_title="Bracketology | MPA", page_icon="🏆", layout="wide")
 apply_global_layout_tweaks()
+
+user = login_gate(required=False)
+logout_button()
 
 CARD_H  = 82
 GAP     = 8
@@ -57,6 +65,37 @@ FIELD_SIZES: Dict[Tuple[str, str], int] = {
     ("S", "North"):  8,
     ("S", "South"):  8,
 }
+
+# ─────────────────────────────────────────────
+# LOCK WALL
+# ─────────────────────────────────────────────
+
+_BASE_CSS = """
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: transparent;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  color: #f1f5f9;
+}
+</style>
+"""
+
+def _render_lock_wall(section_name: str) -> None:
+    components.html(f"""{_BASE_CSS}
+<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
+            border:1px solid rgba(245,158,11,0.3);border-radius:14px;
+            padding:32px 28px;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:10px;">🔒</div>
+  <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">
+    {section_name} — Subscriber Only
+  </div>
+  <div style="font-size:0.85rem;color:#94a3b8;max-width:420px;margin:0 auto;">
+    Subscribe to unlock Monte Carlo championship simulations,
+    regional odds, and state title projections.
+  </div>
+</div>
+""", height=160, scrolling=False)
 
 # ─────────────────────────────────────────────
 # NAME NORMALIZATION — matches scraper logic
@@ -247,7 +286,6 @@ def resolve_winners(df: pd.DataFrame, gender: str, cls: str, region: str) -> pd.
 
 def build_state_game(df: pd.DataFrame, gender: str, cls: str,
                      df_teams: pd.DataFrame = None) -> dict | None:
-    """Build State Final game dict dynamically from Regional Final winners."""
     north_champ, north_seed = None, None
     south_champ, south_seed = None, None
 
@@ -286,7 +324,6 @@ def build_state_game(df: pd.DataFrame, gender: str, cls: str,
             prob1 = m["prob_a"]
             prob2 = 1.0 - prob1
 
-    # Check if a State row exists with scores (future-proof)
     state_rows = df[
         (df["Gender"] == gender) & (df["Class"] == cls) & (df["Round"] == "State")
     ]
@@ -471,7 +508,6 @@ def build_region_html(prelims: List[dict], qf: List[dict],
 
 def build_full_bracket_html(gender: str, cls: str, df: pd.DataFrame,
                             df_teams: pd.DataFrame = None) -> Tuple[str, int]:
-    # Auto-advance winners through regional rounds
     df = resolve_winners(df, gender, cls, "North")
     df = resolve_winners(df, gender, cls, "South")
 
@@ -483,7 +519,6 @@ def build_full_bracket_html(gender: str, cls: str, df: pd.DataFrame,
     s_p  = gr("South","Prelim");  s_qf = gr("South","QF")
     s_sf = gr("South","SF");      s_fn = gr("South","Final")
 
-    # Build State Final dynamically from Regional Final winners
     state_game = build_state_game(df, gender, cls, df_teams)
 
     prelim_html = ""
@@ -515,7 +550,6 @@ def build_full_bracket_html(gender: str, cls: str, df: pd.DataFrame,
     s_fin_mid = n_qf_h + region_sep + fin_top(0) + CARD_H // 2
     state_y   = (n_fin_mid + s_fin_mid) // 2 - CARD_H // 2
 
-    # Column headers
     has_champ = state_game and state_game["done"]
     hdrs = ["Quarterfinal", "Semifinal", "Regional Final", "State Final"]
     if has_champ:
@@ -534,13 +568,11 @@ def build_full_bracket_html(gender: str, cls: str, df: pd.DataFrame,
     north_html = build_region_html([], n_qf, n_sf, n_fn, False)
     south_html = build_region_html([], s_qf, s_sf, s_fn, False)
 
-    # State Final card
     if state_game:
         sc = card_html(state_game)
     else:
         sc = tbd_card("North Champion", "South Champion", "STATE FINAL")
 
-    # Champion card
     champ_html = ""
     if state_game and state_game["done"]:
         if state_game["score1"] is not None and state_game["score2"] is not None:
@@ -857,6 +889,11 @@ hero_html = f"""
 components.html(hero_html, height=145, scrolling=False)
 st.write("")
 
+# ══════════════════════════════════════════════════════════════════════════
+#  TABS — Bracket is FREE, Championship Odds is 🔒 LOCKED
+# ══════════════════════════════════════════════════════════════════════════
+_subscribed = is_subscribed()
+
 tab_bracket, tab_odds = st.tabs(["📋 Bracket", "🎯 Championship Odds"])
 
 with tab_bracket:
@@ -867,24 +904,27 @@ with tab_bracket:
         st.exception(e)
 
 with tab_odds:
-    st.markdown("### 🎯 Projected Championship Odds")
-    st.caption("Monte Carlo — 5,000 runs per region using PowerIndex_Ridge (prediction engine ratings).")
+    if not _subscribed:
+        _render_lock_wall("Championship Odds")
+    else:
+        st.markdown("### 🎯 Projected Championship Odds")
+        st.caption("Monte Carlo — 5,000 runs per region using PowerIndex_Ridge (prediction engine ratings).")
 
-    with st.spinner("Simulating…"):
-        north_reg = run_live_odds(gender, cls, "North", df_bracket, df_teams)
-        south_reg = run_live_odds(gender, cls, "South", df_bracket, df_teams)
-        state_all = run_state_odds(gender, cls, df_bracket, df_teams)
+        with st.spinner("Simulating…"):
+            north_reg = run_live_odds(gender, cls, "North", df_bracket, df_teams)
+            south_reg = run_live_odds(gender, cls, "South", df_bracket, df_teams)
+            state_all = run_state_odds(gender, cls, df_bracket, df_teams)
 
-    def render_odds_section(region_label: str, reg_odds: Dict[str, float]):
-        if not reg_odds:
-            st.caption(f"No data for {region_label}.")
-            return
-        st.markdown(f"**{region_label}**")
-        for team, reg_prob in reg_odds.items():
-            state_prob = state_all.get(team, 0.0)
-            reg_bar  = f"{reg_prob   * 100:.1f}%"
-            stat_bar = f"{state_prob * 100:.1f}%"
-            html_row = f"""
+        def render_odds_section(region_label: str, reg_odds: Dict[str, float]):
+            if not reg_odds:
+                st.caption(f"No data for {region_label}.")
+                return
+            st.markdown(f"**{region_label}**")
+            for team, reg_prob in reg_odds.items():
+                state_prob = state_all.get(team, 0.0)
+                reg_bar  = f"{reg_prob   * 100:.1f}%"
+                stat_bar = f"{state_prob * 100:.1f}%"
+                html_row = f"""
 <div style="margin-bottom:12px;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;">
   <div style="color:#f1f5f9;font-size:13px;font-weight:700;margin-bottom:4px;
               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{team}</div>
@@ -913,10 +953,10 @@ with tab_odds:
                  width:48px;text-align:right;">{stat_bar}</span>
   </div>
 </div>""".strip()
-            components.html(html_row, height=62, scrolling=False)
+                components.html(html_row, height=62, scrolling=False)
 
-    render_odds_section("North", north_reg)
-    st.write("")
-    render_odds_section("South", south_reg)
+        render_odds_section("North", north_reg)
+        st.write("")
+        render_odds_section("South", south_reg)
 
 render_footer()

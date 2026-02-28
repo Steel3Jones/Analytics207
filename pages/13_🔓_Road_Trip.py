@@ -15,8 +15,13 @@ from layout import (
     render_footer,
 )
 from components.cards import inject_card_css, render_card
+from auth import login_gate, logout_button
 
 # --- PAGE CONFIG ---
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="🚌 Road Trips – Analytics207.com",
     page_icon="🚌",
@@ -24,9 +29,12 @@ st.set_page_config(
 )
 
 apply_global_layout_tweaks()
+login_gate(required=False)
+logout_button()
 
 ROOT     = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("DATA_DIR", ROOT / "data"))
+
 
 # Travel assumptions
 PARENT_MPG = 22.0
