@@ -28,7 +28,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-APP_ROOT = Path(r"C:\ANALYTICS207")
+APP_ROOT = Path(__file__).resolve().parent
+
 DATA_DIR = APP_ROOT / "data"
 
 inject_home_card_css()
