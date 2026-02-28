@@ -1,0 +1,164 @@
+Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Seed2,Team2,TeamKey1,TeamKey2,PIR1,PIR2,PredWinProb1,PredWinProb2,PredScore1,PredScore2,PredMargin,PredTotal,PredWinner
+2026,Boys,A,South,Prelim,2026-BA-S-Prelim1,8,Scarborough,9,Kennebunk,ScarboroughBoysASouth,KennebunkBoysASouth,,,0.6273,0.3727,54.4,49.8,4.62,104.2,Scarborough
+2026,Boys,A,South,Prelim,2026-BA-S-Prelim2,7,Westbrook,10,Bonny Eagle,WestbrookBoysASouth,Bonny EagleBoysASouth,,,0.8406,0.1594,62.7,40.2,22.46,102.8,Westbrook
+2026,Boys,A,South,Prelim,2026-BA-S-Prelim3,6,Portland,11,Falmouth,PortlandBoysASouth,FalmouthBoysASouth,,,0.6536,0.3464,57.4,49.9,7.45,107.3,Portland
+2026,Boys,A,North,QF,2026-BA-N-QF1,1,Camden Hills Regional,8,Skowhegan Area,Camden Hills RegionalBoysANorth,Skowhegan AreaBoysANorth,,,0.8444,0.1556,67.3,44.3,22.95,111.6,Camden Hills Regional
+2026,Boys,A,North,QF,2026-BA-N-QF2,4,Bangor,5,Lewiston,BangorBoysANorth,LewistonBoysANorth,,,0.6829,0.3171,59.3,48.6,10.69,108.0,Bangor
+2026,Boys,A,North,QF,2026-BA-N-QF3,3,Brunswick,6,Mt. Blue,BrunswickBoysANorth,Mt. Blue,,,0.8271,0.1729,64.3,43.5,20.79,107.7,Brunswick
+2026,Boys,A,North,QF,2026-BA-N-QF4,2,Edward Little,7,Hampden Academy,Edward LittleBoysANorth,Hampden AcademyBoysANorth,,,0.5661,0.4339,52.0,53.8,-1.72,105.8,Edward Little
+2026,Boys,A,South,QF,2026-BA-S-QF1,1,Windham,8,Scarborough,WindhamBoysASouth,ScarboroughBoysASouth,,,0.6779,0.3221,61.6,51.4,10.13,113.0,Windham
+2026,Boys,A,South,QF,2026-BA-S-QF2,4,Thornton Academy,5,Cheverus,Thornton AcademyBoysASouth,CheverusBoysASouth,,,0.6281,0.3719,57.5,52.8,4.72,110.2,Thornton Academy
+2026,Boys,A,South,QF,2026-BA-S-QF3,3,South Portland,6,Portland,South PortlandBoysASouth,PortlandBoysASouth,,,0.4405,0.5595,46.9,61.3,-14.41,108.2,Portland
+2026,Boys,A,South,Prelim,2026-BA-S-Prelim4,2,Sanford,10,Bonny Eagle,SanfordBoysASouth,Bonny EagleBoysASouth,,,0.8531,0.1469,69.6,45.5,24.1,115.0,Sanford
+2026,Boys,A,North,SF,2026-BA-N-SF1,1,Camden Hills Regional,4,Bangor,Camden Hills RegionalBoysANorth,BangorBoysANorth,,,0.7509,0.2491,65.0,46.2,18.78,111.2,Camden Hills Regional
+2026,Boys,A,North,SF,2026-BA-N-SF2,3,Brunswick,2,Edward Little,BrunswickBoysANorth,Edward LittleBoysANorth,,,0.6359,0.3641,55.2,49.7,5.54,104.9,Brunswick
+2026,Boys,A,South,QF,2026-BA-S-QF4,8,Scarborough,5,Cheverus,ScarboroughBoysASouth,CheverusBoysASouth,,,0.5535,0.4465,52.7,55.7,-3.0,108.5,Scarborough
+2026,Boys,A,South,QF,2026-BA-S-QF5,6,Portland,2,Sanford,PortlandBoysASouth,SanfordBoysASouth,,,0.4234,0.5766,48.9,65.0,-16.15,113.9,Sanford
+2026,Boys,A,North,SF,2026-BA-N-SF3,1,Camden Hills Regional,3,Brunswick,Camden Hills RegionalBoysANorth,BrunswickBoysANorth,,,0.6411,0.3589,59.3,53.2,6.1,112.6,Camden Hills Regional
+2026,Boys,A,South,QF,2026-BA-S-QF6,5,Cheverus,6,Portland,CheverusBoysASouth,PortlandBoysASouth,,,0.3412,0.6588,42.5,67.3,-24.83,109.8,Portland
+2026,Boys,B,North,Prelim,2026-BB-N-Prelim1,8,Presque Isle,9,Nokomis,Presque IsleBoysBNorth,NokomisBoysCSouth,,,0.7253,0.2747,60.6,45.0,15.62,105.6,Presque Isle
+2026,Boys,B,South,Prelim,2026-BB-S-Prelim1,8,Cape Elizabeth,9,Gray-New Gloucester,Cape ElizabethBoysBSouth,Gray-New GloucesterBoysBSouth,,,0.6063,0.3937,56.1,53.7,2.42,109.8,Cape Elizabeth
+2026,Boys,B,South,Prelim,2026-BB-S-Prelim2,7,Oceanside,10,Lincoln Academy,OceansideBoysBSouth,Lincoln AcademyBoysBSouth,,,0.6254,0.3746,55.3,50.9,4.42,106.1,Oceanside
+2026,Boys,B,North,QF,2026-BB-N-QF1,1,Cony HS,8,Presque Isle,Cony HSBoysBNorth,Presque IsleBoysBNorth,,,0.7348,0.2652,71.4,54.6,16.78,126.0,Cony HS
+2026,Boys,B,North,QF,2026-BB-N-QF2,4,Mount Desert Island,5,Ellsworth,Mount Desert IslandBoysBNorth,EllsworthBoysBNorth,,,0.5712,0.4288,59.5,60.7,-1.2,120.1,Mount Desert Island
+2026,Boys,B,North,QF,2026-BB-N-QF3,3,Gardiner Area,6,Erskine Academy,Gardiner AreaBoysBNorth,Erskine AcademyBoysBNorth,,,0.6538,0.3462,60.0,52.5,7.47,112.5,Gardiner Area
+2026,Boys,B,North,QF,2026-BB-N-QF4,2,Hermon,7,Belfast Area,HermonBoysBNorth,Belfast AreaBoysBNorth,,,0.8749,0.1251,65.5,38.3,27.2,103.7,Hermon
+2026,Boys,B,South,Prelim,2026-BB-S-Prelim3,1,York,9,Gray-New Gloucester,YorkBoysBSouth,Gray-New GloucesterBoysBSouth,,,0.8997,0.1003,71.2,39.9,31.23,111.1,York
+2026,Boys,B,South,QF,2026-BB-S-QF1,4,Yarmouth,5,Leavitt Area,YarmouthBoysBSouth,Leavitt AreaBoysBSouth,,,0.6806,0.3194,61.8,51.3,10.44,113.1,Yarmouth
+2026,Boys,B,South,QF,2026-BB-S-QF2,3,Lake Region,6,Poland Regional,Lake RegionBoysBSouth,Poland RegionalBoysBSouth,,,0.507,0.493,53.4,61.1,-7.7,114.6,Lake Region
+2026,Boys,B,South,Prelim,2026-BB-S-Prelim4,2,Medomak Valley,10,Lincoln Academy,Medomak ValleyBoysBSouth,Lincoln AcademyBoysBSouth,,,0.7344,0.2656,62.7,46.0,16.73,108.7,Medomak Valley
+2026,Boys,B,North,QF,2026-BB-N-QF5,1,Cony HS,5,Ellsworth,Cony HSBoysBNorth,EllsworthBoysBNorth,,,0.6134,0.3866,64.6,61.4,3.17,126.0,Cony HS
+2026,Boys,B,North,SF,2026-BB-N-SF1,3,Gardiner Area,2,Hermon,Gardiner AreaBoysBNorth,HermonBoysBNorth,,,0.5594,0.4406,52.3,54.7,-2.4,106.9,Gardiner Area
+2026,Boys,B,South,SF,2026-BB-S-SF1,1,York,4,Yarmouth,YorkBoysBSouth,YarmouthBoysBSouth,,,0.7352,0.2648,66.1,49.3,16.83,115.4,York
+2026,Boys,B,South,QF,2026-BB-S-QF3,6,Poland Regional,2,Medomak Valley,Poland RegionalBoysBSouth,Medomak ValleyBoysBSouth,,,0.4319,0.5681,51.8,67.1,-15.29,119.0,Medomak Valley
+2026,Boys,B,North,SF,2026-BB-N-SF2,1,Cony HS,3,Gardiner Area,Cony HSBoysBNorth,Gardiner AreaBoysBNorth,,,0.677,0.323,68.6,58.5,10.04,127.1,Cony HS
+2026,Boys,B,South,SF,2026-BB-S-SF2,4,Yarmouth,2,Medomak Valley,YarmouthBoysBSouth,Medomak ValleyBoysBSouth,,,0.53,0.47,55.0,60.4,-5.38,115.4,Yarmouth
+2026,Boys,C,South,Prelim,2026-BC-S-Prelim1,8,Oak Hill,9,Wells,Oak HillBoysCSouth,WellsBoysCSouth,,,0.5129,0.4871,52.7,59.8,-7.11,112.4,Oak Hill
+2026,Boys,C,North,Prelim,2026-BC-N-Prelim1,8,Calais,9,Dexter Regional,CalaisBoysCNorth,Dexter RegionalBoysCNorth,,,0.6247,0.3753,53.3,48.9,4.36,102.2,Calais
+2026,Boys,C,South,Prelim,2026-BC-S-Prelim2,7,Dirigo,10,Winslow,DirigoBoysCSouth,WinslowBoysBNorth,,,0.707,0.293,58.0,44.5,13.45,102.5,Dirigo
+2026,Boys,C,North,Prelim,2026-BC-N-Prelim2,7,Orono,10,Bucksport,OronoBoysCNorth,BucksportBoysCNorth,,,0.7394,0.2606,58.2,40.9,17.34,99.1,Orono
+2026,Boys,C,North,QF,2026-BC-N-QF1,1,Caribou,8,Calais,CaribouBoysCNorth,CalaisBoysCNorth,,,0.8341,0.1659,66.9,45.2,21.65,112.1,Caribou
+2026,Boys,C,North,QF,2026-BC-N-QF2,4,Foxcroft Academy,5,Washington Academy,Foxcroft AcademyBoysCNorth,Washington AcademyBoysCNorth,,,0.7191,0.2809,63.5,48.7,14.88,112.2,Foxcroft Academy
+2026,Boys,C,North,QF,2026-BC-N-QF3,3,Fort Kent Community,6,Sumner Memorial,Fort Kent CommunityBoysDNorth,Sumner MemorialBoysCNorth,,,0.6641,0.3359,62.3,53.7,8.6,116.0,Fort Kent Community
+2026,Boys,C,North,QF,2026-BC-N-QF4,2,Mattanawcook Academy,7,Orono,Mattanawcook AcademyBoysCNorth,OronoBoysCNorth,,,0.6671,0.3329,60.9,52.0,8.93,112.9,Mattanawcook Academy
+2026,Boys,C,South,Prelim,2026-BC-S-Prelim3,1,Spruce Mountain,9,Wells,Spruce MountainBoysCSouth,WellsBoysCSouth,,,0.8416,0.1584,63.7,41.1,22.59,104.8,Spruce Mountain
+2026,Boys,C,South,QF,2026-BC-S-QF1,4,Sacopee Valley,5,Mount View,Sacopee ValleyBoysBSouth,Mount ViewBoysCSouth,,,0.4697,0.5303,49.2,60.6,-11.46,109.8,Mount View
+2026,Boys,C,South,QF,2026-BC-S-QF2,3,Maranacook Community,6,Waynflete,Maranacook CommunityBoysCSouth,WaynfleteBoysBSouth,,,0.7577,0.2423,68.9,49.2,19.64,118.1,Maranacook Community
+2026,Boys,C,South,QF,2026-BC-S-QF3,2,Hall-Dale HS,7,Dirigo,Hall-Dale HSBoysCSouth,DirigoBoysCSouth,,,0.5861,0.4139,55.4,55.1,0.33,110.5,Hall-Dale HS
+2026,Boys,C,North,QF,2026-BC-N-QF5,1,Caribou,5,Washington Academy,CaribouBoysCNorth,Washington AcademyBoysCNorth,,,0.6995,0.3005,63.1,50.5,12.59,113.6,Caribou
+2026,Boys,C,North,SF,2026-BC-N-SF1,3,Fort Kent Community,2,Mattanawcook Academy,Fort Kent CommunityBoysDNorth,Mattanawcook AcademyBoysCNorth,,,0.4396,0.5604,53.3,67.8,-14.5,121.1,Mattanawcook Academy
+2026,Boys,C,South,QF,2026-BC-S-QF4,1,Spruce Mountain,5,Mount View,Spruce MountainBoysCSouth,Mount ViewBoysCSouth,,,0.7265,0.2735,60.2,44.5,15.76,104.7,Spruce Mountain
+2026,Boys,C,South,SF,2026-BC-S-SF1,3,Maranacook Community,2,Hall-Dale HS,Maranacook CommunityBoysCSouth,Hall-Dale HSBoysCSouth,,,0.5526,0.4474,54.4,57.5,-3.09,112.0,Maranacook Community
+2026,Boys,C,North,SF,2026-BC-N-SF2,1,Caribou,3,Fort Kent Community,CaribouBoysCNorth,Fort Kent CommunityBoysDNorth,,,0.6579,0.3421,60.4,52.5,7.93,112.8,Caribou
+2026,Boys,C,South,SF,2026-BC-S-SF2,1,Spruce Mountain,3,Maranacook Community,Spruce MountainBoysCSouth,Maranacook CommunityBoysCSouth,,,0.7404,0.2596,62.2,44.7,17.46,106.9,Spruce Mountain
+2026,Boys,D,North,Prelim,2026-BD-N-Prelim1,8,Central Aroostook Sr,9,Schenck,Central Aroostook SrBoysDNorth,SchenckBoysDNorth,,,0.7101,0.2899,60.8,47.0,13.82,107.8,Central Aroostook Sr
+2026,Boys,D,North,Prelim,2026-BD-N-Prelim2,7,Penobscot Valley,10,Stearns Sr.,Penobscot ValleyBoysDNorth,Stearns Sr.BoysDNorth,,,0.5666,0.4334,53.6,55.2,-1.68,108.8,Penobscot Valley
+2026,Boys,D,North,QF,2026-BD-N-QF1,1,Machias Memorial,8,Central Aroostook Sr,Machias MemorialBoysDNorth,Central Aroostook SrBoysDNorth,,,0.6869,0.3131,60.7,49.6,11.15,110.3,Machias Memorial
+2026,Boys,D,North,QF,2026-BD-N-QF2,4,Bangor Christian,5,Hodgdon HS,Bangor ChristianBoysDNorth,Hodgdon HSBoysDNorth,,,0.5869,0.4131,54.9,54.5,0.41,109.4,Bangor Christian
+2026,Boys,D,North,QF,2026-BD-N-QF3,3,Fort Fairfield HS,6,Woodland Sr.,Fort Fairfield HSBoysDNorth,Woodland Sr.BoysDNorth,,,0.7062,0.2938,60.9,47.6,13.37,108.5,Fort Fairfield HS
+2026,Boys,D,North,QF,2026-BD-N-QF4,2,Madawaska HS,7,Penobscot Valley,Madawaska HSBoysDNorth,Penobscot ValleyBoysDNorth,,,0.8401,0.1599,62.8,40.4,22.4,103.2,Madawaska HS
+2026,Boys,D,South,QF,2026-BD-S-QF1,1,Mt. Abram,8,Old Orchard Beach,Mt. Abram,Old Orchard BeachBoysCSouth,,,0.6884,0.3116,60.3,48.9,11.32,109.2,Mt. Abram
+2026,Boys,D,South,QF,2026-BD-S-QF2,4,Carrabec,5,Wiscasset HS,CarrabecBoysDSouth,Wiscasset HSBoysDSouth,,,0.5537,0.4463,50.9,53.8,-2.98,104.7,Carrabec
+2026,Boys,D,South,QF,2026-BD-S-QF3,3,Madison Area Memorial Se,6,Buckfield HS,Madison Area Memorial SeniorBoysCSouth,Buckfield HSBoysDSouth,,,0.8263,0.1737,67.4,46.7,20.7,114.2,Madison Area Memorial Se
+2026,Boys,D,South,QF,2026-BD-S-QF4,2,Monmouth Academy,7,Telstar Regional,Monmouth AcademyBoysCSouth,Telstar RegionalBoysCSouth,,,0.8663,0.1337,66.8,40.9,25.94,107.6,Monmouth Academy
+2026,Boys,D,North,SF,2026-BD-N-SF1,3,Fort Fairfield HS,2,Madawaska HS,Fort Fairfield HSBoysDNorth,Madawaska HSBoysDNorth,,,0.5855,0.4145,51.4,51.2,0.26,102.6,Fort Fairfield HS
+2026,Boys,D,South,SF,2026-BD-S-SF1,1,Mt. Abram,4,Carrabec,Mt. Abram,CarrabecBoysDSouth,,,0.6032,0.3968,53.2,51.1,2.1,104.3,Mt. Abram
+2026,Boys,D,South,SF,2026-BD-S-SF2,3,Madison Area Memorial Se,2,Monmouth Academy,Madison Area Memorial SeniorBoysCSouth,Monmouth AcademyBoysCSouth,,,0.5282,0.4718,51.3,56.9,-5.56,108.2,Madison Area Memorial Se
+2026,Boys,D,South,Final,2026-BD-S-Final1,1,Mt. Abram,2,Monmouth Academy,Mt. Abram,Monmouth AcademyBoysCSouth,,,0.4117,0.5883,44.1,61.4,-17.36,105.5,Monmouth Academy
+2026,Boys,S,North,QF,2026-BS-N-QF1,1,Jonesport-Beals,8,Deer Isle-Stonington,Jonesport-BealsBoysDNorth,Deer Isle-StoningtonBoysDNorth,,,0.9997,0.0003,72.9,32.9,40.0,105.7,Jonesport-Beals
+2026,Boys,S,North,QF,2026-BS-N-QF2,4,Washburn District,5,Shead,Washburn DistrictBoysDNorth,SheadBoysDNorth,,,0.6385,0.3615,57.2,51.3,5.83,108.5,Washburn District
+2026,Boys,S,North,QF,2026-BS-N-QF3,3,Katahdin HS,6,Van Buren District,Katahdin HSBoysDNorth,Van Buren DistrictBoysDNorth,,,0.8774,0.1226,66.8,39.2,27.59,106.0,Katahdin HS
+2026,Boys,S,North,QF,2026-BS-N-QF4,2,Easton Senior,7,Wisdom HS,Easton SeniorBoysDNorth,Wisdom HSBoysDNorth,,,0.9105,0.0895,70.5,37.3,33.2,107.9,Easton Senior
+2026,Boys,S,South,QF,2026-BS-S-QF1,1,Valley HS,8,Greenville 16,Valley HSBoysSSouth,GreenvilleBoysSSouth,,,0.9981,0.0019,73.6,33.6,40.0,107.3,Valley HS
+2026,Boys,S,South,QF,2026-BS-S-QF2,4,Islesboro Central,5,Vinalhaven,Islesboro CentralBoysDSouth,VinalhavenBoysDSouth,,,0.7599,0.2401,64.9,45.0,19.93,109.8,Islesboro Central
+2026,Boys,S,South,QF,2026-BS-S-QF3,3,Forest Hills Consolidate,6,Temple Academy,Forest Hills ConsolidatedBoysDSouth,Temple AcademyBoysDSouth,,,0.8758,0.1242,66.5,39.1,27.34,105.6,Forest Hills Consolidate
+2026,Boys,S,South,QF,2026-BS-S-QF4,2,Pine Tree Academy,7,Rangeley Lakes Regional,Pine Tree AcademyBoysDSouth,Rangeley Lakes RegionalBoysSSouth,,,0.9965,0.0035,75.6,35.6,40.0,111.1,Pine Tree Academy
+2026,Boys,S,North,QF,2026-BS-N-QF5,1,Jonesport-Beals,5,Shead,Jonesport-BealsBoysDNorth,SheadBoysDNorth,,,0.6566,0.3434,58.7,50.9,7.78,109.7,Jonesport-Beals
+2026,Boys,S,North,SF,2026-BS-N-SF1,3,Katahdin HS,2,Easton Senior,Katahdin HSBoysDNorth,Easton SeniorBoysDNorth,,,0.5204,0.4796,50.6,56.9,-6.35,107.5,Katahdin HS
+2026,Boys,S,South,SF,2026-BS-S-SF1,1,Valley HS,4,Islesboro Central,Valley HSBoysSSouth,Islesboro CentralBoysDSouth,,,0.4823,0.5177,47.8,58.0,-10.19,105.8,Islesboro Central
+2026,Boys,S,South,SF,2026-BS-S-SF2,3,Forest Hills Consolidate,2,Pine Tree Academy,Forest Hills ConsolidatedBoysDSouth,Pine Tree AcademyBoysDSouth,,,0.5047,0.4953,55.2,63.2,-7.93,118.4,Forest Hills Consolidate
+2026,Boys,S,North,Final,2026-BS-N-Final1,1,Jonesport-Beals,2,Easton Senior,Jonesport-BealsBoysDNorth,Easton SeniorBoysDNorth,,,0.5534,0.4466,53.5,56.5,-3.01,110.0,Jonesport-Beals
+2026,Boys,S,South,SF,2026-BS-S-SF3,1,Valley HS,3,Forest Hills Consolidate,Valley HSBoysSSouth,Forest Hills ConsolidatedBoysDSouth,,,0.6562,0.3438,58.9,51.2,7.73,110.1,Valley HS
+2026,Girls,A,South,Prelim,2026-GA-S-Prelim1,8,Gorham,9,Scarborough,GorhamGirlsASouth,ScarboroughGirlsASouth,,,0.6888,0.3112,50.0,36.8,13.23,86.8,Gorham
+2026,Girls,A,South,Prelim,2026-GA-S-Prelim2,7,Thornton Academy,10,Kennebunk,Thornton AcademyGirlsASouth,KennebunkGirlsASouth,,,0.5906,0.4094,43.9,42.2,1.67,86.1,Thornton Academy
+2026,Girls,A,South,Prelim,2026-GA-S-Prelim3,6,Westbrook,11,Massabesic,WestbrookGirlsASouth,MassabesicGirlsASouth,,,0.6991,0.3009,47.7,33.2,14.52,80.9,Westbrook
+2026,Girls,A,North,QF,2026-GA-N-QF1,1,Mt. Ararat,8,Skowhegan Area,Mt. Ararat,Skowhegan AreaGirlsANorth,,,0.4937,0.5063,36.1,45.2,-9.09,81.2,Skowhegan Area
+2026,Girls,A,North,QF,2026-GA-N-QF2,4,Edward Little,5,Bangor,Edward LittleGirlsANorth,BangorGirlsANorth,,,0.5755,0.4245,42.6,42.6,-0.04,85.2,Edward Little
+2026,Girls,A,North,QF,2026-GA-N-QF3,3,Camden Hills Regional,6,Brunswick,Camden Hills RegionalGirlsANorth,BrunswickGirlsANorth,,,0.8327,0.1673,52.8,28.5,24.31,81.4,Camden Hills Regional
+2026,Girls,A,North,QF,2026-GA-N-QF4,2,Hampden Academy,7,Lewiston 18,Hampden AcademyGirlsANorth,LewistonGirlsANorth,,,0.7312,0.2688,51.9,33.2,18.68,85.1,Hampden Academy
+2026,Girls,A,South,QF,2026-GA-S-QF1,1,Cheverus,8,Gorham,CheverusGirlsASouth,GorhamGirlsASouth,,,0.856,0.144,59.6,32.0,27.61,91.6,Cheverus
+2026,Girls,A,South,QF,2026-GA-S-QF2,4,Biddeford,5,Windham,BiddefordGirlsASouth,WindhamGirlsASouth,,,0.7317,0.2683,52.3,33.6,18.75,85.9,Biddeford
+2026,Girls,A,South,QF,2026-GA-S-QF3,3,South Portland,6,Westbrook,South PortlandGirlsASouth,WestbrookGirlsASouth,,,0.6351,0.3649,47.1,40.3,6.77,87.4,South Portland
+2026,Girls,A,South,QF,2026-GA-S-QF4,2,Sanford,7,Thornton Academy,SanfordGirlsASouth,Thornton AcademyGirlsASouth,,,0.6663,0.3337,50.9,40.4,10.48,91.3,Sanford
+2026,Girls,A,North,SF,2026-GA-N-SF1,1,Mt. Ararat,4,Edward Little,Mt. Ararat,Edward LittleGirlsANorth,,,0.3793,0.6207,33.6,55.5,-21.91,89.1,Edward Little
+2026,Girls,A,North,SF,2026-GA-N-SF2,3,Camden Hills Regional,2,Hampden Academy,Camden Hills RegionalGirlsANorth,Hampden AcademyGirlsANorth,,,0.5881,0.4119,42.6,41.2,1.39,83.9,Camden Hills Regional
+2026,Girls,A,South,SF,2026-GA-S-SF1,1,Cheverus,4,Biddeford,CheverusGirlsASouth,BiddefordGirlsASouth,,,0.6761,0.3239,51.7,40.0,11.68,91.8,Cheverus
+2026,Girls,A,South,SF,2026-GA-S-SF2,3,South Portland,2,Sanford,South PortlandGirlsASouth,SanfordGirlsASouth,,,0.5461,0.4539,41.4,44.7,-3.32,86.1,South Portland
+2026,Girls,A,North,Final,2026-GA-N-Final1,1,Mt. Ararat,2,Hampden Academy,Mt. Ararat,Hampden AcademyGirlsANorth,,,0.4343,0.5657,34.1,49.8,-15.67,83.9,Hampden Academy
+2026,Girls,A,South,SF,2026-GA-S-SF3,1,Cheverus,3,South Portland,CheverusGirlsASouth,South PortlandGirlsASouth,,,0.6069,0.3931,45.7,42.2,3.51,87.8,Cheverus
+2026,Girls,B,North,Prelim,2026-GB-N-Prelim1,8,Erskine Academy,9,Cony HS,Erskine AcademyGirlsBNorth,Cony HSGirlsBNorth,,,0.6615,0.3385,51.0,41.1,9.9,92.2,Erskine Academy
+2026,Girls,B,South,Prelim,2026-GB-S-Prelim1,8,Freeport,9,Yarmouth,FreeportGirlsBSouth,YarmouthGirlsBSouth,,,0.5482,0.4518,36.2,39.3,-3.08,75.5,Freeport
+2026,Girls,B,South,Prelim,2026-GB-S-Prelim2,7,Leavitt Area,10,Lake Region,Leavitt AreaGirlsBSouth,Lake RegionGirlsBSouth,,,0.4744,0.5256,35.8,47.1,-11.22,82.9,Lake Region
+2026,Girls,B,North,Prelim,2026-GB-N-Prelim2,1,Gardiner Area,9,Cony HS,Gardiner AreaGirlsBNorth,Cony HSGirlsBNorth,,,0.7103,0.2897,53.3,37.3,15.95,90.6,Gardiner Area
+2026,Girls,B,North,QF,2026-GB-N-QF1,4,Presque Isle,5,Hermon,Presque IsleGirlsBNorth,HermonGirlsBNorth,,,0.6226,0.3774,46.0,40.7,5.32,86.7,Presque Isle
+2026,Girls,B,North,QF,2026-GB-N-QF2,3,Lawrence,6,Mount Desert Island,LawrenceGirlsBNorth,Mount Desert IslandGirlsBNorth,,,0.6426,0.3574,52.0,44.4,7.65,96.4,Lawrence
+2026,Girls,B,North,QF,2026-GB-N-QF3,2,Old Town,7,Ellsworth,Old TownGirlsANorth,EllsworthGirlsBNorth,,,0.5519,0.4481,44.7,47.4,-2.68,92.1,Old Town
+2026,Girls,B,South,QF,2026-GB-S-QF1,1,Gray-New Gloucester,8,Freeport,Gray-New GloucesterGirlsBSouth,FreeportGirlsBSouth,,,0.8585,0.1415,55.6,27.6,27.99,83.1,Gray-New Gloucester
+2026,Girls,B,South,QF,2026-GB-S-QF2,4,Greely,5,Marshwood,GreelyGirlsBSouth,MarshwoodGirlsBSouth,,,0.4597,0.5403,33.9,46.8,-12.85,80.7,Marshwood
+2026,Girls,B,South,QF,2026-GB-S-QF3,3,York,6,Poland Regional,YorkGirlsBSouth,Poland RegionalGirlsBSouth,,,0.6698,0.3302,49.1,38.2,10.9,87.4,York
+2026,Girls,B,South,Prelim,2026-GB-S-Prelim3,2,Oceanside,10,Lake Region,OceansideGirlsBSouth,Lake RegionGirlsBSouth,,,0.8879,0.1121,63.0,30.2,32.8,93.3,Oceanside
+2026,Girls,B,North,SF,2026-GB-N-SF1,1,Gardiner Area,4,Presque Isle,Gardiner AreaGirlsBNorth,Presque IsleGirlsBNorth,,,0.6611,0.3389,48.1,38.2,9.85,86.3,Gardiner Area
+2026,Girls,B,North,QF,2026-GB-N-QF4,3,Lawrence,7,Ellsworth,LawrenceGirlsBNorth,EllsworthGirlsBNorth,,,0.6361,0.3639,51.9,45.0,6.9,96.9,Lawrence
+2026,Girls,B,South,QF,2026-GB-S-QF4,1,Gray-New Gloucester,5,Marshwood,Gray-New GloucesterGirlsBSouth,MarshwoodGirlsBSouth,,,0.7573,0.2427,54.9,32.6,22.25,87.5,Gray-New Gloucester
+2026,Girls,B,South,SF,2026-GB-S-SF1,3,York,2,Oceanside,YorkGirlsBSouth,OceansideGirlsBSouth,,,0.3665,0.6335,34.9,58.3,-23.4,93.3,Oceanside
+2026,Girls,B,North,SF,2026-GB-N-SF2,1,Gardiner Area,3,Lawrence,Gardiner AreaGirlsBNorth,LawrenceGirlsBNorth,,,0.6251,0.3749,49.3,43.7,5.61,93.0,Gardiner Area
+2026,Girls,B,South,Final,2026-GB-S-Final1,1,Gray-New Gloucester,2,Oceanside,Gray-New GloucesterGirlsBSouth,OceansideGirlsBSouth,,,0.538,0.462,44.0,48.2,-4.21,92.3,Gray-New Gloucester
+2026,Girls,C,South,Prelim,2026-GC-S-Prelim1,8,Mount View,9,Hall-Dale HS,Mount ViewGirlsCSouth,Hall-Dale HSGirlsCSouth,,,0.8267,0.1733,54.4,30.9,23.5,85.3,Mount View
+2026,Girls,C,North,Prelim,2026-GC-N-Prelim1,8,Orono,9,Washington Academy,OronoGirlsCNorth,Washington AcademyGirlsCNorth,,,0.6379,0.3621,44.8,37.7,7.1,82.5,Orono
+2026,Girls,C,South,Prelim,2026-GC-S-Prelim2,7,Dirigo,10,Traip Academy,DirigoGirlsCSouth,Traip AcademyGirlsBSouth,,,0.7497,0.2503,51.1,29.9,21.2,81.1,Dirigo
+2026,Girls,C,North,Prelim,2026-GC-N-Prelim2,7,Sumner Memorial,10,Central,Sumner MemorialGirlsCNorth,CentralGirlsCNorth,,,0.6046,0.3954,42.1,38.8,3.25,80.9,Sumner Memorial
+2026,Girls,C,North,QF,2026-GC-N-QF1,1,Mattanawcook Academy,8,Orono,Mattanawcook AcademyGirlsCNorth,OronoGirlsCNorth,,,0.948,0.052,66.0,26.0,40.0,92.0,Mattanawcook Academy
+2026,Girls,C,North,QF,2026-GC-N-QF2,4,Dexter/PCHS,5,Caribou,Dexter/PCHS,CaribouGirlsCNorth,,,0.5096,0.4904,39.0,46.3,-7.35,85.3,Dexter/PCHS
+2026,Girls,C,North,QF,2026-GC-N-QF3,3,Foxcroft Academy,6,Calais,Foxcroft AcademyGirlsCNorth,CalaisGirlsCNorth,,,0.7601,0.2399,53.1,30.5,22.64,83.6,Foxcroft Academy
+2026,Girls,C,North,QF,2026-GC-N-QF4,2,George Stevens Academy,7,Sumner Memorial,George Stevens AcademyGirlsCNorth,Sumner MemorialGirlsCNorth,,,0.6372,0.3628,45.5,38.5,7.02,83.9,George Stevens Academy
+2026,Girls,C,South,QF,2026-GC-S-QF1,1,Spruce Mountain,8,Mount View,Spruce MountainGirlsCSouth,Mount ViewGirlsCSouth,,,0.7473,0.2527,56.1,35.2,20.87,91.3,Spruce Mountain
+2026,Girls,C,South,QF,2026-GC-S-QF2,4,Oak Hill,5,Winthrop,Oak HillGirlsCSouth,WinthropGirlsCSouth,,,0.7057,0.2943,48.5,33.2,15.36,81.7,Oak Hill
+2026,Girls,C,South,QF,2026-GC-S-QF3,3,Wells,6,Winslow,WellsGirlsCSouth,WinslowGirlsBNorth,,,0.6988,0.3012,50.6,36.2,14.49,86.8,Wells
+2026,Girls,C,South,QF,2026-GC-S-QF4,2,Maranacook Community,7,Dirigo,Maranacook CommunityGirlsCSouth,DirigoGirlsCSouth,,,0.5503,0.4497,45.0,47.8,-2.85,92.8,Maranacook Community
+2026,Girls,C,North,QF,2026-GC-N-QF5,1,Mattanawcook Academy,5,Caribou,Mattanawcook AcademyGirlsCNorth,CaribouGirlsCNorth,,,0.8842,0.1158,61.7,29.5,32.15,91.2,Mattanawcook Academy
+2026,Girls,C,North,SF,2026-GC-N-SF1,3,Foxcroft Academy,2,George Stevens Academy,Foxcroft AcademyGirlsCNorth,George Stevens AcademyGirlsCNorth,,,0.5735,0.4265,42.0,42.3,-0.26,84.4,Foxcroft Academy
+2026,Girls,C,South,QF,2026-GC-S-QF5,1,Spruce Mountain,5,Winthrop,Spruce MountainGirlsCSouth,WinthropGirlsCSouth,,,0.894,0.106,59.3,25.4,33.9,84.7,Spruce Mountain
+2026,Girls,C,South,SF,2026-GC-S-SF1,3,Wells,2,Maranacook Community,WellsGirlsCSouth,Maranacook CommunityGirlsCSouth,,,0.5641,0.4359,41.5,42.8,-1.31,84.2,Wells
+2026,Girls,C,North,SF,2026-GC-N-SF2,1,Mattanawcook Academy,3,Foxcroft Academy,Mattanawcook AcademyGirlsCNorth,Foxcroft AcademyGirlsCNorth,,,0.7463,0.2537,55.3,34.5,20.73,89.8,Mattanawcook Academy
+2026,Girls,C,South,SF,2026-GC-S-SF2,1,Spruce Mountain,3,Wells,Spruce MountainGirlsCSouth,WellsGirlsCSouth,,,0.6465,0.3535,47.1,39.0,8.11,86.1,Spruce Mountain
+2026,Girls,D,North,Prelim,2026-GD-N-Prelim1,8,Schenck,9,Stearns Sr.,SchenckGirlsDNorth,Stearns Sr.GirlsDNorth,,,0.5605,0.4395,41.6,43.3,-1.71,84.9,Schenck
+2026,Girls,D,North,Prelim,2026-GD-N-Prelim2,7,Narraguagus Sr,10,Fort Fairfield HS 17,Narraguagus SrGirlsSNorth,Fort Fairfield HSGirlsDNorth,,,0.6577,0.3423,47.0,37.6,9.44,84.6,Narraguagus Sr
+2026,Girls,D,North,QF,2026-GD-N-QF1,1,Bangor Christian,8,Schenck,Bangor ChristianGirlsDNorth,SchenckGirlsDNorth,,,0.9981,0.0019,64.7,24.7,40.0,89.5,Bangor Christian
+2026,Girls,D,North,QF,2026-GD-N-QF2,4,Penobscot Valley,5,Southern Aroostook 19,Penobscot ValleyGirlsDNorth,Southern AroostookGirlsDNorth,,,0.6639,0.3361,51.8,41.6,10.19,93.4,Penobscot Valley
+2026,Girls,D,North,QF,2026-GD-N-QF3,3,Central Aroostook Sr,6,Woodland Sr.,Central Aroostook SrGirlsDNorth,Woodland Sr.GirlsDNorth,,,0.8604,0.1396,63.2,34.9,28.28,98.1,Central Aroostook Sr
+2026,Girls,D,North,QF,2026-GD-N-QF4,2,Machias Memorial,7,Narraguagus Sr,Machias MemorialGirlsDNorth,Narraguagus SrGirlsSNorth,,,0.8346,0.1654,56.5,32.0,24.57,88.5,Machias Memorial
+2026,Girls,D,South,QF,2026-GD-S-QF1,1,Mt. Abram,8,North Yarmouth Academy,Mt. Abram,North Yarmouth AcademyGirlsCSouth,,,0.7001,0.2999,47.8,33.2,14.65,81.0,Mt. Abram
+2026,Girls,D,South,QF,2026-GD-S-QF2,4,Monmouth Academy,5,Old Orchard Beach,Monmouth AcademyGirlsCSouth,Old Orchard BeachGirlsCSouth,,,0.5697,0.4303,40.5,41.2,-0.69,81.8,Monmouth Academy
+2026,Girls,D,South,QF,2026-GD-S-QF3,3,Carrabec,6,Madison Area Memorial Se,CarrabecGirlsDSouth,Madison Area Memorial SeniorGirlsCSouth,,,0.7466,0.2534,51.2,30.5,20.77,81.7,Carrabec
+2026,Girls,D,South,QF,2026-GD-S-QF4,2,Buckfield HS,7,Boothbay Region,Buckfield HSGirlsDSouth,Boothbay RegionGirlsCSouth,,,0.9296,0.0704,62.4,22.4,40.0,84.8,Buckfield HS
+2026,Girls,D,North,SF,2026-GD-N-SF1,1,Bangor Christian,4,Penobscot Valley,Bangor ChristianGirlsDNorth,Penobscot ValleyGirlsDNorth,,,0.6453,0.3547,50.9,42.9,7.97,93.8,Bangor Christian
+2026,Girls,D,North,SF,2026-GD-N-SF2,3,Central Aroostook Sr,2,Machias Memorial,Central Aroostook SrGirlsDNorth,Machias MemorialGirlsDNorth,,,0.6057,0.3943,49.6,46.3,3.38,95.9,Central Aroostook Sr
+2026,Girls,D,South,SF,2026-GD-S-SF1,1,Mt. Abram,4,Monmouth Academy 17,Mt. Abram,Monmouth AcademyGirlsCSouth,,,0.4576,0.5424,33.4,46.5,-13.09,79.9,Monmouth Academy 17
+2026,Girls,D,South,QF,2026-GD-S-QF5,6,Madison Area Memorial Se,2,Buckfield HS,Madison Area Memorial SeniorGirlsCSouth,Buckfield HSGirlsDSouth,,,0.2959,0.7041,24.7,56.7,-31.97,81.4,Buckfield HS
+2026,Girls,D,North,SF,2026-GD-N-SF3,4,Penobscot Valley,2,Machias Memorial,Penobscot ValleyGirlsDNorth,Machias MemorialGirlsDNorth,,,0.6991,0.3009,54.8,40.3,14.52,95.0,Penobscot Valley
+2026,Girls,D,South,Final,2026-GD-S-Final1,1,Mt. Abram,2,Buckfield HS,Mt. Abram,Buckfield HSGirlsDSouth,,,0.3415,0.6585,28.6,55.0,-26.35,83.6,Buckfield HS
+2026,Girls,S,North,QF,2026-GS-N-QF1,1,Wisdom HS,8,Easton Senior 14,Wisdom HSGirlsDNorth,Easton SeniorGirlsDNorth,,,0.9964,0.0036,59.8,19.8,40.0,79.6,Wisdom HS
+2026,Girls,S,North,Prelim,2026-GS-N-Prelim1,4,Deer Isle-Stonington,16,5 Ashland District,Deer Isle-StoningtonGirlsDNorth,Ashland DistrictGirlsSNorth,,,0.431,0.569,30.6,46.7,-16.04,77.3,5 Ashland District
+2026,Girls,S,North,QF,2026-GS-N-QF2,3,Jonesport-Beals,6,Shead,Jonesport-BealsGirlsDNorth,SheadGirlsDNorth,,,0.6288,0.3712,45.0,38.9,6.04,83.9,Jonesport-Beals
+2026,Girls,S,North,QF,2026-GS-N-QF3,2,Katahdin HS,7,Van Buren District,Katahdin HSGirlsDNorth,Van Buren DistrictGirlsDNorth,,,0.7252,0.2748,46.6,28.7,17.89,75.3,Katahdin HS
+2026,Girls,S,South,QF,2026-GS-S-QF1,1,Valley HS,8,Rangeley Lakes Regional 13,Valley HSGirlsSSouth,Rangeley Lakes RegionalGirlsSSouth,,,0.8786,0.1214,54.8,23.6,31.19,78.3,Valley HS
+2026,Girls,S,South,QF,2026-GS-S-QF2,4,Temple Academy,5,North Haven Community,Temple AcademyGirlsDSouth,North Haven CommunityGirlsSSouth,,,0.4954,0.5046,33.2,42.1,-8.91,75.3,North Haven Community
+2026,Girls,S,South,QF,2026-GS-S-QF3,3,Vinalhaven,6,Pine Tree Academy,VinalhavenGirlsDSouth,Pine Tree AcademyGirlsDSouth,,,0.7262,0.2738,47.6,29.6,18.02,77.2,Vinalhaven
+2026,Girls,S,South,QF,2026-GS-S-QF4,2,Forest Hills Consolidate,7,Greenville,Forest Hills ConsolidatedGirlsDSouth,GreenvilleGirlsSSouth,,,0.8947,0.1053,57.8,23.8,34.04,81.6,Forest Hills Consolidate
+2026,Girls,S,North,QF,2026-GS-N-QF4,1,Wisdom HS,5,Ashland District,Wisdom HSGirlsDNorth,Ashland DistrictGirlsSNorth,,,0.7282,0.2718,48.8,30.5,18.29,79.3,Wisdom HS
+2026,Girls,S,North,SF,2026-GS-N-SF1,3,Jonesport-Beals,2,Katahdin HS,Jonesport-BealsGirlsDNorth,Katahdin HSGirlsDNorth,,,0.3805,0.6195,31.1,52.9,-21.77,83.9,Katahdin HS
+2026,Girls,S,South,SF,2026-GS-S-SF1,1,Valley HS,4,Temple Academy,Valley HSGirlsSSouth,Temple AcademyGirlsDSouth,,,0.5464,0.4536,37.2,40.5,-3.28,77.7,Valley HS
+2026,Girls,S,South,SF,2026-GS-S-SF2,3,Vinalhaven,2,Forest Hills Consolidate,VinalhavenGirlsDSouth,Forest Hills ConsolidatedGirlsDSouth,,,0.547,0.453,38.4,41.7,-3.22,80.1,Vinalhaven
+2026,Girls,S,North,Final,2026-GS-N-Final1,1,Wisdom HS,2,Katahdin HS,Wisdom HSGirlsDNorth,Katahdin HSGirlsDNorth,,,0.6826,0.3174,45.9,33.4,12.46,79.3,Wisdom HS
+2026,Girls,S,South,Final,2026-GS-S-Final1,1,Valley HS,2,Forest Hills Consolidate,Valley HSGirlsSSouth,Forest Hills ConsolidatedGirlsDSouth,,,0.5507,0.4493,40.8,43.6,-2.8,84.4,Valley HS
+2026,Girls,S,North,Final,2026-GS-N-Final2,1,Wisdom HS,1,Valley HS,Wisdom HSGirlsDNorth,Valley HSGirlsSSouth,,,0.8818,0.1182,56.9,25.2,31.74,82.1,Wisdom HS

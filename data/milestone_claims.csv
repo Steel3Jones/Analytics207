@@ -1,0 +1,2 @@
+claim_id,category_id,school,gender,class,region,subject_name,value_num,value_text,date,season,opponent,level,evidence_url,source_note,payload_json,submitted_by,submitted_at,status_override
+1027ce2f-e174-4dd2-9d64-9bffff7ab5c1,1000_point_scorer,Hodgdon HS,Boys,,,Matt Oliver,2100,,,1987,,,,,{},cwarman,2026-02-21T22:47:03.953103,

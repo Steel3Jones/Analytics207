@@ -1,0 +1,204 @@
+metric_key,column,label,short_label,source,group,format,unit,description,active
+TeamKey,TeamKey,Team Key,,teams_core_v30,Team Identity & Context,,,Unique identifier: {Team}_{Gender}_{Class}_{Region},1
+Team,Team,Team,,teams_core_v30,Team Identity & Context,,,Normalized team name,1
+Gender,Gender,Gender,,teams_core_v30,Team Identity & Context,,,Boys or Girls,1
+Class,Class,Class,,teams_core_v30,Team Identity & Context,,,Competition class (A/B/C/D/S),1
+Region,Region,Region,,teams_core_v30,Team Identity & Context,,,Geographic region (North/South),1
+Division,Division,Division,,teams_core_v30,Team Identity & Context,,,SchoolDivision value,1
+Season,Season,Season,,teams_core_v30,Team Identity & Context,,,"Derived from Date (e.g., '2024-25')",1
+OpponentDivision,OpponentDivision,Opponent Division,,games_core_v30,Team Identity & Context,,,Opponent's division,0
+Games,Games,Games,,teams_core_v30,Basic Results & Record,,,Total games played,1
+Wins,Wins,Wins,,teams_core_v30,Basic Results & Record,,,Total wins,1
+Losses,Losses,Losses,,teams_core_v30,Basic Results & Record,,,Total losses,1
+Ties,Ties,Ties,,teams_core_v30,Basic Results & Record,,,Total ties,1
+Record,Record,Record,,teams_core_v30,Basic Results & Record,,,Win-Loss-Tie string,1
+WinPct,WinPct,Win %,,teams_core_v30,Basic Results & Record,,,Win percentage,1
+GamesScheduled,GamesScheduled,Games Scheduled,,teams_core_v30,Basic Results & Record,,,Scheduled games (from CSV),1
+GamesRemaining,GamesRemaining,Games Remaining,,teams_core_v30,Basic Results & Record,,,Games left to play,1
+PointsFor,PointsFor,Points For,,teams_core_v30,Scoring & Margin,,,Total points scored,1
+PointsAgainst,PointsAgainst,Points Against,,teams_core_v30,Scoring & Margin,,,Total points allowed,1
+PPG,PPG,PPG,,teams_core_v30,Scoring & Margin,,,Points per game,1
+OPPG,OPPG,OPPG,,teams_core_v30,Scoring & Margin,,,Opponent points per game,1
+MarginPG,MarginPG,Margin/G,,teams_core_v30,Scoring & Margin,,,Average margin of victory/defeat,1
+MarginStd,MarginStd,Margin Std Dev,,teams_core_v30,Scoring & Margin,,,Standard deviation of margins,1
+MarginStdL10,MarginStdL10,Margin Std (L10),,teams_core_v30,Scoring & Margin,,,Margin std dev last 10 games,1
+L5PPG,L5PPG,L5 PPG,,teams_core_v30,Scoring & Margin,,,Points per game last 5 games,1
+L5MarginPG,L5MarginPG,L5 Margin/G,,teams_core_v30,Scoring & Margin,,,Margin per game last 5,1
+HighestScore,HighestScore,Highest Score,,teams_core_v30,Scoring & Margin,,,Highest single-game score,1
+LowestScore,LowestScore,Lowest Score,,teams_core_v30,Scoring & Margin,,,Lowest single-game score,1
+HighestMargin,HighestMargin,Highest Margin,,teams_core_v30,Scoring & Margin,,,Biggest win margin,1
+LowestMargin,LowestMargin,Lowest Margin,,teams_core_v30,Scoring & Margin,,,Worst loss margin,1
+TI,TI,TI,,teams_core_v30,Tournament & Preliminary Indices,,,Tournament Index (latest snapshot),0
+PI,PI,PI,,teams_core_v30,Tournament & Preliminary Indices,,,Preliminary Index (latest snapshot),0
+Rank,Rank,Rank,,teams_core_v30,Tournament & Preliminary Indices,,,Official MPA rank (latest),0
+RecordText,RecordText,Record Text,,teams_core_v30,Tournament & Preliminary Indices,,,Official record string from MPA,0
+WinPoints,WinPoints,Win Points,,teams_core_future,Tournament & Preliminary Indices,,,Points earned for wins,0
+OppPI,OppPI,Opp PI,,games_core_v30,Tournament & Preliminary Indices,,,Opponent's PI in specific game,0
+AvgOppPI,AvgOppPI,Avg Opp PI,,teams_core_future,Tournament & Preliminary Indices,,,Average opponent PI faced,0
+TIRank,TIRank,TI Rank,,teams_core_future,Tournament & Preliminary Indices,,,Statewide rank by TI,0
+TIRankByClass,TIRankByClass,TI Rank (Class),,teams_core_future,Tournament & Preliminary Indices,,,Rank within class by TI,0
+TIRankByGender,TIRankByGender,TI Rank (Gender),,teams_core_future,Tournament & Preliminary Indices,,,Rank within gender by TI,0
+Rating,Rating,Rating,,teams_core_v30,Elo Rating System,,,Elo rating (default start 1500),0
+SOS,SOS,SOS,,teams_core_v30,Elo Rating System,,,Strength of Schedule,0
+RatingRankState,RatingRankState,Rating Rank (State),,teams_core_v30,Elo Rating System,,,Statewide rank by Elo,0
+RatingRankByClass,RatingRankByClass,Rating Rank (Class),,teams_core_v30,Elo Rating System,,,Rank within class by Elo,0
+RatingRankByGender,RatingRankByGender,Rating Rank (Gender),,teams_core_v30,Elo Rating System,,,Rank within gender by Elo,0
+RatingRankByGenderClass,RatingRankByGenderClass,Rating Rank (Gender+Class),,teams_core_v30,Elo Rating System,,,Rank within gender+class,0
+RatingChange,RatingChange,Rating Change,,teams_core_future,Elo Rating System,,,Rating change over season,0
+RatingPeak,RatingPeak,Rating Peak,,teams_core_future,Elo Rating System,,,Highest rating reached,0
+RatingLow,RatingLow,Rating Low,,teams_core_future,Elo Rating System,,,Lowest rating reached,0
+ExpectedWins,ExpectedWins,Expected Wins,,teams_core_future,Expected Win Probability & Performance,,,Expected wins based on Elo,0
+ActualWins,ActualWins,Actual Wins,,teams_core_future,Expected Win Probability & Performance,,,Actual wins,0
+WinsOverExpected,WinsOverExpected,Wins Over Expected,,teams_core_future,Expected Win Probability & Performance,,,Performance vs expectation,0
+ExpectedWinPct,ExpectedWinPct,Expected Win %,,teams_core_future,Expected Win Probability & Performance,,,Expected win percentage,0
+LuckIndex,LuckIndex,Luck Index,,teams_core_future,Expected Win Probability & Performance,,,Over/under-performance ratio,0
+FavoriteRecord,FavoriteRecord,Favorite Record,,teams_core_future,Expected Win Probability & Performance,,,Record when favored,0
+UnderdogRecord,UnderdogRecord,Underdog Record,,teams_core_future,Expected Win Probability & Performance,,,Record when underdog,0
+AvgWinProb,AvgWinProb,Avg Win Prob,,teams_core_future,Expected Win Probability & Performance,,,Avg win probability in games,0
+GamesVsTop,GamesVsTop,Games vs Top,,teams_core_v30,Opponent Strength Tiers,,,Games vs top-tier opponents,0
+WinsVsTop,WinsVsTop,Wins vs Top,,teams_core_v30,Opponent Strength Tiers,,,Wins vs top tier,0
+WinPctVsTop,WinPctVsTop,Win % vs Top,,teams_core_future,Opponent Strength Tiers,,,Win % vs top tier,0
+MarginVsTop,MarginVsTop,Margin vs Top,,teams_core_v30,Opponent Strength Tiers,,,Avg margin vs top tier,0
+GamesVsMiddle,GamesVsMiddle,Games vs Middle,,teams_core_v30,Opponent Strength Tiers,,,Games vs middle-tier opponents,0
+WinsVsMiddle,WinsVsMiddle,Wins vs Middle,,teams_core_v30,Opponent Strength Tiers,,,Wins vs middle tier,0
+WinPctVsMiddle,WinPctVsMiddle,Win % vs Middle,,teams_core_future,Opponent Strength Tiers,,,Win % vs middle tier,0
+MarginVsMiddle,MarginVsMiddle,Margin vs Middle,,teams_core_v30,Opponent Strength Tiers,,,Avg margin vs middle tier,0
+GamesVsBottom,GamesVsBottom,Games vs Bottom,,teams_core_v30,Opponent Strength Tiers,,,Games vs bottom-tier opponents,0
+WinsVsBottom,WinsVsBottom,Wins vs Bottom,,teams_core_v30,Opponent Strength Tiers,,,Wins vs bottom tier,0
+WinPctVsBottom,WinPctVsBottom,Win % vs Bottom,,teams_core_future,Opponent Strength Tiers,,,Win % vs bottom tier,0
+MarginVsBottom,MarginVsBottom,Margin vs Bottom,,teams_core_v30,Opponent Strength Tiers,,,Avg margin vs bottom tier,0
+BestWin,BestWin,Best Win,,teams_core_future,Resume & Quality Wins/Losses,,,Highest-rated opponent beaten,0
+BestWinMargin,BestWinMargin,Best Win Margin,,teams_core_future,Resume & Quality Wins/Losses,,,Margin in best win,0
+WorstLoss,WorstLoss,Worst Loss,,teams_core_future,Resume & Quality Wins/Losses,,,Lowest-rated opponent lost to,0
+WorstLossMargin,WorstLossMargin,Worst Loss Margin,,teams_core_future,Resume & Quality Wins/Losses,,,Margin in worst loss,0
+QualityWins,QualityWins,Quality Wins,,teams_core_future,Resume & Quality Wins/Losses,,,Wins vs opponents rated > 1550,0
+BadLosses,BadLosses,Bad Losses,,teams_core_future,Resume & Quality Wins/Losses,,,Losses to opponents rated < 1450,0
+Top25Wins,Top25Wins,Top 25 Wins,,teams_core_future,Resume & Quality Wins/Losses,,,Wins vs top-25 ranked teams,0
+Top25Losses,Top25Losses,Top 25 Losses,,teams_core_future,Resume & Quality Wins/Losses,,,Losses to top-25 teams,0
+HomeGames,HomeGames,Home Games,,teams_core_v30,Home/Away/Neutral Splits,,,Games at home,1
+HomeWins,HomeWins,Home Wins,,teams_core_v30,Home/Away/Neutral Splits,,,Wins at home,1
+HomeLosses,HomeLosses,Home Losses,,teams_core_v30,Home/Away/Neutral Splits,,,Losses at home,1
+HomeWinPct,HomeWinPct,Home Win %,,teams_core_v30,Home/Away/Neutral Splits,,,Home win percentage,1
+HomeMarginPG,HomeMarginPG,Home Margin/G,,teams_core_v30,Home/Away/Neutral Splits,,,Avg margin at home,1
+RoadGames,RoadGames,Road Games,,teams_core_v30,Home/Away/Neutral Splits,,,Games on the road,1
+RoadWins,RoadWins,Road Wins,,teams_core_v30,Home/Away/Neutral Splits,,,Wins on road,1
+RoadLosses,RoadLosses,Road Losses,,teams_core_v30,Home/Away/Neutral Splits,,,Losses on road,1
+RoadWinPct,RoadWinPct,Road Win %,,teams_core_v30,Home/Away/Neutral Splits,,,Road win percentage,1
+RoadMarginPG,RoadMarginPG,Road Margin/G,,teams_core_v30,Home/Away/Neutral Splits,,,Avg margin on road,1
+HomeRoadDiff,HomeRoadDiff,Home/Road Diff,,teams_core_future,Home/Away/Neutral Splits,,,Home advantage differential,0
+NeutralGames,NeutralGames,Neutral Games,,teams_core_v30,Home/Away/Neutral Splits,,,Games at neutral site,1
+NeutralWins,NeutralWins,Neutral Wins,,teams_core_v30,Home/Away/Neutral Splits,,,Wins at neutral,1
+NeutralLosses,NeutralLosses,Neutral Losses,,teams_core_v30,Home/Away/Neutral Splits,,,Losses at neutral,1
+NeutralWinPct,NeutralWinPct,Neutral Win %,,teams_core_v30,Home/Away/Neutral Splits,,,Neutral win %,1
+NeutralMarginPG,NeutralMarginPG,Neutral Margin/G,,teams_core_v30,Home/Away/Neutral Splits,,,Avg margin at neutral,1
+CloseGames,CloseGames,Close Games,,teams_core_v30,Close Games & Blowouts,,,Games decided by ≤6 points,1
+CloseWins,CloseWins,Close Wins,,teams_core_v30,Close Games & Blowouts,,,Wins in close games,1
+CloseLosses,CloseLosses,Close Losses,,teams_core_v30,Close Games & Blowouts,,,Losses in close games,1
+CloseWinPct,CloseWinPct,Close Win %,,teams_core_v30,Close Games & Blowouts,,,Win % in close games,1
+BlowoutGames,BlowoutGames,Blowout Games,,teams_core_v30,Close Games & Blowouts,,,Games decided by ≥15 points,1
+BlowoutWins,BlowoutWins,Blowout Wins,,teams_core_future,Close Games & Blowouts,,,Blowout wins,0
+BlowoutLosses,BlowoutLosses,Blowout Losses,,teams_core_future,Close Games & Blowouts,,,Blowout losses,0
+BlowoutRate,BlowoutRate,Blowout Rate,,teams_core_v30,Close Games & Blowouts,,,% of games that are blowouts,1
+BlowoutMarginPG,BlowoutMarginPG,Blowout Margin/G,,teams_core_v30,Close Games & Blowouts,,,Avg margin in blowouts,1
+GamesMargin0to3,GamesMargin0to3,Games (0-3),,teams_core_v30,Margin Buckets,,,Games decided 0-3 points,1
+WinsMargin0to3,WinsMargin0to3,Wins (0-3),,teams_core_v30,Margin Buckets,,,Wins by 0-3 points,1
+WinPctMargin0to3,WinPctMargin0to3,Win % (0-3),,teams_core_v30,Margin Buckets,,,Win % in 0-3 bucket,1
+GamesMargin4to10,GamesMargin4to10,Games (4-10),,teams_core_v30,Margin Buckets,,,Games decided 4-10 points,1
+WinsMargin4to10,WinsMargin4to10,Wins (4-10),,teams_core_v30,Margin Buckets,,,Wins by 4-10 points,1
+WinPctMargin4to10,WinPctMargin4to10,Win % (4-10),,teams_core_v30,Margin Buckets,,,Win % in 4-10 bucket,1
+GamesMargin11to20,GamesMargin11to20,Games (11-20),,teams_core_v30,Margin Buckets,,,Games decided 11-20 points,1
+WinsMargin11to20,WinsMargin11to20,Wins (11-20),,teams_core_v30,Margin Buckets,,,Wins by 11-20 points,1
+WinPctMargin11to20,WinPctMargin11to20,Win % (11-20),,teams_core_v30,Margin Buckets,,,Win % in 11-20 bucket,1
+GamesMargin21plus,GamesMargin21plus,Games (21+),,teams_core_v30,Margin Buckets,,,Games decided 21+ points,1
+WinsMargin21plus,WinsMargin21plus,Wins (21+),,teams_core_v30,Margin Buckets,,,Wins by 21+ points,1
+WinPctMargin21plus,WinPctMargin21plus,Win % (21+),,teams_core_v30,Margin Buckets,,,Win % in 21+ bucket,1
+Streak,Streak,Streak,,teams_core_v30,Streaks & Momentum,,,Current win/loss streak,1
+StreakLabel,StreakLabel,Streak Label,,teams_core_v30,Streaks & Momentum,,,Streak display string,1
+LongestWinStreak,LongestWinStreak,Longest Win Streak,,teams_core_future,Streaks & Momentum,,,Longest win streak in season,0
+LongestLoseStreak,LongestLoseStreak,Longest Losing Streak,,teams_core_future,Streaks & Momentum,,,Longest losing streak,0
+Last5Record,Last5Record,Last 5 Record,,teams_core_future,Streaks & Momentum,,,Record in last 5 games,0
+Last10Record,Last10Record,Last 10 Record,,teams_core_future,Streaks & Momentum,,,Record in last 10 games,0
+EarlySeasonRecord,EarlySeasonRecord,Early Season Record,,teams_core_future,Streaks & Momentum,,,First half of season record,0
+LateSeasonRecord,LateSeasonRecord,Late Season Record,,teams_core_future,Streaks & Momentum,,,Second half record,0
+Improving,Improving,Improving,,teams_core_future,Streaks & Momentum,,,Boolean: better in 2nd half,0
+EarlyGames,EarlyGames,Early Games,,teams_core_v30,Streaks & Momentum,,,Games in early season,1
+EarlyWins,EarlyWins,Early Wins,,teams_core_v30,Streaks & Momentum,,,Wins in early season,1
+EarlyMarginPG,EarlyMarginPG,Early Margin/G,,teams_core_v30,Streaks & Momentum,,,Margin in early games,1
+LateGames,LateGames,Late Games,,teams_core_v30,Streaks & Momentum,,,Games in late season,1
+LateWins,LateWins,Late Wins,,teams_core_v30,Streaks & Momentum,,,Wins in late season,1
+LateMarginPG,LateMarginPG,Late Margin/G,,teams_core_v30,Streaks & Momentum,,,Margin in late games,1
+IsLateSkew,IsLateSkew,Late Season Skew,,teams_core_v30,Streaks & Momentum,,,More games in late season,1
+InDivisionGames,InDivisionGames,In-Division Games,,teams_core_future,Division & Cross-Division Play,,,Games vs same division,0
+InDivisionWins,InDivisionWins,In-Division Wins,,teams_core_v30,Division & Cross-Division Play,,,Wins in division,1
+InDivisionWinPct,InDivisionWinPct,In-Division Win %,,teams_core_future,Division & Cross-Division Play,,,Win % in division,0
+CrossDivisionGames,CrossDivisionGames,Cross-Division Games,,teams_core_future,Division & Cross-Division Play,,,Games vs other divisions,0
+CrossDivisionWins,CrossDivisionWins,Cross-Division Wins,,teams_core_v30,Division & Cross-Division Play,,,Wins cross-division,1
+CrossDivisionWinPct,CrossDivisionWinPct,Cross-Division Win %,,teams_core_future,Division & Cross-Division Play,,,Win % cross-division,0
+VsNorthRecord,VsNorthRecord,vs North Record,,teams_core_future,Division & Cross-Division Play,,,Record vs North teams,0
+VsSouthRecord,VsSouthRecord,vs South Record,,teams_core_future,Division & Cross-Division Play,,,Record vs South teams,0
+AvgRestDays,AvgRestDays,Avg Rest Days,,teams_core_v30,Game Sequencing & Rest,,,Average days between games,1
+ShortRestGames,ShortRestGames,Short Rest Games,,teams_core_v30,Game Sequencing & Rest,,,Games with 0-1 days rest,1
+ShortRestWins,ShortRestWins,Short Rest Wins,,teams_core_future,Game Sequencing & Rest,,,Wins on short rest,0
+ShortRestWinPct,ShortRestWinPct,Short Rest Win %,,teams_core_future,Game Sequencing & Rest,,,Win % on short rest,0
+ShortRestShare,ShortRestShare,Short Rest Share,,teams_core_v30,Game Sequencing & Rest,,,% games on short rest,1
+LongRestGames,LongRestGames,Long Rest Games,,teams_core_v30,Game Sequencing & Rest,,,Games with 4+ days rest,1
+LongRestWins,LongRestWins,Long Rest Wins,,teams_core_future,Game Sequencing & Rest,,,Wins on long rest,0
+LongRestWinPct,LongRestWinPct,Long Rest Win %,,teams_core_future,Game Sequencing & Rest,,,Win % on long rest,0
+LongRestShare,LongRestShare,Long Rest Share,,teams_core_v30,Game Sequencing & Rest,,,% games on long rest,1
+BackToBackGames,BackToBackGames,Back-to-Back Games,,teams_core_future,Game Sequencing & Rest,,,Games on consecutive days,0
+BackToBackRecord,BackToBackRecord,Back-to-Back Record,,teams_core_future,Game Sequencing & Rest,,,W-L on back-to-backs,0
+CoeffOfVariation,CoeffOfVariation,Coefficient of Variation,,teams_core_future,Consistency & Volatility,,,Margin volatility measure,0
+HighVariance,HighVariance,High Variance,,teams_core_future,Consistency & Volatility,,,Boolean: inconsistent team,0
+ScoreRange,ScoreRange,Score Range,,teams_core_future,Consistency & Volatility,,,Scoring range,0
+MarginRange,MarginRange,Margin Range,,teams_core_future,Consistency & Volatility,,,Margin range,0
+WinsInRow,WinsInRow,Wins in Row,,teams_core_future,Consistency & Volatility,,,Most consecutive wins,0
+LossesInRow,LossesInRow,Losses in Row,,teams_core_future,Consistency & Volatility,,,Most consecutive losses,0
+PPGRank,PPGRank,PPG Rank,,teams_core_future,Comparative Rankings,,,Statewide rank by PPG,0
+OPPGRank,OPPGRank,OPPG Rank,,teams_core_future,Comparative Rankings,,,Statewide rank by OPPG,0
+MarginRank,MarginRank,Margin Rank,,teams_core_future,Comparative Rankings,,,Statewide rank by margin,0
+WinPctRank,WinPctRank,Win % Rank,,teams_core_future,Comparative Rankings,,,Statewide rank by win %,0
+SOSRank,SOSRank,SOS Rank,,teams_core_future,Comparative Rankings,,,Statewide rank by SOS,0
+PPGRankByClass,PPGRankByClass,PPG Rank (Class),,teams_core_future,Comparative Rankings,,,PPG rank within class,0
+MarginRankByClass,MarginRankByClass,Margin Rank (Class),,teams_core_future,Comparative Rankings,,,Margin rank within class,0
+ModelAccuracy,ModelAccuracy,Model Accuracy,,performance_agg,Model Performance Metrics,,,% of games predicted correctly,0
+BrierScore,BrierScore,Brier Score,,performance_agg,Model Performance Metrics,,,Probability calibration score,0
+MAE,MAE,MAE,,performance_agg,Model Performance Metrics,,,Mean absolute error (margins),0
+RMSE,RMSE,RMSE,,performance_agg,Model Performance Metrics,,,Root mean squared error,0
+Within5Pts,Within5Pts,Within 5 Pts %,,performance_agg,Model Performance Metrics,,,% of predictions within 5 pts,0
+Within10Pts,Within10Pts,Within 10 Pts %,,performance_agg,Model Performance Metrics,,,% of predictions within 10 pts,0
+GameID,GameID,Game ID,,games_core_v30,Game Details,,,Unique game identifier,1
+Date,Date,Date,,games_core_v30,Game Details,,,Game date,1
+Home,Home,Home,,games_core_v30,Game Details,,,Home team name,1
+Away,Away,Away,,games_core_v30,Game Details,,,Away team name,1
+HomeKey,HomeKey,Home Key,,games_core_v30,Game Details,,,Home TeamKey,1
+AwayKey,AwayKey,Away Key,,games_core_v30,Game Details,,,Away TeamKey,1
+HomeClass,HomeClass,Home Class,,games_core_v30,Game Details,,,Home team class,1
+AwayClass,AwayClass,Away Class,,games_core_v30,Game Details,,,Away team class,1
+HomeRegion,HomeRegion,Home Region,,games_core_v30,Game Details,,,Home team region,1
+AwayRegion,AwayRegion,Away Region,,games_core_v30,Game Details,,,Away team region,1
+HomeDivision,HomeDivision,Home Division,,games_core_v30,Game Details,,,Home SchoolDivision,1
+AwayDivision,AwayDivision,Away Division,,games_core_v30,Game Details,,,Away SchoolDivision,1
+HomeScore,HomeScore,Home Score,,games_core_v30,Game Details,,,Home team score,1
+AwayScore,AwayScore,Away Score,,games_core_v30,Game Details,,,Away team score,1
+Played,Played,Played,,games_core_v30,Game Details,,,Game completed,1
+Winner,Winner,Winner,,games_core_v30,Game Details,,,Winning team name,1
+Margin,Margin,Margin,,games_core_v30,Game Details,,,Winning margin,1
+HomeRating,HomeRating,Home Rating,,games_core_v30,Game Details,,,Home Elo rating at game time,0
+AwayRating,AwayRating,Away Rating,,games_core_v30,Game Details,,,Away Elo rating at game time,0
+PredHomeWinProb,PredHomeWinProb,Pred Home Win Prob,,games_core_v30,Game Details,,,Predicted home win probability,0
+PredMargin,PredMargin,Pred Margin,,games_core_v30,Game Details,,,Predicted margin,0
+Favorite,Favorite,Favorite,,games_core_v30,Game Details,,,Favored team name,0
+FavProb,FavProb,Fav Prob,,games_core_v30,Game Details,,,Favorite win probability,0
+ModelCorrect,ModelCorrect,Model Correct,,games_core_v30,Game Details,,,Did model pick winner correctly,0
+HomeTI,HomeTI,Home TI,,games_core_v30,Game Details,,,Home TI snapshot,0
+AwayTI,AwayTI,Away TI,,games_core_v30,Game Details,,,Away TI snapshot,0
+HomePI,HomePI,Home PI,,games_core_v30,Game Details,,,Home PI snapshot,0
+AwayPI,AwayPI,Away PI,,games_core_v30,Game Details,,,Away PI snapshot,0
+HomeRank,HomeRank,Home Rank,,games_core_v30,Game Details,,,Home rank snapshot,0
+AwayRank,AwayRank,Away Rank,,games_core_v30,Game Details,,,Away rank snapshot,0
+GameNum,GameNum,Game #,,games_core_v30,Game Details,,,Game number in sequence,1
+ScrapedAt,ScrapedAt,Scraped At,,games_core_v30,Game Details,,,Scrape timestamp,1
+CoreVersion,CoreVersion,Core Version,,games_core_v30,Game Details,,,Version identifier,1
+LastGameDate,LastGameDate,Last Game Date,,teams_core_v30,Metadata,,,Date of most recent game,1
+ScrapedAt,ScrapedAt,Scraped At,,teams_core_v30,Metadata,,,Latest scrape timestamp,1
+CoreVersion,CoreVersion,Core Version,,teams_core_v30,Metadata,,,Version identifier,1

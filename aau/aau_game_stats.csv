@@ -1,0 +1,26 @@
+game_id,date,player_id,aau_team,opponent,tournament,location,min,pts,fgm,fga,3pm,3pa,ftm,fta,oreb,dreb,reb,ast,stl,blk,tov,pf,plus_minus,result,team_score,opp_score
+G2026-001,2026-06-14,AAU-2026-001,Maine Elite,NH Thunder,New England Summer Showcase,"Portland, ME",32,18,6,14,2,5,4,5,1,3,4,6,2,0,3,2,,W,76,68
+G2026-001,2026-06-14,AAU-2026-002,Maine Elite,NH Thunder,New England Summer Showcase,"Portland, ME",28,12,4,10,2,5,2,2,0,2,2,3,1,0,2,3,,W,76,68
+G2026-001,2026-06-14,AAU-2026-003,Maine Elite,NH Thunder,New England Summer Showcase,"Portland, ME",24,8,3,8,0,1,2,4,2,4,6,1,1,1,1,1,,W,76,68
+G2026-001,2026-06-14,AAU-2026-004,Maine Elite,NH Thunder,New England Summer Showcase,"Portland, ME",30,14,5,11,1,3,3,4,3,5,8,2,0,2,2,4,,W,76,68
+G2026-001,2026-06-14,AAU-2026-005,Maine Elite,NH Thunder,New England Summer Showcase,"Portland, ME",20,6,2,6,1,3,1,2,0,1,1,4,3,0,1,1,,W,76,68
+G2026-001,2026-06-14,AAU-2026-006,Maine Elite,NH Thunder,New England Summer Showcase,"Portland, ME",22,4,2,5,0,0,0,0,4,6,10,0,0,3,1,2,,W,76,68
+G2026-001,2026-06-14,AAU-2026-007,Maine Elite,NH Thunder,New England Summer Showcase,"Portland, ME",26,11,4,9,2,5,1,2,1,2,3,2,1,0,2,2,,W,76,68
+G2026-001,2026-06-14,AAU-2026-008,Maine Elite,NH Thunder,New England Summer Showcase,"Portland, ME",18,3,1,4,0,1,1,2,1,3,4,1,0,0,0,1,,W,76,68
+G2026-002,2026-06-14,AAU-2026-001,Maine Elite,Vermont Select,New England Summer Showcase,"Portland, ME",30,14,5,12,1,4,3,4,0,4,4,7,1,0,4,1,,W,75,64
+G2026-002,2026-06-14,AAU-2026-002,Maine Elite,Vermont Select,New England Summer Showcase,"Portland, ME",24,8,3,9,1,4,1,2,1,1,2,2,2,0,1,2,,W,75,64
+G2026-002,2026-06-14,AAU-2026-003,Maine Elite,Vermont Select,New England Summer Showcase,"Portland, ME",28,15,6,12,1,3,2,2,3,5,8,0,0,2,2,3,,W,75,64
+G2026-002,2026-06-14,AAU-2026-004,Maine Elite,Vermont Select,New England Summer Showcase,"Portland, ME",26,10,4,9,0,1,2,3,2,4,6,1,1,1,1,2,,W,75,64
+G2026-002,2026-06-14,AAU-2026-005,Maine Elite,Vermont Select,New England Summer Showcase,"Portland, ME",18,9,3,8,2,5,1,1,0,2,2,3,2,0,2,0,,W,75,64
+G2026-002,2026-06-14,AAU-2026-006,Maine Elite,Vermont Select,New England Summer Showcase,"Portland, ME",24,6,3,6,0,0,0,1,3,5,8,1,0,2,0,3,,W,75,64
+G2026-002,2026-06-14,AAU-2026-009,Maine Elite,Vermont Select,New England Summer Showcase,"Portland, ME",22,8,3,7,1,3,1,2,2,4,6,0,0,1,1,2,,W,75,64
+G2026-002,2026-06-14,AAU-2026-010,Maine Elite,Vermont Select,New England Summer Showcase,"Portland, ME",16,5,2,6,1,3,0,0,0,1,1,2,1,0,2,1,,W,75,64
+G2026-003,2026-06-15,AAU-2026-001,Maine Elite,CT Hoops Academy,New England Summer Showcase,"Portland, ME",34,22,8,16,3,7,3,4,1,2,3,8,3,0,2,1,,L,80,84
+G2026-003,2026-06-15,AAU-2026-002,Maine Elite,CT Hoops Academy,New England Summer Showcase,"Portland, ME",30,15,5,12,3,6,2,3,0,3,3,1,0,1,3,2,,L,80,84
+G2026-003,2026-06-15,AAU-2026-003,Maine Elite,CT Hoops Academy,New England Summer Showcase,"Portland, ME",20,6,2,7,0,2,2,3,1,3,4,2,1,0,0,2,,L,80,84
+G2026-003,2026-06-15,AAU-2026-004,Maine Elite,CT Hoops Academy,New England Summer Showcase,"Portland, ME",32,12,5,10,0,2,2,2,4,7,11,0,0,3,2,3,,L,80,84
+G2026-003,2026-06-15,AAU-2026-005,Maine Elite,CT Hoops Academy,New England Summer Showcase,"Portland, ME",16,3,1,5,1,3,0,0,0,1,1,5,1,0,1,1,,L,80,84
+G2026-003,2026-06-15,AAU-2026-007,Maine Elite,CT Hoops Academy,New England Summer Showcase,"Portland, ME",24,9,3,8,2,5,1,2,0,2,2,3,2,0,1,1,,L,80,84
+G2026-003,2026-06-15,AAU-2026-008,Maine Elite,CT Hoops Academy,New England Summer Showcase,"Portland, ME",18,7,3,6,0,1,1,2,2,2,4,0,0,1,1,3,,L,80,84
+G2026-003,2026-06-15,AAU-2026-009,Maine Elite,CT Hoops Academy,New England Summer Showcase,"Portland, ME",20,4,2,5,0,1,0,0,3,5,8,0,1,2,0,2,,L,80,84
+G2026-003,2026-06-15,AAU-2026-010,Maine Elite,CT Hoops Academy,New England Summer Showcase,"Portland, ME",14,2,1,4,0,2,0,0,0,1,1,1,0,0,1,0,,L,80,84

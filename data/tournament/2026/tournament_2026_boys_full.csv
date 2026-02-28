@@ -1,0 +1,80 @@
+Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
+A,North,Prelim,A-N-P1,8.0,Scarborough,50.0,9.0,Kennebunk,44.0
+A,North,Prelim,A-N-P2,7.0,Westbrook,36.0,10.0,Bonny Eagle,47.0
+A,North,Prelim,A-N-P3,6.0,Portland,51.0,11.0,Falmouth,42.0
+A,North,QF,A-N-QF1,1.0,Camden Hills,69.0,8.0,Skowhegan,44.0
+A,North,QF,A-N-QF2,4.0,Bangor,54.0,5.0,Lewiston,43.0
+A,North,QF,A-N-QF3,3.0,Brunswick,66.0,6.0,Mt. Blue,37.0
+A,North,QF,A-N-QF4,2.0,Edward Little,60.0,7.0,Hampden,46.0
+A,North,SF,A-N-SF1,1.0,Camden Hills,61.0,4.0,Bangor,52.0
+A,North,SF,A-N-SF2,3.0,Brunswick,52.0,2.0,Edward Little,44.0
+A,North,Final,A-N-F1,1.0,Camden Hills,,3.0,Brunswick,
+A,South,Prelim,A-S-P1,8.0,Scarborough,50.0,9.0,Kennebunk,44.0
+A,South,Prelim,A-S-P2,7.0,Westbrook,36.0,10.0,Bonny Eagle,47.0
+A,South,Prelim,A-S-P3,6.0,Portland,51.0,11.0,Falmouth,42.0
+A,South,QF,A-S-QF1,1.0,Windham,62.0,8.0,Scarborough,66.0
+A,South,QF,A-S-QF2,4.0,Thornton Academy,60.0,5.0,Cheverus,61.0
+A,South,QF,A-S-QF3,3.0,South Portland,33.0,6.0,Portland,34.0
+A,South,QF,A-S-QF4,2.0,Sanford,62.0,10.0,Bonny Eagle,48.0
+A,South,SF,A-S-SF1,8.0,Scarborough,59.0,5.0,Cheverus,68.0
+A,South,SF,A-S-SF2,6.0,Portland,61.0,2.0,Sanford,51.0
+A,South,Final,A-S-F1,5.0,Cheverus,,6.0,Portland,
+B,North,QF,B-N-QF1,1.0,Cony,63.0,8.0,Presque Isle,51.0
+B,North,QF,B-N-QF2,4.0,Mount Desert Island,42.0,5.0,Ellsworth,47.0
+B,North,QF,B-N-QF3,3.0,Gardiner,62.0,6.0,Erskine Academy,31.0
+B,North,QF,B-N-QF4,2.0,Hermon,61.0,7.0,Belfast,44.0
+B,North,SF,B-N-SF1,1.0,Cony,66.0,5.0,Ellsworth,64.0
+B,North,SF,B-N-SF2,3.0,Gardiner,50.0,2.0,Hermon,33.0
+B,North,Final,B-N-F1,1.0,Cony,71.0,3.0,Gardiner,80.0
+B,South,QF,B-S-QF1,1.0,York,63.0,9.0,Gray-New Gloucester,45.0
+B,South,QF,B-S-QF2,4.0,Yarmouth,63.0,5.0,Leavitt,56.0
+B,South,QF,B-S-QF3,3.0,Lake Region,58.0,6.0,Poland,64.0
+B,South,QF,B-S-QF4,2.0,Medomak Valley,57.0,10.0,Lincoln Academy,41.0
+B,South,SF,B-S-SF1,1.0,York,72.0,4.0,Yarmouth,77.0
+B,South,SF,B-S-SF2,6.0,Poland,57.0,2.0,Medomak Valley,63.0
+B,South,Final,B-S-F1,4.0,Yarmouth,63.0,2.0,Medomak Valley,58.0
+C,North,Prelim,C-N-P1,8.0,Calais,51.0,9.0,Dexter,48.0
+C,North,Prelim,C-N-P2,7.0,Orono,69.0,10.0,Bucksport,26.0
+C,North,QF,C-N-QF1,1.0,Caribou,73.0,8.0,Calais,47.0
+C,North,QF,C-N-QF2,4.0,Foxcroft Academy,42.0,5.0,Washington Academy,52.0
+C,North,QF,C-N-QF3,3.0,Fort Kent,75.0,6.0,Sumner,45.0
+C,North,QF,C-N-QF4,2.0,Mattanawcook,70.0,7.0,Orono,57.0
+C,North,SF,C-N-SF1,1.0,Caribou,70.0,5.0,Washington Academy,55.0
+C,North,SF,C-N-SF2,3.0,Fort Kent,70.0,2.0,Mattanawcook,61.0
+C,North,Final,C-N-F1,1.0,Caribou,,3.0,Fort Kent,
+C,South,Prelim,C-S-P1,8.0,Oak Hill,44.0,9.0,Wells,50.0
+C,South,QF,C-S-QF1,1.0,Spruce Mountain,63.0,9.0,Wells,39.0
+C,South,QF,C-S-QF2,4.0,Sacopee Valley,46.0,5.0,Mount View,58.0
+C,South,QF,C-S-QF3,3.0,Maranacook,83.0,6.0,Waynflete,69.0
+C,South,QF,C-S-QF4,2.0,Hall-Dale,64.0,7.0,Dirigo,32.0
+C,South,SF,C-S-SF1,1.0,Spruce Mountain,62.0,5.0,Mount View,48.0
+C,South,SF,C-S-SF2,3.0,Maranacook,73.0,2.0,Hall-Dale,65.0
+C,South,Final,C-S-F1,1.0,Spruce Mountain,,3.0,Maranacook,
+D,North,QF,D-N-QF1,1.0,Machias,71.0,8.0,Central Aroostook,46.0
+D,North,QF,D-N-QF2,4.0,Bangor Christian,36.0,5.0,Hodgdon,52.0
+D,North,QF,D-N-QF3,3.0,Fort Fairfield,57.0,6.0,Woodland,41.0
+D,North,QF,D-N-QF4,2.0,Madawaska,53.0,7.0,Penobscot Valley,37.0
+D,North,SF,D-N-SF1,1.0,Machias,56.0,5.0,Hodgdon,51.0
+D,North,SF,D-N-SF2,3.0,Fort Fairfield,38.0,2.0,Madawaska,51.0
+D,North,Final,D-N-F1,1.0,Machias,,2.0,Madawaska,
+D,South,QF,D-S-QF1,1.0,Mount Abram,85.0,8.0,Old Orchard Beach,53.0
+D,South,QF,D-S-QF2,4.0,Carrabec,61.0,5.0,Wiscasset,51.0
+D,South,QF,D-S-QF3,3.0,Madison,68.0,6.0,Buckfield,53.0
+D,South,QF,D-S-QF4,2.0,Monmouth Academy,54.0,7.0,Telstar,40.0
+D,South,SF,D-S-SF1,1.0,Mount Abram,55.0,4.0,Carrabec,49.0
+D,South,SF,D-S-SF2,3.0,Madison,46.0,2.0,Monmouth Academy,50.0
+D,South,Final,D-S-F1,1.0,Mount Abram,,2.0,Monmouth Academy,
+S,North,QF,S-N-QF1,1.0,Jonesport-Beals,77.0,8.0,Deer Isle-Stonington,25.0
+S,North,QF,S-N-QF2,4.0,Washburn,38.0,5.0,Shead,50.0
+S,North,QF,S-N-QF3,3.0,Katahdin,54.0,6.0,Van Buren,42.0
+S,North,QF,S-N-QF4,2.0,Easton,83.0,7.0,Wisdom,35.0
+S,North,SF,S-N-SF1,1.0,Jonesport-Beals,,5.0,Shead,
+S,North,SF,S-N-SF2,3.0,Katahdin,,2.0,Easton,
+S,North,Final,S-N-F1,,TBD,,,TBD,
+S,South,QF,S-S-QF1,1.0,Valley,70.0,8.0,Greenville,16.0
+S,South,QF,S-S-QF2,4.0,Islesboro Central,55.0,5.0,Vinalhaven,46.0
+S,South,QF,S-S-QF3,3.0,Forest Hills,77.0,6.0,Temple Academy,55.0
+S,South,QF,S-S-QF4,2.0,Pine Tree Academy,86.0,7.0,Rangeley Lakes,32.0
+S,South,SF,S-S-SF1,1.0,Valley,,4.0,Islesboro Central,
+S,South,SF,S-S-SF2,3.0,Forest Hills,,2.0,Pine Tree Academy,
+S,South,Final,S-S-F1,,TBD,,,TBD,

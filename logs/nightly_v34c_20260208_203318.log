@@ -1,0 +1,22 @@
+=== NIGHTLY ORCHESTRATOR V34C START 20260208_203318 ===
+✓ Pre-run backup completed at C:\ANALYTICS207\backup\20260208_203318\pre (2 files)
+
+[1] Running scrapers pipeline to build data/truth.csv
+
+>>> Running: C:\Users\cwarm\AppData\Local\Python\pythoncore-3.14-64\python.exe MPA_SCRAPER_V25.py
+
+>>> Running: C:\Users\cwarm\AppData\Local\Python\pythoncore-3.14-64\python.exe MPA_SCORE_SCRAPER_V25.py
+
+>>> Running: C:\Users\cwarm\AppData\Local\Python\pythoncore-3.14-64\python.exe join_scores_V25.py
+
+[1b] Fixing home/away names in data/truth.csv
+
+>>> Running: C:\Users\cwarm\AppData\Local\Python\pythoncore-3.14-64\python.exe FIX_HOME_AWAY_TEAM_NAMES.py
+✓ Post-scrape backup completed at C:\ANALYTICS207\backup\20260208_203318\post_scrape (3 files)
+✓ Found truth file at C:\ANALYTICS207\data\truth.csv
+✓ Truth coverage: 2314 of 2329 games have non-null HomeScore
+
+[2] Running nightly_build_v34c_prod
+
+=== NIGHTLY ORCHESTRATOR V34C FAILED ===
+ERROR: name 'teamdiv_map' is not defined

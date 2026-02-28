@@ -1,0 +1,42 @@
+[
+  {
+    "category_id": "1000_point_scorer",
+    "label": "1,000-Point Scorer",
+    "value_label": "Career Points",
+    "requires": [
+      "subject_name",
+      "value",
+      "season"
+    ],
+    "optional": [
+      "evidence_url",
+      "source_note"
+    ]
+  },
+  {
+    "category_id": "state_championship",
+    "label": "State Championship",
+    "value_label": "Year",
+    "requires": [
+      "season"
+    ],
+    "optional": [
+      "level",
+      "evidence_url",
+      "source_note"
+    ]
+  },
+  {
+    "category_id": "regional_championship",
+    "label": "Regional Championship",
+    "value_label": "Year",
+    "requires": [
+      "season"
+    ],
+    "optional": [
+      "level",
+      "evidence_url",
+      "source_note"
+    ]
+  }
+]

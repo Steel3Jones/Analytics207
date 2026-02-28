@@ -1,0 +1,37 @@
+=== NIGHTLY ORCHESTRATOR V34C START 20260208_203701 ===
+✓ Pre-run backup completed at C:\ANALYTICS207\backup\20260208_203701\pre (2 files)
+
+[1] Running scrapers pipeline to build data/truth.csv
+
+>>> Running: C:\Users\cwarm\AppData\Local\Python\pythoncore-3.14-64\python.exe MPA_SCRAPER_V25.py
+
+>>> Running: C:\Users\cwarm\AppData\Local\Python\pythoncore-3.14-64\python.exe MPA_SCORE_SCRAPER_V25.py
+
+>>> Running: C:\Users\cwarm\AppData\Local\Python\pythoncore-3.14-64\python.exe join_scores_V25.py
+
+[1b] Fixing home/away names in data/truth.csv
+
+>>> Running: C:\Users\cwarm\AppData\Local\Python\pythoncore-3.14-64\python.exe FIX_HOME_AWAY_TEAM_NAMES.py
+✓ Post-scrape backup completed at C:\ANALYTICS207\backup\20260208_203701\post_scrape (3 files)
+✓ Found truth file at C:\ANALYTICS207\data\truth.csv
+✓ Truth coverage: 2314 of 2329 games have non-null HomeScore
+
+[2] Running nightly_build_v34c_prod
+C:\ANALYTICS207\nightly\nightly_build_v34c_prod.py:131: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+  .apply(_seed_group)
+Wrote 261 teams to C:\ANALYTICS207\data\teams_team_season_core_v30.parquet
+Wrote 2329 games to C:\ANALYTICS207\data\games_game_core_v30.parquet
+Wrote 2329 rows to C:\ANALYTICS207\data\games_predictions_current.parquet
+CoreVersion locked to: v34c_prod_20260208
+Moved v34c eval to C:\ANALYTICS207\data\eval\walkforward\model_eval_walkforward_v34c.parquet
+Wrote v30 performance summary to C:\ANALYTICS207\data\performance_summary_v30.parquet
+✓ nightly_build_v34c_prod completed
+
+[3] Health checks on data/
+✓ Current predictions CoreVersion counts:
+CoreVersion
+v34c_prod_20260208    2329
+Name: count, dtype: int64
+✓ Health checks passed
+
+=== NIGHTLY ORCHESTRATOR V34C SUCCESS ===

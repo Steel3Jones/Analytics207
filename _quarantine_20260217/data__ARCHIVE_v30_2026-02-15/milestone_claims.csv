@@ -1,0 +1,2 @@
+claim_id,category_id,school,gender,class,region,subject_name,value_num,value_text,date,season,opponent,level,evidence_url,source_note,payload_json,submitted_by,submitted_at,status_override
+71990d66-9317-41e4-aa1c-4e430b37c185,career_points,Hodgdon HS,Boys,C,North,Matt Oliver,2113,,,1987,,,,I was on the team,{},49e7356d-e3ca-4d26-9217-afd2caad4638,2026-02-04T14:06:13.599527,

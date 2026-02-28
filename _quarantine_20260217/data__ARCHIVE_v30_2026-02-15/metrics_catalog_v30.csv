@@ -1,0 +1,180 @@
+metric_key,column,label,short_label,source,group,format,unit,description,active,calculation
+TeamKey,TeamKey,Team Key,,teams_core_v30,Team Identity & Context,,,Unique identifier: {Team}_{Gender}_{Class}_{Region},1,Direct field from the teams table; used to identify and segment teams.
+Team,Team,Team,,teams_core_v30,Team Identity & Context,,,Normalized team name,1,Direct field from the teams table; used to identify and segment teams.
+Gender,Gender,Gender,,teams_core_v30,Team Identity & Context,,,Boys or Girls,1,Direct field from the teams table; used to identify and segment teams.
+Class,Class,Class,,teams_core_v30,Team Identity & Context,,,Competition class (A/B/C/D/S),1,Direct field from the teams table; used to identify and segment teams.
+Region,Region,Region,,teams_core_v30,Team Identity & Context,,,Geographic region (North/South),1,Direct field from the teams table; used to identify and segment teams.
+Division,Division,Division,,teams_core_v30,Team Identity & Context,,,SchoolDivision value,1,Direct field from the teams table; used to identify and segment teams.
+Season,Season,Season,,teams_core_v30,Team Identity & Context,,,"Derived from Date (e.g., 2024-25)",1,Direct field from the teams table; used to identify and segment teams.
+Games,Games,Games,,teams_core_v30,Basic Results & Record,,,Total games played,1,Count of games/results aggregated from the schedule/results dataset.
+Wins,Wins,Wins,,teams_core_v30,Basic Results & Record,,,Total wins,1,Count of games/results aggregated from the schedule/results dataset.
+Losses,Losses,Losses,,teams_core_v30,Basic Results & Record,,,Total losses,1,Count of games/results aggregated from the schedule/results dataset.
+Ties,Ties,Ties,,teams_core_v30,Basic Results & Record,,,Total ties,1,Count of games/results aggregated from the schedule/results dataset.
+Record,Record,Record,,teams_core_v30,Basic Results & Record,,,Win-Loss-Tie string,1,Formatted string derived from Wins–Losses–Ties.
+WinPct,WinPct,Win %,,teams_core_v30,Basic Results & Record,.3f,,Win percentage,1,"Wins divided by Games (games played), expressed as a proportion."
+GamesScheduled,GamesScheduled,Games Scheduled,,teams_core_v30,Basic Results & Record,,,Scheduled games (from CSV),1,Aggregated from game results (counts and simple derived fields).
+GamesRemaining,GamesRemaining,Games Remaining,,teams_core_v30,Basic Results & Record,,,Games left to play,1,Aggregated from game results (counts and simple derived fields).
+PointsFor,PointsFor,Points For,,teams_core_v30,Scoring & Margin,.0f,pts,Total points scored,1,Sum of team points scored across all played games.
+PointsAgainst,PointsAgainst,Points Against,,teams_core_v30,Scoring & Margin,.0f,pts,Total points allowed,1,Sum of opponent points allowed across all played games.
+PPG,PPG,PPG,,teams_core_v30,Scoring & Margin,.1f,pts/g,Points per game,1,PointsFor divided by Games (points per game).
+OPPG,OPPG,OPPG,,teams_core_v30,Scoring & Margin,.1f,pts/g,Opponent points per game,1,PointsAgainst divided by Games (opponent points per game).
+MarginPG,MarginPG,Margin/G,,teams_core_v30,Scoring & Margin,.1f,pts,Average margin of victory/defeat,1,Average of (team score − opponent score) per played game.
+MarginStd,MarginStd,Margin Std Dev,,teams_core_v30,Scoring & Margin,.1f,pts,Standard deviation of margins,1,Standard deviation of per-game margins over the specified window.
+MarginStdL10,MarginStdL10,Margin Std (L10),,teams_core_v30,Scoring & Margin,.1f,pts,Margin std dev last 10 games,1,Standard deviation of per-game margins over the specified window.
+L5PPG,L5PPG,L5 PPG,,teams_core_v30,Scoring & Margin,.1f,pts/g,Points per game last 5 games,1,Computed over the team’s last 5 games only (same definition as the full-season stat).
+L5MarginPG,L5MarginPG,L5 Margin/G,,teams_core_v30,Scoring & Margin,.1f,pts,Margin per game last 5,1,Computed over the team’s last 5 games only (same definition as the full-season stat).
+Last5MarginPG,Last5MarginPG,Last 5 Margin/G,,teams_core_v30,Scoring & Margin,.1f,pts,Margin per game last 5 (alias),1,Computed over the team’s last 5 games only (same definition as the full-season stat).
+Last10MarginPG,Last10MarginPG,Last 10 Margin/G,,teams_core_v30,Scoring & Margin,.1f,pts,Margin per game last 10,1,Computed over the team’s last 10 games only (same definition as the full-season stat).
+HighestScore,HighestScore,Highest Score,,teams_core_v30,Scoring & Margin,.0f,pts,Highest single-game score,1,"Aggregated from per-game scores and margins (sums, averages, and extremes)."
+LowestScore,LowestScore,Lowest Score,,teams_core_v30,Scoring & Margin,.0f,pts,Lowest single-game score,1,"Aggregated from per-game scores and margins (sums, averages, and extremes)."
+HighestMargin,HighestMargin,Highest Margin,,teams_core_v30,Scoring & Margin,.0f,pts,Biggest win margin,1,Average of (team score − opponent score) per played game.
+LowestMargin,LowestMargin,Lowest Margin,,teams_core_v30,Scoring & Margin,.0f,pts,Worst loss margin,1,Average of (team score − opponent score) per played game.
+OffEff,OffEff,Offensive Eff,OffEff,teams_core_v30,Efficiency Ratings,.1f,,Offensive efficiency (pts per 100 poss estimate),1,Derived from points and an estimated possessions model; NetEff = OffEff − DefEff.
+DefEff,DefEff,Defensive Eff,DefEff,teams_core_v30,Efficiency Ratings,.1f,,Defensive efficiency (pts allowed per 100 poss estimate),1,Derived from points and an estimated possessions model; NetEff = OffEff − DefEff.
+NetEff,NetEff,Net Efficiency,NetEff,teams_core_v30,Efficiency Ratings,.1f,,Net efficiency (OffEff - DefEff),1,Derived from points and an estimated possessions model; NetEff = OffEff − DefEff.
+ExpectedWins,ExpectedWins,Expected Wins,xW,teams_core_v30,Expected Win Probability & SOS,.1f,wins,Expected wins based on game-by-game win probabilities,1,Sum of game-level win probabilities across all scheduled games (expected number of wins).
+SOS_EWP,SOS_EWP,SOS (EWP),SOS,teams_core_v30,Expected Win Probability & SOS,.3f,,Strength of schedule via expected win percentage,1,Strength of schedule derived from expected win probabilities against opponents.
+ScheduleAdjWins,ScheduleAdjWins,Schedule-Adj Wins,SAW,teams_core_v30,Expected Win Probability & SOS,.1f,wins,Actual wins minus expected wins (luck-adjusted performance),1,Actual Wins minus ExpectedWins (positive = outperforming expectation; negative = underperforming).
+WP,WP,Win %,WP,teams_core_v30,RPI & SOS Metrics,.3f,,Win percentage (same as WinPct),1,Wins divided by Games (proportion).
+OWP,OWP,Opponents' Win %,OWP,teams_core_v30,RPI & SOS Metrics,.3f,,Average win percentage of opponents (excluding games vs this team),1,"Average opponent win percentage, excluding games vs this team."
+OOWP,OOWP,Opponents' Opp Win %,OOWP,teams_core_v30,RPI & SOS Metrics,.3f,,Average OWP of opponents (second-order SOS),1,Average of opponents’ OWP (second-order strength of schedule).
+RPI,RPI,RPI,RPI,teams_core_v30,RPI & SOS Metrics,.4f,,Rating Percentage Index: 0.25*WP + 0.50*OWP + 0.25*OOWP,1,Rating Percentage Index: 0.25*WP + 0.50*OWP + 0.25*OOWP
+Q1_Games,Q1_Games,Q1 Games,,teams_core_v30,Quadrant Records,,,"Games in Quadrant 1 (best opponents, by location)",1,Aggregated from game results (counts and simple derived fields).
+Q1_Wins,Q1_Wins,Q1 Wins,,teams_core_v30,Quadrant Records,,,Wins in Quadrant 1,1,Aggregated from game results (counts and simple derived fields).
+Q1_Losses,Q1_Losses,Q1 Losses,,teams_core_v30,Quadrant Records,,,Losses in Quadrant 1,1,Aggregated from game results (counts and simple derived fields).
+Q2_Games,Q2_Games,Q2 Games,,teams_core_v30,Quadrant Records,,,Games in Quadrant 2,1,Aggregated from game results (counts and simple derived fields).
+Q2_Wins,Q2_Wins,Q2 Wins,,teams_core_v30,Quadrant Records,,,Wins in Quadrant 2,1,Aggregated from game results (counts and simple derived fields).
+Q2_Losses,Q2_Losses,Q2 Losses,,teams_core_v30,Quadrant Records,,,Losses in Quadrant 2,1,Aggregated from game results (counts and simple derived fields).
+Q3_Games,Q3_Games,Q3 Games,,teams_core_v30,Quadrant Records,,,Games in Quadrant 3,1,Aggregated from game results (counts and simple derived fields).
+Q3_Wins,Q3_Wins,Q3 Wins,,teams_core_v30,Quadrant Records,,,Wins in Quadrant 3,1,Aggregated from game results (counts and simple derived fields).
+Q3_Losses,Q3_Losses,Q3 Losses,,teams_core_v30,Quadrant Records,,,Losses in Quadrant 3,1,Aggregated from game results (counts and simple derived fields).
+Q4_Games,Q4_Games,Q4 Games,,teams_core_v30,Quadrant Records,,,Games in Quadrant 4 (weakest opponents),1,Aggregated from game results (counts and simple derived fields).
+Q4_Wins,Q4_Wins,Q4 Wins,,teams_core_v30,Quadrant Records,,,Wins in Quadrant 4,1,Aggregated from game results (counts and simple derived fields).
+Q4_Losses,Q4_Losses,Q4 Losses,,teams_core_v30,Quadrant Records,,,Losses in Quadrant 4,1,Aggregated from game results (counts and simple derived fields).
+LuckZ,LuckZ,Luck Z-Score,Luck,teams_core_v30,Luck & Performance Context,.2f,,Z-score of (Wins - ExpectedWins): measures over/under-performance vs schedule,1,Computed from Wins − ExpectedWins; LuckZ is the standardized (z-score) version across teams.
+HomeGames,HomeGames,Home Games,,teams_core_v30,Home/Away/Neutral Splits,,,Games at home,1,Computed by filtering games by location (home/road/neutral) and aggregating counts/averages.
+HomeWins,HomeWins,Home Wins,,teams_core_v30,Home/Away/Neutral Splits,,,Wins at home,1,Computed by filtering games by location (home/road/neutral) and aggregating counts/averages.
+HomeLosses,HomeLosses,Home Losses,,teams_core_v30,Home/Away/Neutral Splits,,,Losses at home,1,Computed by filtering games by location (home/road/neutral) and aggregating counts/averages.
+HomeWinPct,HomeWinPct,Home Win %,,teams_core_v30,Home/Away/Neutral Splits,.3f,,Home win percentage,1,Wins divided by Games within the specified location split.
+HomeMarginPG,HomeMarginPG,Home Margin/G,,teams_core_v30,Home/Away/Neutral Splits,.1f,pts,Avg margin at home,1,Average margin computed only on games in the specified location split.
+RoadGames,RoadGames,Road Games,,teams_core_v30,Home/Away/Neutral Splits,,,Games on the road,1,Computed by filtering games by location (home/road/neutral) and aggregating counts/averages.
+RoadWins,RoadWins,Road Wins,,teams_core_v30,Home/Away/Neutral Splits,,,Wins on road,1,Computed by filtering games by location (home/road/neutral) and aggregating counts/averages.
+RoadLosses,RoadLosses,Road Losses,,teams_core_v30,Home/Away/Neutral Splits,,,Losses on road,1,Computed by filtering games by location (home/road/neutral) and aggregating counts/averages.
+RoadWinPct,RoadWinPct,Road Win %,,teams_core_v30,Home/Away/Neutral Splits,.3f,,Road win percentage,1,Wins divided by Games within the specified location split.
+RoadMarginPG,RoadMarginPG,Road Margin/G,,teams_core_v30,Home/Away/Neutral Splits,.1f,pts,Avg margin on road,1,Average margin computed only on games in the specified location split.
+HomeRoadDiff,HomeRoadDiff,Home/Road Diff,,teams_core_v30,Home/Away/Neutral Splits,.1f,pts,Home advantage differential (Home - Road margin),1,Difference between the home and road version of the same stat (Home − Road).
+NeutralGames,NeutralGames,Neutral Games,,teams_core_v30,Home/Away/Neutral Splits,,,Games at neutral site,1,Computed by filtering games by location (home/road/neutral) and aggregating counts/averages.
+NeutralWins,NeutralWins,Neutral Wins,,teams_core_v30,Home/Away/Neutral Splits,,,Wins at neutral,1,Computed by filtering games by location (home/road/neutral) and aggregating counts/averages.
+NeutralLosses,NeutralLosses,Neutral Losses,,teams_core_v30,Home/Away/Neutral Splits,,,Losses at neutral,1,Computed by filtering games by location (home/road/neutral) and aggregating counts/averages.
+NeutralWinPct,NeutralWinPct,Neutral Win %,,teams_core_v30,Home/Away/Neutral Splits,.3f,,Neutral win %,1,Wins divided by Games within the specified location split.
+NeutralMarginPG,NeutralMarginPG,Neutral Margin/G,,teams_core_v30,Home/Away/Neutral Splits,.1f,pts,Avg margin at neutral,1,Average margin computed only on games in the specified location split.
+CloseGames,CloseGames,Close Games,,teams_core_v30,Close Games & Blowouts,,,Games decided by ≤6 points,1,Counts of games/wins/losses after labeling each game as close/blowout by margin threshold.
+CloseWins,CloseWins,Close Wins,,teams_core_v30,Close Games & Blowouts,,,Wins in close games,1,Counts of games/wins/losses after labeling each game as close/blowout by margin threshold.
+CloseLosses,CloseLosses,Close Losses,,teams_core_v30,Close Games & Blowouts,,,Losses in close games,1,Counts of games/wins/losses after labeling each game as close/blowout by margin threshold.
+CloseWinPct,CloseWinPct,Close Win %,,teams_core_v30,Close Games & Blowouts,.3f,,Win % in close games,1,Count of qualifying games divided by total Games (proportion).
+CloseGameRate,CloseGameRate,Close Game Rate,,teams_core_v30,Close Games & Blowouts,.3f,,Proportion of games that are close,1,Count of qualifying games divided by total Games (proportion).
+OnePossessionRate,OnePossessionRate,One-Possession Rate,,teams_core_v30,Close Games & Blowouts,.3f,,Rate of one-possession games,1,Count of qualifying games divided by total Games (proportion).
+ClutchCloseGameWinPct,ClutchCloseGameWinPct,Clutch Close Win %,,teams_core_v30,Close Games & Blowouts,.3f,,Win % in clutch close games,1,Count of qualifying games divided by total Games (proportion).
+BlowoutGames,BlowoutGames,Blowout Games,,teams_core_v30,Close Games & Blowouts,,,Games decided by ≥15 points,1,Counts of games/wins/losses after labeling each game as close/blowout by margin threshold.
+BlowoutWins,BlowoutWins,Blowout Wins,,teams_core_v30,Close Games & Blowouts,,,Blowout wins,1,Counts of games/wins/losses after labeling each game as close/blowout by margin threshold.
+BlowoutLosses,BlowoutLosses,Blowout Losses,,teams_core_v30,Close Games & Blowouts,,,Blowout losses,1,Counts of games/wins/losses after labeling each game as close/blowout by margin threshold.
+BlowoutRate,BlowoutRate,Blowout Rate,,teams_core_v30,Close Games & Blowouts,.3f,,% of games that are blowouts,1,Count of qualifying games divided by total Games (proportion).
+BlowoutMarginPG,BlowoutMarginPG,Blowout Margin/G,,teams_core_v30,Close Games & Blowouts,.1f,pts,Avg margin in blowouts,1,Counts of games/wins/losses after labeling each game as close/blowout by margin threshold.
+GamesMargin0to3,GamesMargin0to3,Games (0-3),,teams_core_v30,Margin Buckets,,,Games decided 0-3 points,1,Average of (team score − opponent score) per played game.
+WinsMargin0to3,WinsMargin0to3,Wins (0-3),,teams_core_v30,Margin Buckets,,,Wins by 0-3 points,1,Average of (team score − opponent score) per played game.
+WinPctMargin0to3,WinPctMargin0to3,Win % (0-3),,teams_core_v30,Margin Buckets,.3f,,Win % in 0-3 bucket,1,Average of (team score − opponent score) per played game.
+GamesMargin4to10,GamesMargin4to10,Games (4-10),,teams_core_v30,Margin Buckets,,,Games decided 4-10 points,1,Average of (team score − opponent score) per played game.
+WinsMargin4to10,WinsMargin4to10,Wins (4-10),,teams_core_v30,Margin Buckets,,,Wins by 4-10 points,1,Average of (team score − opponent score) per played game.
+WinPctMargin4to10,WinPctMargin4to10,Win % (4-10),,teams_core_v30,Margin Buckets,.3f,,Win % in 4-10 bucket,1,Average of (team score − opponent score) per played game.
+GamesMargin11to20,GamesMargin11to20,Games (11-20),,teams_core_v30,Margin Buckets,,,Games decided 11-20 points,1,Average of (team score − opponent score) per played game.
+WinsMargin11to20,WinsMargin11to20,Wins (11-20),,teams_core_v30,Margin Buckets,,,Wins by 11-20 points,1,Average of (team score − opponent score) per played game.
+WinPctMargin11to20,WinPctMargin11to20,Win % (11-20),,teams_core_v30,Margin Buckets,.3f,,Win % in 11-20 bucket,1,Average of (team score − opponent score) per played game.
+GamesMargin21plus,GamesMargin21plus,Games (21+),,teams_core_v30,Margin Buckets,,,Games decided 21+ points,1,Average of (team score − opponent score) per played game.
+WinsMargin21plus,WinsMargin21plus,Wins (21+),,teams_core_v30,Margin Buckets,,,Wins by 21+ points,1,Average of (team score − opponent score) per played game.
+WinPctMargin21plus,WinPctMargin21plus,Win % (21+),,teams_core_v30,Margin Buckets,.3f,,Win % in 21+ bucket,1,Average of (team score − opponent score) per played game.
+Streak,Streak,Streak,,teams_core_v30,Streaks & Momentum,,,Current win/loss streak (numeric),1,Derived from the chronological win/loss sequence; computed as current streak or windowed splits (early/late).
+StreakLabel,StreakLabel,Streak Label,,teams_core_v30,Streaks & Momentum,,,Streak display string,1,Derived from the chronological win/loss sequence; computed as current streak or windowed splits (early/late).
+WinsInRow,WinsInRow,Wins in Row,,teams_core_v30,Streaks & Momentum,,,Most consecutive wins,1,Derived from the chronological win/loss sequence; computed as current streak or windowed splits (early/late).
+LossesInRow,LossesInRow,Losses in Row,,teams_core_v30,Streaks & Momentum,,,Most consecutive losses,1,Derived from the chronological win/loss sequence; computed as current streak or windowed splits (early/late).
+EarlyGames,EarlyGames,Early Games,,teams_core_v30,Streaks & Momentum,,,Games in early season,1,Derived from the chronological win/loss sequence; computed as current streak or windowed splits (early/late).
+EarlyWins,EarlyWins,Early Wins,,teams_core_v30,Streaks & Momentum,,,Wins in early season,1,Derived from the chronological win/loss sequence; computed as current streak or windowed splits (early/late).
+EarlyMarginPG,EarlyMarginPG,Early Margin/G,,teams_core_v30,Streaks & Momentum,.1f,pts,Margin in early games,1,Derived from the chronological win/loss sequence; computed as current streak or windowed splits (early/late).
+LateGames,LateGames,Late Games,,teams_core_v30,Streaks & Momentum,,,Games in late season,1,Derived from the chronological win/loss sequence; computed as current streak or windowed splits (early/late).
+LateWins,LateWins,Late Wins,,teams_core_v30,Streaks & Momentum,,,Wins in late season,1,Derived from the chronological win/loss sequence; computed as current streak or windowed splits (early/late).
+LateMarginPG,LateMarginPG,Late Margin/G,,teams_core_v30,Streaks & Momentum,.1f,pts,Margin in late games,1,Derived from the chronological win/loss sequence; computed as current streak or windowed splits (early/late).
+IsLateSkew,IsLateSkew,Late Season Skew,,teams_core_v30,Streaks & Momentum,,,More games in late season,1,Derived from the chronological win/loss sequence; computed as current streak or windowed splits (early/late).
+InDivisionWins,InDivisionWins,In-Division Wins,,teams_core_v30,Division & Cross-Division Play,,,Wins in division,1,Computed in the v30 pipeline (source: teams_core_v30).
+CrossDivisionWins,CrossDivisionWins,Cross-Division Wins,,teams_core_v30,Division & Cross-Division Play,,,Wins cross-division,1,Computed in the v30 pipeline (source: teams_core_v30).
+AvgRestDays,AvgRestDays,Avg Rest Days,,teams_core_v30,Game Sequencing & Rest,.1f,days,Average days between games,1,Average days between consecutive games on the schedule.
+ShortRestGames,ShortRestGames,Short Rest Games,,teams_core_v30,Game Sequencing & Rest,,,Games with 0-1 days rest,1,Derived from game dates and the team’s sequence of games.
+ShortRestShare,ShortRestShare,Short Rest Share,,teams_core_v30,Game Sequencing & Rest,.3f,,% games on short rest,1,Games meeting the rest definition divided by total Games (proportion).
+LongRestGames,LongRestGames,Long Rest Games,,teams_core_v30,Game Sequencing & Rest,,,Games with 4+ days rest,1,Derived from game dates and the team’s sequence of games.
+LongRestShare,LongRestShare,Long Rest Share,,teams_core_v30,Game Sequencing & Rest,.3f,,% games on long rest,1,Games meeting the rest definition divided by total Games (proportion).
+NetEffVsTop,NetEffVsTop,NetEff vs Top,,teams_core_v30,Opponent Strength Tiers,.1f,,Net efficiency vs top-tier opponents,1,Average NetEff computed over games vs opponents in the specified tier.
+NetEffVsMiddle,NetEffVsMiddle,NetEff vs Middle,,teams_core_v30,Opponent Strength Tiers,.1f,,Net efficiency vs middle-tier opponents,1,Average NetEff computed over games vs opponents in the specified tier.
+NetEffVsBottom,NetEffVsBottom,NetEff vs Bottom,,teams_core_v30,Opponent Strength Tiers,.1f,,Net efficiency vs bottom-tier opponents,1,Average NetEff computed over games vs opponents in the specified tier.
+GamesVsTop,GamesVsTop,Games vs Top,,teams_core_v30,Opponent Strength Tiers,,,Games vs top-tier opponents,1,Count of games played against opponents in the specified tier.
+WinsVsTop,WinsVsTop,Wins vs Top,,teams_core_v30,Opponent Strength Tiers,,,Wins vs top tier,1,Count of wins/losses against opponents in the specified tier.
+LossesVsTop,LossesVsTop,Losses vs Top,,teams_core_v30,Opponent Strength Tiers,,,Losses vs top tier,1,Count of wins/losses against opponents in the specified tier.
+WinPctVsTop,WinPctVsTop,Win % vs Top,,teams_core_v30,Opponent Strength Tiers,.3f,,Win % vs top tier,1,Wins divided by Games against opponents in the specified tier.
+MarginVsTop,MarginVsTop,Margin vs Top,,teams_core_v30,Opponent Strength Tiers,.1f,pts,Avg margin vs top tier,1,Average margin in games vs opponents in the specified tier.
+GamesVsMiddle,GamesVsMiddle,Games vs Middle,,teams_core_v30,Opponent Strength Tiers,,,Games vs middle-tier opponents,1,Count of games played against opponents in the specified tier.
+WinsVsMiddle,WinsVsMiddle,Wins vs Middle,,teams_core_v30,Opponent Strength Tiers,,,Wins vs middle tier,1,Count of wins/losses against opponents in the specified tier.
+LossesVsMiddle,LossesVsMiddle,Losses vs Middle,,teams_core_v30,Opponent Strength Tiers,,,Losses vs middle tier,1,Count of wins/losses against opponents in the specified tier.
+WinPctVsMiddle,WinPctVsMiddle,Win % vs Middle,,teams_core_v30,Opponent Strength Tiers,.3f,,Win % vs middle tier,1,Wins divided by Games against opponents in the specified tier.
+MarginVsMiddle,MarginVsMiddle,Margin vs Middle,,teams_core_v30,Opponent Strength Tiers,.1f,pts,Avg margin vs middle tier,1,Average margin in games vs opponents in the specified tier.
+GamesVsBottom,GamesVsBottom,Games vs Bottom,,teams_core_v30,Opponent Strength Tiers,,,Games vs bottom-tier opponents,1,Count of games played against opponents in the specified tier.
+WinsVsBottom,WinsVsBottom,Wins vs Bottom,,teams_core_v30,Opponent Strength Tiers,,,Wins vs bottom tier,1,Count of wins/losses against opponents in the specified tier.
+LossesVsBottom,LossesVsBottom,Losses vs Bottom,,teams_core_v30,Opponent Strength Tiers,,,Losses vs bottom tier,1,Count of wins/losses against opponents in the specified tier.
+WinPctVsBottom,WinPctVsBottom,Win % vs Bottom,,teams_core_v30,Opponent Strength Tiers,.3f,,Win % vs bottom tier,1,Wins divided by Games against opponents in the specified tier.
+MarginVsBottom,MarginVsBottom,Margin vs Bottom,,teams_core_v30,Opponent Strength Tiers,.1f,pts,Avg margin vs bottom tier,1,Average margin in games vs opponents in the specified tier.
+GamesVsTop25,GamesVsTop25,Games vs Top 25,,teams_core_v30,Opponent Strength Tiers,,,Games vs top-25 ranked teams,1,Count of games played against opponents in the specified tier.
+WinsVsTop25,WinsVsTop25,Wins vs Top 25,,teams_core_v30,Opponent Strength Tiers,,,Wins vs top-25 teams,1,Count of wins/losses against opponents in the specified tier.
+LossesVsTop25,LossesVsTop25,Losses vs Top 25,,teams_core_v30,Opponent Strength Tiers,,,Losses to top-25 teams,1,Count of wins/losses against opponents in the specified tier.
+WinPctVsTop25,WinPctVsTop25,Win % vs Top 25,,teams_core_v30,Opponent Strength Tiers,.3f,,Win % vs top-25,1,Wins divided by Games against opponents in the specified tier.
+MarginVsTop25,MarginVsTop25,Margin vs Top 25,,teams_core_v30,Opponent Strength Tiers,.1f,pts,Avg margin vs top-25,1,Average margin in games vs opponents in the specified tier.
+BestWin,BestWin,Best Win,,teams_core_v30,Resume & Quality Wins/Losses,,,Highest-rated opponent beaten,1,Identifies the highest-rated opponent defeated (based on opponent rating at game time).
+BestWinMargin,BestWinMargin,Best Win Margin,,teams_core_v30,Resume & Quality Wins/Losses,.0f,pts,Margin in best win,1,Identifies the highest-rated opponent defeated (based on opponent rating at game time).
+WorstLoss,WorstLoss,Worst Loss,,teams_core_v30,Resume & Quality Wins/Losses,,,Lowest-rated opponent lost to,1,Identifies the lowest-rated opponent lost to (based on opponent rating at game time).
+WorstLossMargin,WorstLossMargin,Worst Loss Margin,,teams_core_v30,Resume & Quality Wins/Losses,.0f,pts,Margin in worst loss,1,Identifies the lowest-rated opponent lost to (based on opponent rating at game time).
+QualityWins,QualityWins,Quality Wins,,teams_core_v30,Resume & Quality Wins/Losses,,,Wins vs high-quality opponents,1,Derived from opponent ratings and results; selects extremes and counts qualified wins/losses.
+BadLosses,BadLosses,Bad Losses,,teams_core_v30,Resume & Quality Wins/Losses,,,Losses to low-quality opponents,1,Derived from opponent ratings and results; selects extremes and counts qualified wins/losses.
+Top25Wins,Top25Wins,Top 25 Wins,,teams_core_v30,Resume & Quality Wins/Losses,,,Wins vs top-25 ranked teams,1,Derived from opponent ratings and results; selects extremes and counts qualified wins/losses.
+Top25Losses,Top25Losses,Top 25 Losses,,teams_core_v30,Resume & Quality Wins/Losses,,,Losses to top-25 teams,1,Derived from opponent ratings and results; selects extremes and counts qualified wins/losses.
+TI,TI,TI,,teams_core_v30,Tournament & Preliminary Indices,.2f,,Tournament Index (latest snapshot),1,Derived from a tournament seeding snapshot and/or playoff qualification logic in the v30 pipeline.
+ProjectedSeed,ProjectedSeed,Projected Seed,,teams_core_v30,Tournament & Preliminary Indices,,,Projected tournament seed,1,Derived from a tournament seeding snapshot and/or playoff qualification logic in the v30 pipeline.
+Qualified,Qualified,Qualified,,teams_core_v30,Tournament & Preliminary Indices,,,Tournament qualification status,1,Derived from a tournament seeding snapshot and/or playoff qualification logic in the v30 pipeline.
+LastGameDate,LastGameDate,Last Game Date,,teams_core_v30,Metadata,,,Date of most recent game,1,System metadata captured during scrape/build (timestamps and version identifiers).
+ScrapedAt,ScrapedAt,Scraped At,,teams_core_v30,Metadata,,,Latest scrape timestamp,1,System metadata captured during scrape/build (timestamps and version identifiers).
+CoreVersion,CoreVersion,Core Version,,teams_core_v30,Metadata,,,Version identifier,1,System metadata captured during scrape/build (timestamps and version identifiers).
+GameID,GameID,Game ID,,games_core_v30,Game Details,,,Unique game identifier,1,Direct game-level field from the games table (schedule/results).
+Date,Date,Date,,games_core_v30,Game Details,,,Game date,1,Direct game-level field from the games table (schedule/results).
+Home,Home,Home,,games_core_v30,Game Details,,,Home team name,1,Direct game-level field from the games table (schedule/results).
+Away,Away,Away,,games_core_v30,Game Details,,,Away team name,1,Direct game-level field from the games table (schedule/results).
+HomeKey,HomeKey,Home Key,,games_core_v30,Game Details,,,Home TeamKey,1,Direct game-level field from the games table (schedule/results).
+AwayKey,AwayKey,Away Key,,games_core_v30,Game Details,,,Away TeamKey,1,Direct game-level field from the games table (schedule/results).
+HomeClass,HomeClass,Home Class,,games_core_v30,Game Details,,,Home team class,1,Direct game-level field from the games table (schedule/results).
+AwayClass,AwayClass,Away Class,,games_core_v30,Game Details,,,Away team class,1,Direct game-level field from the games table (schedule/results).
+HomeRegion,HomeRegion,Home Region,,games_core_v30,Game Details,,,Home team region,1,Direct game-level field from the games table (schedule/results).
+AwayRegion,AwayRegion,Away Region,,games_core_v30,Game Details,,,Away team region,1,Direct game-level field from the games table (schedule/results).
+HomeDivision,HomeDivision,Home Division,,games_core_v30,Game Details,,,Home SchoolDivision,1,Direct game-level field from the games table (schedule/results).
+AwayDivision,AwayDivision,Away Division,,games_core_v30,Game Details,,,Away SchoolDivision,1,Direct game-level field from the games table (schedule/results).
+HomeScore,HomeScore,Home Score,,games_core_v30,Game Details,.0f,pts,Home team score,1,Direct game-level field from the games table (schedule/results).
+AwayScore,AwayScore,Away Score,,games_core_v30,Game Details,.0f,pts,Away team score,1,Direct game-level field from the games table (schedule/results).
+Played,Played,Played,,games_core_v30,Game Details,,,Game completed,1,Direct game-level field from the games table (schedule/results).
+Winner,Winner,Winner,,games_core_v30,Game Details,,,Winning team name,1,Direct game-level field from the games table (schedule/results).
+Margin,Margin,Margin,,games_core_v30,Game Details,.0f,pts,Winning margin (Home - Away),1,Direct game-level field from the games table (schedule/results).
+IsNeutral,IsNeutral,Is Neutral,,games_core_v30,Game Details,,,Game at neutral site,1,Direct game-level field from the games table (schedule/results).
+Season,Season,Season,,games_core_v30,Game Details,,,Season identifier,1,Direct game-level field from the games table (schedule/results).
+GameNum,GameNum,Game #,,games_core_v30,Game Details,,,Game number in sequence,1,Direct game-level field from the games table (schedule/results).
+HomeNetEff,HomeNetEff,Home NetEff,,games_core_v30,Game Predictions & Evaluation,.1f,,Home team NetEff at game time,1,Model outputs computed at game time and evaluated after the game completes.
+AwayNetEff,AwayNetEff,Away NetEff,,games_core_v30,Game Predictions & Evaluation,.1f,,Away team NetEff at game time,1,Model outputs computed at game time and evaluated after the game completes.
+PredHomeWinProb,PredHomeWinProb,Pred Home Win Prob,,games_core_v30,Game Predictions & Evaluation,.3f,,Predicted home win probability,1,Computed from the model at game time using team strength inputs; stored per game.
+PredMargin,PredMargin,Pred Margin,,games_core_v30,Game Predictions & Evaluation,.1f,pts,Predicted margin (Home - Away),1,Computed from the model at game time using team strength inputs; stored per game.
+Favorite,Favorite,Favorite,,games_core_v30,Game Predictions & Evaluation,,,Favored team name,1,Model outputs computed at game time and evaluated after the game completes.
+FavoriteIsHome,FavoriteIsHome,Favorite Is Home,,games_core_v30,Game Predictions & Evaluation,,,True if home team favored,1,Model outputs computed at game time and evaluated after the game completes.
+FavProb,FavProb,Fav Prob,,games_core_v30,Game Predictions & Evaluation,.3f,,Favorite win probability,1,Computed from the model at game time using team strength inputs; stored per game.
+ModelCorrect,ModelCorrect,Model Correct,,games_core_v30,Game Predictions & Evaluation,,,Did model pick winner correctly,1,True if the model’s predicted winner matches the actual winner.
+MarginError,MarginError,Margin Error,,games_core_v30,Game Predictions & Evaluation,.1f,pts,Actual margin - predicted margin,1,Actual game margin minus PredMargin (signed error).
+ScrapedAt,ScrapedAt,Scraped At,,games_core_v30,Metadata,,,Scrape timestamp,1,System metadata captured during scrape/build (timestamps and version identifiers).
+CoreVersion,CoreVersion,Core Version,,games_core_v30,Metadata,,,Version identifier,1,System metadata captured during scrape/build (timestamps and version identifiers).

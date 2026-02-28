@@ -1,0 +1,6 @@
+NIGHTLY ORCHESTRATOR V40 START 20260217_111200
+Pre-run backup at: C:\ANALYTICS207\backup\20260217_111200__pre
+1) Running scrapers pipeline to build data/truth.csv
+Running: C:\Users\cwarm\AppData\Local\Programs\Python\Python312\python.exe MPA_SCRAPER_V25.py
+NIGHTLY ORCHESTRATOR V40 FAILED
+ERROR: Command failed (1): C:\Users\cwarm\AppData\Local\Programs\Python\Python312\python.exe MPA_SCRAPER_V25.py
