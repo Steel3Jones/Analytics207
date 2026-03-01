@@ -1,503 +1,234 @@
 import streamlit as st
-import streamlit.components.v1 as components
-from auth import (
-    get_user,
-    get_profile,
-    get_supabase,
-    create_checkout_url,
-    create_portal_url,
-    logout_button,
-)
-from layout import (
-    apply_global_layout_tweaks,
-    render_logo,
-    render_page_header,
-    render_footer,
-)
-from sidebar_auth import render_sidebar_auth
-
-ANNUAL_PRICE_ID = "price_1T6GIqLWG769Pv4aEBoXjLgq"
-
-st.set_page_config(page_title="My Account", page_icon="👤", layout="wide")
-
-render_sidebar_auth()
-apply_global_layout_tweaks()
-
-user = get_user()
-profile = (get_profile() or {}) if user else {}
-sub_status = profile.get("subscription_status", "free") if profile else "free"
-sub_type = profile.get("subscription_type", "") if profile else ""
-stripe_id = profile.get("stripe_customer_id", "") if profile else ""
-
-render_logo()
-render_page_header(
-    title="My Account",
-    definition="Account (n.): Your profile, subscription, and settings",
-    subtitle="Manage your plan, view features, and access premium content.",
-)
-st.write("")
+from supabase import create_client
 
 
-# ── Login / Signup (not logged in) ──
-if not user:
-    st.subheader("Sign In / Sign Up")
-    st.caption("Sign in to manage your account or subscribe to a plan.")
+SUPABASE_URL = "https://lofxbafahfogptdkjhhv.supabase.co"
+SUPABASE_KEY = "sb_publishable_FpCxSeMXvTU3MhfD1qrTnQ_eCKaaySR"
 
-    tab_login, tab_signup = st.tabs(["Log In", "Sign Up"])
 
-    with tab_login:
+@st.cache_resource
+def get_supabase():
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
+def get_user():
+    user = st.session_state.get("user", None)
+    if user is None:
+        return None
+    session = st.session_state.get("session", None)
+    if session and hasattr(session, "refresh_token") and session.refresh_token:
+        try:
+            sb = get_supabase()
+            res = sb.auth.refresh_session(session.refresh_token)
+            st.session_state["user"] = res.user
+            st.session_state["session"] = res.session
+            return res.user
+        except Exception:
+            st.session_state["user"] = None
+            st.session_state["session"] = None
+            st.session_state["profile"] = None
+            return None
+    return user
+
+
+def get_profile():
+    user = get_user()
+    if not user:
+        return None
+    if "profile" not in st.session_state or st.session_state["profile"] is None:
         sb = get_supabase()
-        email = st.text_input("Email", key="acct_login_email")
-        password = st.text_input("Password", type="password", key="acct_login_pw")
-        if st.button("Log In", key="acct_login_btn"):
-            try:
-                res = sb.auth.sign_in_with_password({"email": email, "password": password})
-                st.session_state["user"] = res.user
-                st.session_state["session"] = res.session
-                st.session_state["profile"] = None
-                st.rerun()
-                st.stop()
-            except Exception as e:
-                st.error(f"Login failed: {e}")
-
-    with tab_signup:
-        sb = get_supabase()
-        new_email = st.text_input("Email", key="acct_signup_email")
-        display_name = st.text_input("Display Name", key="acct_signup_name")
-        new_password = st.text_input("Password", type="password", key="acct_signup_pw")
-        confirm_password = st.text_input("Confirm Password", type="password", key="acct_signup_pw2")
-        if st.button("Sign Up", key="acct_signup_btn"):
-            if new_password != confirm_password:
-                st.error("Passwords don't match")
-            elif len(new_password) < 6:
-                st.error("Password must be at least 6 characters")
-            elif not display_name.strip():
-                st.error("Display name required")
-            else:
-                try:
-                    res = sb.auth.sign_up({
-                        "email": new_email,
-                        "password": new_password,
-                        "options": {"data": {"display_name": display_name.strip()}},
-                    })
-                    st.success("Check your email to confirm, then log in.")
-                except Exception as e:
-                    st.error(f"Signup failed: {e}")
-
-    st.markdown("---")
+        res = sb.table("profiles").select("*").eq("id", user.id).single().execute()
+        st.session_state["profile"] = res.data
+    return st.session_state["profile"]
 
 
-# ── Account Details (logged in only) ──
-if user:
-    name = profile.get("display_name") or (
-        getattr(user, "user_metadata", None) or {}
-    ).get("display_name", "") or getattr(user, "email", "User")
-    email = getattr(user, "email", "")
-
-    col_info, col_status = st.columns([2, 1])
-    with col_info:
-        st.subheader("Account Details")
-        st.markdown(f"**Name:** {name}")
-        st.markdown(f"**Email:** {email}")
-
-    with col_status:
-        st.subheader("Current Plan")
-        if sub_status == "active":
-            if sub_type == "annual_pass":
-                st.success("🌟 Annual Pass — Active")
-            elif sub_type == "season_pass":
-                st.success("🏆 Season Pass — Active")
-            else:
-                st.success("📅 Pro Monthly — Active")
-        elif sub_status == "past_due":
-            st.warning("Past Due — Please update payment")
-        elif sub_status == "cancelled":
-            st.error("Cancelled")
-        else:
-            st.info("Free Plan")
-
-    # Plan messaging
-    if sub_status == "active" and sub_type == "annual_pass":
-        st.markdown(
-            """
-            <div style="background: linear-gradient(135deg, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.08) 100%);
-                        border: 1px solid rgba(99,102,241,0.5); border-radius: 16px; padding: 24px; margin-top: 12px;
-                        text-align: center;">
-                <div style="font-size: 32px; margin-bottom: 6px;">🌟</div>
-                <div style="font-size: 18px; font-weight: 900; color: #a78bfa; letter-spacing: 0.05em;">
-                    ANNUAL PASS MEMBER
-                </div>
-                <div style="font-size: 13px; color: #94a3b8; margin-top: 6px;">
-                    Full year access — live season tools plus all offseason content, blog deep dives, and historical data.
-                    You're locked in through the entire 2026–27 cycle.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            """
-            <ul style="font-size:13px; color:#cbd5e1; margin-top:8px; margin-bottom:16px;">
-                <li>Full-season access to every prediction, ranking, and bracket tool.</li>
-                <li>Offseason content: blog posts, historical data, preseason previews.</li>
-                <li>Early access to new features as they roll out.</li>
-                <li>Priority support and feature request consideration.</li>
-            </ul>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.info("You have the complete playbook — all features unlocked year-round.")
-
-    elif sub_status == "active" and sub_type == "season_pass":
-        st.markdown(
-            """
-            <div style="background: linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(251,191,36,0.08) 100%);
-                        border: 1px solid rgba(245,158,11,0.5); border-radius: 16px; padding: 24px; margin-top: 12px;
-                        text-align: center;">
-                <div style="font-size: 32px; margin-bottom: 6px;">🏆</div>
-                <div style="font-size: 18px; font-weight: 900; color: #fbbf24; letter-spacing: 0.05em;">
-                    SEASON PASS MEMBER
-                </div>
-                <div style="font-size: 13px; color: #94a3b8; margin-top: 6px;">
-                    Full access to every live tool for the entire 2026–27 season (Nov–Feb).
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            """
-            <ul style="font-size:13px; color:#cbd5e1; margin-top:8px; margin-bottom:16px;">
-                <li>Full-season access to every prediction, ranking, and bracket tool.</li>
-                <li>Early access to new features as they roll out.</li>
-                <li>Priority consideration for feedback and feature requests.</li>
-            </ul>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.info("All live season features are unlocked through February.")
-
-    elif sub_status == "active" and sub_type not in ("season_pass", "annual_pass"):
-        st.info("You're a Pro Monthly member with full access while your subscription is active.")
-
-    else:
-        st.info(
-            "You're on the free plan. "
-            "Upgrade to unlock full rankings, projections, and tournament tools."
-        )
-
-    st.markdown("---")
-
-    # ── Manage Subscription ──
-    if sub_status == "active":
-        st.subheader("Manage Subscription")
-
-        if sub_type == "annual_pass":
-            st.markdown("You have an **Annual Pass** — one-time payment, no recurring billing. Full year access is locked in!")
-
-        elif sub_type == "season_pass":
-            st.markdown("You have a **Season Pass** — one-time payment, no recurring billing. You're all set for the 2026–27 season!")
-            st.markdown(
-                """
-                <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.3);
-                     border-radius:12px; padding:16px; margin:8px 0;">
-                    <span style="font-size:14px; font-weight:700; color:#a78bfa;">
-                        ⬆ Upgrade to Annual Pass — $49.99
-                    </span><br>
-                    <span style="font-size:12px; color:#94a3b8;">
-                        Add offseason content, blog deep dives, historical data, and priority support.
-                        Full year access locked in.
-                    </span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-            if st.button("Upgrade to Annual Pass", key="upgrade_annual", use_container_width=True, type="primary"):
-                with st.spinner("Redirecting to checkout..."):
-                    url = create_checkout_url(user, price_id=ANNUAL_PRICE_ID, mode="payment")
-                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
-                    st.stop()
-
-        else:
-            # Monthly — show upgrade options AND Manage Billing
-            st.markdown("You have an active **Monthly** subscription.")
-            st.markdown(
-                """
-                <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3);
-                     border-radius:12px; padding:16px; margin:8px 0;">
-                    <span style="font-size:14px; font-weight:700; color:#fbbf24;">
-                        ⬆ Upgrade to Season Pass — $19.99 (save 28%)
-                    </span><br>
-                    <span style="font-size:12px; color:#94a3b8;">
-                        One-time payment for the full 2026–27 season (Nov–Feb).
-                    </span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-            if st.button("Upgrade to Season Pass", key="upgrade_season", use_container_width=True, type="primary"):
-                with st.spinner("Redirecting to checkout..."):
-                    url = create_checkout_url(user, price_id="price_1T60C5LWG769Pv4aJ7beMvHg", mode="payment")
-                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
-                    st.stop()
-
-            st.markdown(
-                """
-                <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.3);
-                     border-radius:12px; padding:16px; margin:8px 0;">
-                    <span style="font-size:14px; font-weight:700; color:#a78bfa;">
-                        ⬆ Upgrade to Annual Pass — $49.99 (save 40%)
-                    </span><br>
-                    <span style="font-size:12px; color:#94a3b8;">
-                        Full year access including offseason content, blog deep dives, and historical data.
-                    </span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-            if st.button("Upgrade to Annual Pass", key="upgrade_annual", use_container_width=True, type="primary"):
-                with st.spinner("Redirecting to checkout..."):
-                    url = create_checkout_url(user, price_id=ANNUAL_PRICE_ID, mode="payment")
-                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
-                    st.stop()
-
-            # Manage Billing — monthly only
-            if stripe_id:
-                st.markdown("")
-                if st.button("Manage Billing", key="manage_billing", use_container_width=True):
-                    with st.spinner("Redirecting to Stripe..."):
-                        url = create_portal_url(stripe_id)
-                        st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
-                        st.stop()
-                st.caption("Update payment method, view invoices, or cancel your subscription.")
-
-        st.markdown("---")
+def is_logged_in():
+    return get_user() is not None
 
 
-# ── Plan Comparison ──
-st.subheader("Plan Comparison")
-
-current_col = "free"
-if sub_status == "active":
-    current_col = sub_type if sub_type else "monthly"
-
-features = [
-    ("Home Dashboard & Tonight's Games",    True,  True,  True,  True),
-    ("Power Index Ratings (Top 5)",          True,  True,  True,  True),
-    ("Heal Points (Top 5)",                  True,  True,  True,  True),
-    ("Model Record / Report Card",           True,  True,  True,  True),
-    ("Full Power Index Rankings",            False, True,  True,  True),
-    ("Full Heal Point Rankings",             False, True,  True,  True),
-    ("The Slate - Full Game Predictions",    False, True,  True,  True),
-    ("The Aftermath - Full Results",         False, True,  True,  True),
-    ("Team Center - Deep Team Analytics",    False, True,  True,  True),
-    ("Bracketology",                         False, True,  True,  True),
-    ("The Model - Prediction Engine",        False, True,  True,  True),
-    ("The Projector",                        False, True,  True,  True),
-    ("Milestones & Records",                 False, True,  True,  True),
-    ("The Press Box",                        False, True,  True,  True),
-    ("Road Trip Planner",                    False, True,  True,  True),
-    ("Insights & Trends",                    False, True,  True,  True),
-    ("Pick 5 Challenge",                     False, True,  True,  True),
-    ("Trophy Room",                          False, True,  True,  True),
-    ("All-State Analytics Team",             False, True,  True,  True),
-    ("Mover Board",                          False, True,  True,  True),
-    ("Offseason Blog & Deep Dives",          False, False, False, True),
-    ("Historical Data Browser",             False, False, False, True),
-    ("Preseason Power Index Previews",       False, False, False, True),
-    ("Priority Support",                     False, False, True,  True),
-]
+def is_subscribed():
+    """Returns True if user has ANY active paid subscription."""
+    if not is_logged_in():
+        return False
+    profile = get_profile()
+    return profile is not None and profile.get("subscription_status") == "active"
 
 
-def icon(val):
+def is_premium():
+    """Returns True only for Annual Pass holders."""
+    if not is_logged_in():
+        return False
+    profile = get_profile()
     return (
-        '<span style="color:#22c55e;font-size:16px;">&#10003;</span>'
-        if val
-        else '<span style="color:rgba(148,163,184,0.3);font-size:16px;">&#8212;</span>'
+        profile is not None
+        and profile.get("subscription_status") == "active"
+        and profile.get("subscription_type") == "annual_pass"
     )
 
 
-rows_html = ""
-for feat, free, monthly, season, annual in features:
-    rows_html += f"""
-    <tr>
-        <td>{feat}</td>
-        <td>{icon(free)}</td>
-        <td>{icon(monthly)}</td>
-        <td>{icon(season)}</td>
-        <td>{icon(annual)}</td>
-    </tr>"""
+def is_admin():
+    profile = get_profile()
+    return profile is not None and profile.get("role") == "admin"
 
 
-def hdr(label, col_key):
-    if col_key == "season_pass":
-        label = "🏆 " + label
-    if col_key == "annual_pass":
-        label = "🌟 " + label
-    if current_col == col_key:
-        return f'{label}<br><span style="font-size:9px;color:#22c55e;">&#10003; CURRENT</span>'
-    return label
+def login_gate(required=True):
+    user = get_user()
+
+    if user is not None:
+        return user
+
+    if not required:
+        _sidebar_login()
+        return None
+
+    st.title("\U0001f3c0 Maine Hoops Analytics")
+    st.subheader("Sign in to continue")
+    _login_form()
+    st.stop()
 
 
-row_height = 38
-header_height = 60
-padding = 40
-computed_height = header_height + (len(features) * row_height) + padding
-
-table_html = f"""
-<html>
-<head>
-<style>
-body {{ margin:0; background:transparent; }}
-.plan-table {{
-    width: 100%;
-    border-collapse: collapse;
-    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-}}
-.plan-table th {{
-    background: rgba(245, 158, 11, 0.15);
-    color: #f59e0b;
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 12px 16px;
-    text-align: center;
-    border-bottom: 2px solid rgba(245, 158, 11, 0.3);
-}}
-.plan-table th:first-child {{
-    text-align: left;
-    color: #e2e8f0;
-}}
-.plan-table td {{
-    padding: 10px 16px;
-    font-size: 13px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    color: #cbd5e1;
-}}
-.plan-table td:first-child {{
-    text-align: left;
-    font-weight: 600;
-    color: #e2e8f0;
-}}
-.plan-table tr:hover {{
-    background: rgba(255,255,255,0.03);
-}}
-</style>
-</head>
-<body>
-<table class="plan-table">
-    <thead>
-        <tr>
-            <th>Feature</th>
-            <th>{hdr("Free", "free")}</th>
-            <th>{hdr("Monthly — $6.99/mo", "monthly")}</th>
-            <th>{hdr("Season Pass — $19.99", "season_pass")}</th>
-            <th>{hdr("Annual Pass — $49.99", "annual_pass")}</th>
-        </tr>
-    </thead>
-    <tbody>
-        {rows_html}
-    </tbody>
-</table>
-</body>
-</html>
-"""
-
-components.html(table_html, height=computed_height, scrolling=False)
+def _sidebar_login():
+    """Auth handled on My Account page — no sidebar login."""
+    pass
 
 
-# ── Upgrade / Pricing (not active subscribers) ──
-if sub_status != "active":
-    st.markdown("---")
-    st.subheader("Upgrade Your Plan")
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.markdown(
-            """
-            <div style="background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.3);
-                 border-radius:16px; padding:24px; text-align:center; height:160px;">
-                <div style="font-size:24px; font-weight:900; color:#60a5fa;">$6.99</div>
-                <div style="font-size:12px; color:#94a3b8; margin-bottom:8px;">per month — cancel anytime</div>
-                <div style="font-size:12px; color:#cbd5e1;">
-                    Full access to all live tools while active. Billed monthly.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        if user:
-            if st.button("Subscribe Monthly", key="buy_monthly", use_container_width=True, type="primary"):
-                with st.spinner("Redirecting to checkout..."):
-                    url = create_checkout_url(user, price_id="price_1T60BQLWG769Pv4apChlmFls", mode="subscription")
-                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
-                    st.stop()
-        else:
-            st.caption("Sign in above to subscribe.")
-
-    with col2:
-        st.markdown(
-            """
-            <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3);
-                 border-radius:16px; padding:24px; text-align:center; height:160px;">
-                <div style="font-size:24px; font-weight:900; color:#fbbf24;">$19.99</div>
-                <div style="font-size:12px; color:#94a3b8; margin-bottom:4px;">one-time — Nov through Feb</div>
-                <div style="font-size:11px; color:#86efac; margin-bottom:8px;">Save 28% vs monthly</div>
-                <div style="font-size:12px; color:#cbd5e1;">
-                    Full live tools for the entire 2026–27 season.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        if user:
-            if st.button("Buy Season Pass", key="buy_season", use_container_width=True):
-                with st.spinner("Redirecting to checkout..."):
-                    url = create_checkout_url(user, price_id="price_1T60C5LWG769Pv4aJ7beMvHg", mode="payment")
-                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
-                    st.stop()
-        else:
-            st.caption("Sign in above to purchase.")
-
-    with col3:
-        st.markdown(
-            """
-            <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.3);
-                 border-radius:16px; padding:24px; text-align:center; height:160px;">
-                <div style="font-size:24px; font-weight:900; color:#a78bfa;">$49.99</div>
-                <div style="font-size:12px; color:#94a3b8; margin-bottom:4px;">one-time — full year access</div>
-                <div style="font-size:11px; color:#86efac; margin-bottom:8px;">Save 40% vs monthly</div>
-                <div style="font-size:12px; color:#cbd5e1;">
-                    Live season tools + offseason content, blog, and historical data.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        if user:
-            if st.button("Buy Annual Pass", key="buy_annual", use_container_width=True, type="primary"):
-                with st.spinner("Redirecting to checkout..."):
-                    url = create_checkout_url(user, price_id=ANNUAL_PRICE_ID, mode="payment")
-                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
-                    st.stop()
-        else:
-            st.caption("Sign in above to purchase.")
+def _login_form():
+    tab_login, tab_signup = st.tabs(["Log In", "Sign Up"])
+    with tab_login:
+        _do_login(prefix="fp_")
+    with tab_signup:
+        _do_signup(prefix="fp_")
 
 
-# ── Log Out ──
-if user:
-    st.markdown("---")
-    if st.button("Log Out", key="acct_logout", use_container_width=True):
+def _do_login(prefix=""):
+    sb = get_supabase()
+    email = st.text_input("Email", key=f"{prefix}login_email")
+    password = st.text_input("Password", type="password", key=f"{prefix}login_pw")
+    if st.button("Log In", key=f"{prefix}login_btn"):
         try:
-            get_supabase().auth.sign_out()
-        except Exception:
-            pass
-        for k in ["user", "session", "profile"]:
-            st.session_state[k] = None
-        st.rerun()
-        st.stop()
+            res = sb.auth.sign_in_with_password({"email": email, "password": password})
+            st.session_state["user"] = res.user
+            st.session_state["session"] = res.session
+            st.session_state["profile"] = None
+            st.rerun()
+        except Exception as e:
+            st.error(f"Login failed: {e}")
 
 
-render_footer()
+def _do_signup(prefix=""):
+    sb = get_supabase()
+    new_email = st.text_input("Email", key=f"{prefix}signup_email")
+    display_name = st.text_input("Display Name", key=f"{prefix}signup_name")
+    new_password = st.text_input("Password", type="password", key=f"{prefix}signup_pw")
+    confirm_password = st.text_input("Confirm Password", type="password", key=f"{prefix}signup_pw2")
+    if st.button("Sign Up", key=f"{prefix}signup_btn"):
+        if new_password != confirm_password:
+            st.error("Passwords don't match")
+        elif len(new_password) < 6:
+            st.error("Password must be at least 6 characters")
+        elif not display_name.strip():
+            st.error("Display name required")
+        else:
+            try:
+                res = sb.auth.sign_up({
+                    "email": new_email,
+                    "password": new_password,
+                    "options": {"data": {"display_name": display_name.strip()}}
+                })
+                st.success("Check your email to confirm, then log in.")
+            except Exception as e:
+                st.error(f"Signup failed: {e}")
+
+
+def logout_button():
+    """Show user status in sidebar via CSS injection."""
+    if not is_logged_in():
+        return
+    user = get_user()
+    profile = get_profile()
+    name = (
+        (profile.get("display_name") if profile else None)
+        or user.user_metadata.get("display_name", None)
+        or user.email
+    )
+    sub_status = profile.get("subscription_status", "free") if profile else "free"
+    sub_type = profile.get("subscription_type", "") if profile else ""
+
+    if sub_status == "active":
+        if sub_type == "annual_pass":
+            badge = "🌟 Annual Pass"
+        elif sub_type == "season_pass":
+            badge = "🏆 Season Pass"
+        else:
+            badge = "⭐ Pro"
+        status_text = f"👤 {name} · {badge}"
+    else:
+        status_text = f"👤 {name} · Free"
+
+    st.markdown(f"""
+    <style>
+    [data-testid="stSidebarNav"]::after {{
+        content: "{status_text}";
+        display: block;
+        font-size: 11px;
+        color: rgba(148,163,184,0.6);
+        padding: 6px 12px 0 12px;
+        pointer-events: none;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+
+def require_subscription(message="\U0001f512 Subscribe to unlock this content!"):
+    """Blocks content if user has no active subscription."""
+    if is_subscribed():
+        return True
+    st.info(message)
+    return False
+
+
+def require_premium(message="\U0001f31f Annual Pass required to access this content."):
+    """Blocks content unless user has Annual Pass."""
+    if is_premium():
+        return True
+    st.info(message)
+    return False
+
+
+def create_checkout_url(user, price_id: str, mode: str = "subscription"):
+    """Create a Stripe Checkout session and return the URL."""
+    import stripe
+    import os
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+
+    profile = get_profile()
+    stripe_customer_id = profile.get("stripe_customer_id") if profile else None
+
+    session_params = {
+        "success_url": "https://analytics207.com/My_Account?checkout=success",
+        "cancel_url": "https://analytics207.com/My_Account?checkout=cancel",
+        "mode": mode,
+        "metadata": {"supabase_user_id": user.id},
+        "line_items": [{"price": price_id, "quantity": 1}],
+    }
+
+    if stripe_customer_id:
+        session_params["customer"] = stripe_customer_id
+    else:
+        session_params["customer_email"] = user.email
+
+    session = stripe.checkout.Session.create(**session_params)
+    return session.url
+
+
+def create_portal_url(customer_id: str):
+    """Create a Stripe Customer Portal session and return the URL."""
+    import stripe
+    import os
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+
+    session = stripe.billing_portal.Session.create(
+        customer=customer_id,
+        return_url="https://analytics207.com/My_Account",
+    )
+    return session.url
