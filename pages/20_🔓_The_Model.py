@@ -334,15 +334,6 @@ def load_v50_data():
 teams_df, games_df = load_v50_data()
 
 
-    st.write("**games_df rows involving Bangor Christian or Hodgdon:**")
-    if "HomeKey" in games_df.columns:
-        mask = (
-            games_df["Home"].str.contains("Bangor Christian", case=False, na=False) |
-            games_df["Away"].str.contains("Bangor Christian", case=False, na=False) |
-            games_df["Home"].str.contains("Hodgdon", case=False, na=False) |
-            games_df["Away"].str.contains("Hodgdon", case=False, na=False)
-        )
-        st.write(games_df[mask][["Home","Away","HomeKey","AwayKey","PredHomeWinProb"]].to_dict("records"))
 
 if teams_df.empty or games_df.empty:
     st.info("THE MODEL data is not available yet.")
