@@ -11,6 +11,21 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 )
 
+// ── Price ID → subscription_type map ──
+const PRICE_MAP: Record<string, string> = {
+  'price_1T60BQLWG769Pv4apChlmFls': 'monthly',
+  'price_1T60C5LWG769Pv4aJ7beMvHg': 'season_pass',
+  'price_1T6GIqLWG769Pv4aEBoXjLgq': 'annual_pass',
+}
+
+function getSubType(session: Stripe.Checkout.Session): string {
+  // Try to get price ID from line items if already expanded
+  const priceId = (session as any).line_items?.data?.[0]?.price?.id
+  if (priceId && PRICE_MAP[priceId]) return PRICE_MAP[priceId]
+  // Fallback: use mode
+  return session.mode === 'subscription' ? 'monthly' : 'season_pass'
+}
+
 Deno.serve(async (request) => {
   const signature = request.headers.get('Stripe-Signature')
   const body = await request.text()
@@ -34,10 +49,20 @@ Deno.serve(async (request) => {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
       const customerId = session.customer as string
-      const mode = session.mode
       const userId = session.metadata?.supabase_user_id
 
-      const subType = mode === 'subscription' ? 'monthly' : 'season_pass'
+      // Expand line items to get price ID
+      let expandedSession = session
+      try {
+        expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
+          expand: ['line_items'],
+        })
+      } catch (e) {
+        console.warn('Could not expand line items:', e)
+      }
+
+      const subType = getSubType(expandedSession)
+      console.log(`💳 subType resolved: ${subType}`)
 
       if (userId) {
         const { error } = await supabase
@@ -51,7 +76,7 @@ Deno.serve(async (request) => {
           .eq('id', userId)
         if (error) console.error('Update error:', error.message)
       } else {
-        // Fallback: look up user by email in auth.users
+        // Fallback: look up user by email
         const customerEmail = session.customer_details?.email
         console.log(`No user ID in metadata, trying email: ${customerEmail}`)
 

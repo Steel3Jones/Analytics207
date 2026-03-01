@@ -16,7 +16,8 @@ from layout import (
 )
 from sidebar_auth import render_sidebar_auth
 
-# ── Must be first Streamlit call ──
+ANNUAL_PRICE_ID = "price_1T6GIqLWG769Pv4aEBoXjLgq"  # ← swap in your real Stripe Annual Pass price ID
+
 st.set_page_config(page_title="My Account", page_icon="👤", layout="wide")
 
 render_sidebar_auth()
@@ -28,7 +29,6 @@ sub_status = profile.get("subscription_status", "free") if profile else "free"
 sub_type = profile.get("subscription_type", "") if profile else ""
 stripe_id = profile.get("stripe_customer_id", "") if profile else ""
 
-# ── Header ──
 render_logo()
 render_page_header(
     title="My Account",
@@ -36,6 +36,7 @@ render_page_header(
     subtitle="Manage your plan, view features, and access premium content.",
 )
 st.write("")
+
 
 # ── Login / Signup (not logged in) ──
 if not user:
@@ -50,9 +51,7 @@ if not user:
         password = st.text_input("Password", type="password", key="acct_login_pw")
         if st.button("Log In", key="acct_login_btn"):
             try:
-                res = sb.auth.sign_in_with_password(
-                    {"email": email, "password": password}
-                )
+                res = sb.auth.sign_in_with_password({"email": email, "password": password})
                 st.session_state["user"] = res.user
                 st.session_state["session"] = res.session
                 st.session_state["profile"] = None
@@ -66,9 +65,7 @@ if not user:
         new_email = st.text_input("Email", key="acct_signup_email")
         display_name = st.text_input("Display Name", key="acct_signup_name")
         new_password = st.text_input("Password", type="password", key="acct_signup_pw")
-        confirm_password = st.text_input(
-            "Confirm Password", type="password", key="acct_signup_pw2"
-        )
+        confirm_password = st.text_input("Confirm Password", type="password", key="acct_signup_pw2")
         if st.button("Sign Up", key="acct_signup_btn"):
             if new_password != confirm_password:
                 st.error("Passwords don't match")
@@ -78,20 +75,17 @@ if not user:
                 st.error("Display name required")
             else:
                 try:
-                    res = sb.auth.sign_up(
-                        {
-                            "email": new_email,
-                            "password": new_password,
-                            "options": {
-                                "data": {"display_name": display_name.strip()}
-                            },
-                        }
-                    )
+                    res = sb.auth.sign_up({
+                        "email": new_email,
+                        "password": new_password,
+                        "options": {"data": {"display_name": display_name.strip()}},
+                    })
                     st.success("Check your email to confirm, then log in.")
                 except Exception as e:
                     st.error(f"Signup failed: {e}")
 
     st.markdown("---")
+
 
 # ── Account Details (logged in only) ──
 if user:
@@ -109,10 +103,12 @@ if user:
     with col_status:
         st.subheader("Current Plan")
         if sub_status == "active":
-            if sub_type == "season_pass":
+            if sub_type == "annual_pass":
+                st.success("🌟 Annual Pass — Active")
+            elif sub_type == "season_pass":
                 st.success("🏆 Season Pass — Active")
             else:
-                st.success("Pro Monthly — Active")
+                st.success("📅 Pro Monthly — Active")
         elif sub_status == "past_due":
             st.warning("Past Due — Please update payment")
         elif sub_status == "cancelled":
@@ -120,8 +116,39 @@ if user:
         else:
             st.info("Free Plan")
 
-    # Extra plan messaging to differentiate tiers
-    if sub_status == "active" and sub_type == "season_pass":
+    # Plan messaging
+    if sub_status == "active" and sub_type == "annual_pass":
+        st.markdown(
+            """
+            <div style="background: linear-gradient(135deg, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.08) 100%);
+                        border: 1px solid rgba(99,102,241,0.5); border-radius: 16px; padding: 24px; margin-top: 12px;
+                        text-align: center;">
+                <div style="font-size: 32px; margin-bottom: 6px;">🌟</div>
+                <div style="font-size: 18px; font-weight: 900; color: #a78bfa; letter-spacing: 0.05em;">
+                    ANNUAL PASS MEMBER
+                </div>
+                <div style="font-size: 13px; color: #94a3b8; margin-top: 6px;">
+                    Full year access — live season tools plus all offseason content, blog deep dives, and historical data.
+                    You're locked in through the entire 2026–27 cycle.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            """
+            <ul style="font-size:13px; color:#cbd5e1; margin-top:8px; margin-bottom:16px;">
+                <li>Full-season access to every prediction, ranking, and bracket tool.</li>
+                <li>Offseason content: blog posts, historical data, preseason previews.</li>
+                <li>Early access to new features as they roll out.</li>
+                <li>Priority support and feature request consideration.</li>
+            </ul>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.info("You have the complete playbook — all features unlocked year-round.")
+
+    elif sub_status == "active" and sub_type == "season_pass":
         st.markdown(
             """
             <div style="background: linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(251,191,36,0.08) 100%);
@@ -132,8 +159,7 @@ if user:
                     SEASON PASS MEMBER
                 </div>
                 <div style="font-size: 13px; color: #94a3b8; margin-top: 6px;">
-                    You have full access to every feature for the entire 2025–26 season.
-                    You’re part of the inner circle of fans powering Analytics207.
+                    Full access to every live tool for the entire 2026–27 season (Nov–Feb).
                 </div>
             </div>
             """,
@@ -149,20 +175,15 @@ if user:
             """,
             unsafe_allow_html=True,
         )
-        st.info(
-            "You’re seeing the complete playbook. All features are unlocked for this season."
-        )
+        st.info("All live season features are unlocked through February.")
 
-    elif sub_status == "active" and sub_type != "season_pass":
-        st.info(
-            "You’re a Pro Monthly member with full access while your subscription is active."
-        )
+    elif sub_status == "active" and sub_type not in ("season_pass", "annual_pass"):
+        st.info("You're a Pro Monthly member with full access while your subscription is active.")
 
-    elif sub_status != "active":
-        # Specifically highlight free logged-in users
+    else:
         st.info(
-            "You’re on the free scouting report. "
-            "You can see select ratings and tonight’s games. Upgrade to unlock full rankings, projections, and tournament tools."
+            "You're on the free plan. "
+            "Upgrade to unlock full rankings, projections, and tournament tools."
         )
 
     st.markdown("---")
@@ -170,62 +191,89 @@ if user:
     # ── Manage Subscription ──
     if sub_status == "active":
         st.subheader("Manage Subscription")
-        if sub_type == "season_pass":
+
+        if sub_type == "annual_pass":
+            st.markdown("You have an **Annual Pass** — no recurring billing. Full year access is locked in!")
+
+        elif sub_type == "season_pass":
+            st.markdown("You have a **Season Pass** — no recurring billing. You're all set for the 2026–27 season!")
+            # Offer upgrade to Annual Pass
             st.markdown(
-                "You have a **Season Pass** — no recurring billing. You're all set for the 2025–26 season!"
+                """
+                <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.3);
+                     border-radius:12px; padding:16px; margin:8px 0;">
+                    <span style="font-size:14px; font-weight:700; color:#a78bfa;">
+                        ⬆ Upgrade to Annual Pass — $49.99
+                    </span><br>
+                    <span style="font-size:12px; color:#94a3b8;">
+                        Add offseason content, blog deep dives, historical data, and priority support.
+                        Full year access locked in.
+                    </span>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
+            if st.button("Upgrade to Annual Pass", key="upgrade_annual", use_container_width=True, type="primary"):
+                with st.spinner("Redirecting to checkout..."):
+                    url = create_checkout_url(user, price_id=ANNUAL_PRICE_ID, mode="payment")
+                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
+                    st.stop()
+
         else:
+            # Monthly subscriber — offer upgrades
             st.markdown("You have an active **Monthly** subscription.")
             st.markdown(
                 """
                 <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3);
                      border-radius:12px; padding:16px; margin:8px 0;">
                     <span style="font-size:14px; font-weight:700; color:#fbbf24;">
-                        ⬆ Upgrade to Season Pass — $19.99
+                        ⬆ Upgrade to Season Pass — $19.99 (save 28%)
                     </span><br>
                     <span style="font-size:12px; color:#94a3b8;">
-                        One-time payment for the full 2025–26 season.
-                        Your monthly subscription will be cancelled and remaining time prorated.
-                        Season Pass locks in the entire season for less than paying month-to-month.
+                        One-time payment for the full 2026–27 season (Nov–Feb).
                     </span>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-            if st.button(
-                "Upgrade to Season Pass",
-                key="upgrade_season",
-                use_container_width=True,
-                type="primary",
-            ):
+            if st.button("Upgrade to Season Pass", key="upgrade_season", use_container_width=True, type="primary"):
                 with st.spinner("Redirecting to checkout..."):
-                    url = create_checkout_url(
-                        user,
-                        price_id="price_1T60C5LWG769Pv4aJ7beMvHg",
-                        mode="payment",
-                    )
-                    st.markdown(
-                        f'<meta http-equiv="refresh" content="0;url={url}">',
-                        unsafe_allow_html=True,
-                    )
+                    url = create_checkout_url(user, price_id="price_1T60C5LWG769Pv4aJ7beMvHg", mode="payment")
+                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
                     st.stop()
 
+            st.markdown(
+                """
+                <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.3);
+                     border-radius:12px; padding:16px; margin:8px 0;">
+                    <span style="font-size:14px; font-weight:700; color:#a78bfa;">
+                        ⬆ Upgrade to Annual Pass — $49.99 (save 40%)
+                    </span><br>
+                    <span style="font-size:12px; color:#94a3b8;">
+                        Full year access including offseason content, blog deep dives, and historical data.
+                    </span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button("Upgrade to Annual Pass", key="upgrade_annual", use_container_width=True, type="primary"):
+                with st.spinner("Redirecting to checkout..."):
+                    url = create_checkout_url(user, price_id=ANNUAL_PRICE_ID, mode="payment")
+                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
+                    st.stop()
+
+        # Manage Billing via Stripe Portal — shown for ALL active subscribers
         if stripe_id:
-            if st.button(
-                "Manage Billing", key="manage_billing", use_container_width=True
-            ):
+            st.markdown("")
+            if st.button("Manage Billing", key="manage_billing", use_container_width=True):
                 with st.spinner("Redirecting to Stripe..."):
                     url = create_portal_url(stripe_id)
-                    st.markdown(
-                        f'<meta http-equiv="refresh" content="0;url={url}">',
-                        unsafe_allow_html=True,
-                    )
+                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
                     st.stop()
-            st.caption(
-                "Update payment method, view invoices, or cancel your subscription."
-            )
+            st.caption("Update payment method, view invoices, or cancel your subscription.")
 
         st.markdown("---")
+
 
 # ── Plan Comparison (everyone sees this) ──
 st.subheader("Plan Comparison")
@@ -235,27 +283,30 @@ if sub_status == "active":
     current_col = sub_type if sub_type else "monthly"
 
 features = [
-    ("Home Dashboard & Tonight's Games", True, True, True),
-    ("Power Index Ratings (Top 5)", True, True, True),
-    ("Heal Points (Top 5)", True, True, True),
-    ("Model Record / Report Card", True, True, True),
-    ("Full Power Index Rankings", False, True, True),
-    ("Full Heal Point Rankings", False, True, True),
-    ("The Slate - Full Game Predictions", False, True, True),
-    ("The Aftermath - Full Results", False, True, True),
-    ("Team Center - Deep Team Analytics", False, True, True),
-    ("Bracketology", False, True, True),
-    ("The Model - Prediction Engine", False, True, True),
-    ("The Projector", False, True, True),
-    ("Milestones & Records", False, True, True),
-    ("The Press Box", False, True, True),
-    ("Road Trip Planner", False, True, True),
-    ("Insights & Trends", False, True, True),
-    ("Pick 5 Challenge", False, True, True),
-    ("Trophy Room", False, True, True),
-    ("All-State Analytics Team", False, True, True),
-    ("Mover Board", False, True, True),
-    ("Priority Support", False, False, True),
+    ("Home Dashboard & Tonight's Games",    True,  True,  True,  True),
+    ("Power Index Ratings (Top 5)",          True,  True,  True,  True),
+    ("Heal Points (Top 5)",                  True,  True,  True,  True),
+    ("Model Record / Report Card",           True,  True,  True,  True),
+    ("Full Power Index Rankings",            False, True,  True,  True),
+    ("Full Heal Point Rankings",             False, True,  True,  True),
+    ("The Slate - Full Game Predictions",    False, True,  True,  True),
+    ("The Aftermath - Full Results",         False, True,  True,  True),
+    ("Team Center - Deep Team Analytics",    False, True,  True,  True),
+    ("Bracketology",                         False, True,  True,  True),
+    ("The Model - Prediction Engine",        False, True,  True,  True),
+    ("The Projector",                        False, True,  True,  True),
+    ("Milestones & Records",                 False, True,  True,  True),
+    ("The Press Box",                        False, True,  True,  True),
+    ("Road Trip Planner",                    False, True,  True,  True),
+    ("Insights & Trends",                    False, True,  True,  True),
+    ("Pick 5 Challenge",                     False, True,  True,  True),
+    ("Trophy Room",                          False, True,  True,  True),
+    ("All-State Analytics Team",             False, True,  True,  True),
+    ("Mover Board",                          False, True,  True,  True),
+    ("Offseason Blog & Deep Dives",          False, False, False, True),
+    ("Historical Data Browser",              False, False, False, True),
+    ("Preseason Power Index Previews",       False, False, False, True),
+    ("Priority Support",                     False, False, True,  True),
 ]
 
 
@@ -268,20 +319,22 @@ def icon(val):
 
 
 rows_html = ""
-for feat, free, monthly, season in features:
+for feat, free, monthly, season, annual in features:
     rows_html += f"""
     <tr>
         <td>{feat}</td>
         <td>{icon(free)}</td>
         <td>{icon(monthly)}</td>
         <td>{icon(season)}</td>
+        <td>{icon(annual)}</td>
     </tr>"""
 
 
 def hdr(label, col_key):
-    # Add trophy to Season Pass label
     if col_key == "season_pass":
         label = "🏆 " + label
+    if col_key == "annual_pass":
+        label = "🌟 " + label
     if current_col == col_key:
         return f'{label}<br><span style="font-size:9px;color:#22c55e;">&#10003; CURRENT</span>'
     return label
@@ -342,6 +395,7 @@ body {{ margin:0; background:transparent; }}
             <th>{hdr("Free", "free")}</th>
             <th>{hdr("Monthly — $6.99/mo", "monthly")}</th>
             <th>{hdr("Season Pass — $19.99", "season_pass")}</th>
+            <th>{hdr("Annual Pass — $49.99", "annual_pass")}</th>
         </tr>
     </thead>
     <tbody>
@@ -354,43 +408,32 @@ body {{ margin:0; background:transparent; }}
 
 components.html(table_html, height=computed_height, scrolling=False)
 
+
 # ── Upgrade / Pricing (not active subscribers) ──
 if sub_status != "active":
     st.markdown("---")
     st.subheader("Upgrade Your Plan")
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown(
             """
             <div style="background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.3);
-                 border-radius:16px; padding:24px; text-align:center;">
+                 border-radius:16px; padding:24px; text-align:center; height:160px;">
                 <div style="font-size:24px; font-weight:900; color:#60a5fa;">$6.99</div>
-                <div style="font-size:12px; color:#94a3b8; margin-bottom:12px;">per month — cancel anytime</div>
-                <div style="font-size:13px; color:#cbd5e1;">
-                    Full access to all analytics, predictions, and tools while active. Billed monthly.
+                <div style="font-size:12px; color:#94a3b8; margin-bottom:8px;">per month — cancel anytime</div>
+                <div style="font-size:12px; color:#cbd5e1;">
+                    Full access to all live tools while active. Billed monthly.
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
         if user:
-            if st.button(
-                "Subscribe Monthly",
-                key="buy_monthly",
-                use_container_width=True,
-                type="primary",
-            ):
+            if st.button("Subscribe Monthly", key="buy_monthly", use_container_width=True, type="primary"):
                 with st.spinner("Redirecting to checkout..."):
-                    url = create_checkout_url(
-                        user,
-                        price_id="price_1T60BQLWG769Pv4apChlmFls",
-                        mode="subscription",
-                    )
-                    st.markdown(
-                        f'<meta http-equiv="refresh" content="0;url={url}">',
-                        unsafe_allow_html=True,
-                    )
+                    url = create_checkout_url(user, price_id="price_1T60BQLWG769Pv4apChlmFls", mode="subscription")
+                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
                     st.stop()
         else:
             st.caption("Sign in above to subscribe.")
@@ -399,35 +442,52 @@ if sub_status != "active":
         st.markdown(
             """
             <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3);
-                 border-radius:16px; padding:24px; text-align:center;">
+                 border-radius:16px; padding:24px; text-align:center; height:160px;">
                 <div style="font-size:24px; font-weight:900; color:#fbbf24;">$19.99</div>
-                <div style="font-size:12px; color:#94a3b8; margin-bottom:12px;">one-time — full 2025–26 season</div>
-                <div style="font-size:13px; color:#cbd5e1;">
-                    Lock in the entire season. Best value for dedicated fans who want every projection and bracket edge.
+                <div style="font-size:12px; color:#94a3b8; margin-bottom:4px;">one-time — Nov through Feb</div>
+                <div style="font-size:11px; color:#86efac; margin-bottom:8px;">Save 28% vs monthly</div>
+                <div style="font-size:12px; color:#cbd5e1;">
+                    Full live tools for the entire 2026–27 season.
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
         if user:
-            if st.button(
-                "Buy Season Pass", key="buy_season", use_container_width=True
-            ):
+            if st.button("Buy Season Pass", key="buy_season", use_container_width=True):
                 with st.spinner("Redirecting to checkout..."):
-                    url = create_checkout_url(
-                        user,
-                        price_id="price_1T60C5LWG769Pv4aJ7beMvHg",
-                        mode="payment",
-                    )
-                    st.markdown(
-                        f'<meta http-equiv="refresh" content="0;url={url}">',
-                        unsafe_allow_html=True,
-                    )
+                    url = create_checkout_url(user, price_id="price_1T60C5LWG769Pv4aJ7beMvHg", mode="payment")
+                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
                     st.stop()
         else:
             st.caption("Sign in above to purchase.")
 
-# ── Log Out (logged in only) ──
+    with col3:
+        st.markdown(
+            """
+            <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.3);
+                 border-radius:16px; padding:24px; text-align:center; height:160px;">
+                <div style="font-size:24px; font-weight:900; color:#a78bfa;">$49.99</div>
+                <div style="font-size:12px; color:#94a3b8; margin-bottom:4px;">one-time — full year access</div>
+                <div style="font-size:11px; color:#86efac; margin-bottom:8px;">Save 40% vs monthly</div>
+                <div style="font-size:12px; color:#cbd5e1;">
+                    Live season tools + offseason content, blog, and historical data.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if user:
+            if st.button("Buy Annual Pass", key="buy_annual", use_container_width=True, type="primary"):
+                with st.spinner("Redirecting to checkout..."):
+                    url = create_checkout_url(user, price_id=ANNUAL_PRICE_ID, mode="payment")
+                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
+                    st.stop()
+        else:
+            st.caption("Sign in above to purchase.")
+
+
+# ── Log Out ──
 if user:
     st.markdown("---")
     if st.button("Log Out", key="acct_logout", use_container_width=True):
@@ -439,5 +499,6 @@ if user:
             st.session_state[k] = None
         st.rerun()
         st.stop()
+
 
 render_footer()
