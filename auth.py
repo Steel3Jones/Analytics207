@@ -127,8 +127,13 @@ def _do_signup(prefix=""):
 def logout_button():
     if not is_logged_in():
         return
+    user = get_user()
     profile = get_profile()
-    name = profile.get("display_name", "") if profile else ""
+    name = (
+        (profile.get("display_name") if profile else None)
+        or user.user_metadata.get("display_name", None)
+        or user.email
+    )
     st.sidebar.markdown(f"👤 **{name}**")
     if st.sidebar.button("Log Out"):
         sb = get_supabase()
@@ -140,6 +145,7 @@ def logout_button():
         st.session_state["session"] = None
         st.session_state["profile"] = None
         st.rerun()
+
 
 
 def require_subscription(message="🔒 Subscribe to unlock this content!"):

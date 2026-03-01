@@ -27,8 +27,9 @@ ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data"
 
 SCHOOLS_FILE = DATA_DIR / "schooldirectory.csv"
-GAMES_FILE   = DATA_DIR / "games_game_core_v30.parquet"
-OUT_FILE     = DATA_DIR / "travel_core_v26.parquet"
+GAMES_FILE   = DATA_DIR / "core" / "games_game_core_v50.parquet"
+OUT_FILE     = DATA_DIR / "travel_core_v50.parquet"
+
 
 # Travel assumptions (match Road Trips page)
 PARENT_MPG       = 22.0
