@@ -1,24 +1,18 @@
 import streamlit as st
 from supabase import create_client
 
-
 SUPABASE_URL = "https://lofxbafahfogptdkjhhv.supabase.co"
 SUPABASE_KEY = "sb_publishable_FpCxSeMXvTU3MhfD1qrTnQ_eCKaaySR"
-
-
 
 @st.cache_resource
 def get_supabase():
     return create_client(SUPABASE_URL, SUPABASE_KEY)
-
-
 
 def get_user():
     """Returns the current user or None if not logged in."""
     user = st.session_state.get("user", None)
     if user is None:
         return None
-    # Try to refresh session if it exists
     session = st.session_state.get("session", None)
     if session and hasattr(session, "refresh_token") and session.refresh_token:
         try:
@@ -28,14 +22,11 @@ def get_user():
             st.session_state["session"] = res.session
             return res.user
         except Exception:
-            # Token expired beyond refresh — force re-login
             st.session_state["user"] = None
             st.session_state["session"] = None
             st.session_state["profile"] = None
             return None
     return user
-
-
 
 def get_profile():
     """Returns the current user's profile from Supabase or None."""
@@ -48,24 +39,16 @@ def get_profile():
         st.session_state["profile"] = res.data
     return st.session_state["profile"]
 
-
-
 def is_logged_in():
     return get_user() is not None
-
-
 
 def is_subscribed():
     # BETA: all logged-in users get premium access
     return is_logged_in()
 
-
-
 def is_admin():
     profile = get_profile()
     return profile is not None and profile.get("role") == "admin"
-
-
 
 def login_gate(required=True):
     """
@@ -75,35 +58,21 @@ def login_gate(required=True):
     """
     user = get_user()
 
-
     if user is not None:
         return user
-
 
     if not required:
         _sidebar_login()
         return None
 
-
-    st.title("🏀 Maine Hoops Analytics")
+    st.title("\U0001f3c0 Maine Hoops Analytics")
     st.subheader("Sign in to continue")
     _login_form()
     st.stop()
 
-
-
 def _sidebar_login():
-    """Shows a compact login in the sidebar for public pages."""
-    with st.sidebar:
-        if is_logged_in():
-            return
-        with st.expander("🔐 Log In / Sign Up"):
-            mode = st.radio("", ["Log In", "Sign Up"], horizontal=True, key="sidebar_auth_mode")
-            if mode == "Log In":
-                _do_login(prefix="sb_")
-            else:
-                _do_signup(prefix="sb_")
-
+    """Auth handled on My Account page — no sidebar login."""
+    pass
 
 
 def _login_form():
@@ -113,8 +82,6 @@ def _login_form():
         _do_login(prefix="fp_")
     with tab_signup:
         _do_signup(prefix="fp_")
-
-
 
 def _do_login(prefix=""):
     sb = get_supabase()
@@ -129,8 +96,6 @@ def _do_login(prefix=""):
             st.rerun()
         except Exception as e:
             st.error(f"Login failed: {e}")
-
-
 
 def _do_signup(prefix=""):
     sb = get_supabase()
@@ -156,8 +121,6 @@ def _do_signup(prefix=""):
             except Exception as e:
                 st.error(f"Signup failed: {e}")
 
-
-
 def logout_button():
     if not is_logged_in():
         return
@@ -168,7 +131,7 @@ def logout_button():
         or user.user_metadata.get("display_name", None)
         or user.email
     )
-    st.sidebar.markdown(f"👤 **{name}**")
+    st.sidebar.markdown(f"\U0001f464 **{name}**")
     if st.sidebar.button("Log Out"):
         sb = get_supabase()
         try:
@@ -180,13 +143,29 @@ def logout_button():
         st.session_state["profile"] = None
         st.rerun()
 
-
-
-
-def require_subscription(message="🔒 Subscribe to unlock this content!"):
+def require_subscription(message="\U0001f512 Subscribe to unlock this content!"):
     """Call this before premium sections. Blocks content if not subscribed."""
     # BETA: allow all logged-in users to see premium content
     if is_logged_in():
         return True
     st.info(message)
     return False
+
+def create_checkout_url(user, price_id: str, mode: str = "subscription"):
+    """Create a Stripe Checkout session and return the URL."""
+    import stripe
+    import os
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+
+    session = stripe.checkout.Session.create(
+        success_url="http://localhost:8501/?checkout=success",
+        cancel_url="http://localhost:8501/?checkout=cancel",
+        mode=mode,
+        customer_email=user.email,
+        metadata={"supabase_user_id": user.id},
+        line_items=[{
+            "price": price_id,
+            "quantity": 1,
+        }],
+    )
+    return session.url

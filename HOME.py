@@ -34,29 +34,9 @@ DATA_DIR = APP_ROOT / "data"
 
 inject_home_card_css()
 
-# ── SIDEBAR AUTH — top of sidebar, above page nav ──
-with st.sidebar:
-    if "user" in st.session_state and st.session_state["user"]:
-        user = st.session_state["user"]
-        name = (
-            getattr(user, "user_metadata", {}).get("display_name", "") if hasattr(user, "user_metadata") else ""
-            or (getattr(user,"user_metadata",None) or {}).get("full_name","")
-            or (getattr(user,"user_metadata",None) or {}).get("name","")
-            or st.session_state.get("profile", {}).get("display_name")
-            or getattr(user,"email","User")
-        )
-        st.markdown(f"👤 **{name}**")
-        if st.button("Log Out", key="sidebar_logout_top"):
-            from auth import get_supabase
-            try:
-                get_supabase().auth.sign_out()
-            except Exception:
-                pass
-            for k in ["user", "session", "profile"]:
-                st.session_state[k] = None
-            st.rerun()
-    else:
-        login_gate(required=False)
+# ── SIDEBAR — clean, no auth forms ──
+# Auth is handled entirely on the My Account page
+
 
 
 # ─────────────────────────────────────────────
@@ -339,34 +319,21 @@ def top_tonight_games(n: int = 10) -> list[dict]:
 # CSS
 # ─────────────────────────────────────────────
 
+
 st.markdown("""
 <style>
 .block-container { padding-top: 0.7rem; }
-/* AAU sidebar separator */
-[data-testid="stSidebarNav"] ul li:nth-last-child(3)::before {
-    content: "🏀  AAU (BETA)";
+/* MY ACCOUNT sidebar separator */
+[data-testid="stSidebarNav"] ul li:last-child::before {
+    content: "";
     display: block;
-    font-size: 10px;
-    font-weight: 800;
-    color: rgba(245,158,11,0.7);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    padding: 14px 0 6px 12px;
-    margin-top: 6px;
-    border-top: 1px solid rgba(245,158,11,0.25);
+    height: 1px;
+    background: rgba(148,163,184,0.15);
+    margin: 10px 12px 6px 12px;
     pointer-events: none;
 }
-/* ── MOVE auth expander ABOVE page nav ── */
-[data-testid="stSidebarContent"] {
-    display: flex;
-    flex-direction: column;
-}
-[data-testid="stSidebarContent"] [data-testid="stSidebarNav"] {
-    order: 2;
-}
-[data-testid="stSidebarContent"] > div:not([data-testid="stSidebarNav"]) {
-    order: 1;
-}
+
+
 
 /* ── HERO ── */
 .a207-hero-card {
@@ -426,6 +393,7 @@ st.markdown("""
 .a207-hero-cta-secondary { font-size:.8rem; color:#9ca3af; }
 .a207-hero-social-proof  { margin-top:.55rem; font-size:.75rem; color:#9ca3af; }
 
+
 /* ── FEATURED GAME ── */
 .featured-game {
     background:linear-gradient(135deg,rgba(245,158,11,0.14),rgba(59,130,246,0.14));
@@ -444,6 +412,7 @@ st.markdown("""
     background:rgba(239,68,68,0.30); margin-bottom:4px;
 }
 .featured-bar-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#60a5fa,#3b82f6); }
+
 
 /* ── FEAT CARDS ── */
 .feat-card {
@@ -485,6 +454,7 @@ st.markdown("""
     padding-top:6px; margin-top:2px;
 }
 
+
 /* ── TONIGHT BOARD (top 10) ── */
 .tonight-board {
     background:#0b1526; border:1px solid rgba(255,255,255,0.10);
@@ -520,6 +490,7 @@ st.markdown("""
 .badge-leaning { background:rgba(59,130,246,0.25); color:#93c5fd; border:1px solid rgba(59,130,246,0.5); }
 .badge-lock    { background:rgba(34,197,94,0.25);  color:#86efac; border:1px solid rgba(34,197,94,0.5); }
 
+
 /* ── BAR inside board ── */
 .prob-bar-wrap {
     height:5px; border-radius:999px; overflow:hidden;
@@ -528,6 +499,7 @@ st.markdown("""
 .prob-bar-fill { height:100%; border-radius:999px; }
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # ─────────────────────────────────────────────
