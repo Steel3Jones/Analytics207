@@ -14,3 +14,11 @@ inject_sidebar_auth_v3.py
 inject_sidebar_auth_v4.py
 test_auth.py
 supabase.exe 
+data/predictions/archives/
+data/predictions/archive/
+data/core/archives/
+data/core/debug_full_copies/
+data/core/tmp*.parquet
+data/public/games_public_v40_B*.parquet
+data/public/games_public_v40_A.parquet
+data/public/games_public_v40__*.parquet
