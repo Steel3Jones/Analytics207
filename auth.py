@@ -15,7 +15,25 @@ def get_supabase():
 
 def get_user():
     """Returns the current user or None if not logged in."""
-    return st.session_state.get("user", None)
+    user = st.session_state.get("user", None)
+    if user is None:
+        return None
+    # Try to refresh session if it exists
+    session = st.session_state.get("session", None)
+    if session and hasattr(session, "refresh_token") and session.refresh_token:
+        try:
+            sb = get_supabase()
+            res = sb.auth.refresh_session(session.refresh_token)
+            st.session_state["user"] = res.user
+            st.session_state["session"] = res.session
+            return res.user
+        except Exception:
+            # Token expired beyond refresh — force re-login
+            st.session_state["user"] = None
+            st.session_state["session"] = None
+            st.session_state["profile"] = None
+            return None
+    return user
 
 
 
