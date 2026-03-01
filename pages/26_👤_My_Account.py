@@ -16,7 +16,8 @@ from layout import (
 )
 from sidebar_auth import render_sidebar_auth
 
-ANNUAL_PRICE_ID = "price_1T6GIqLWG769Pv4aEBoXjLgq"  # ← swap in your real Stripe Annual Pass price ID
+
+ANNUAL_PRICE_ID = "price_1T6GIqLWG769Pv4aEBoXjLgq"
 
 st.set_page_config(page_title="My Account", page_icon="👤", layout="wide")
 
@@ -193,11 +194,12 @@ if user:
         st.subheader("Manage Subscription")
 
         if sub_type == "annual_pass":
+            # ✅ One-time purchase — no billing to manage, no Stripe portal
             st.markdown("You have an **Annual Pass** — no recurring billing. Full year access is locked in!")
 
         elif sub_type == "season_pass":
+            # ✅ One-time purchase — offer upgrade only, no Stripe portal
             st.markdown("You have a **Season Pass** — no recurring billing. You're all set for the 2026–27 season!")
-            # Offer upgrade to Annual Pass
             st.markdown(
                 """
                 <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.3);
@@ -220,7 +222,7 @@ if user:
                     st.stop()
 
         else:
-            # Monthly subscriber — offer upgrades
+            # ✅ Monthly subscriber — show upgrades AND Manage Billing
             st.markdown("You have an active **Monthly** subscription.")
             st.markdown(
                 """
@@ -256,21 +258,21 @@ if user:
                 """,
                 unsafe_allow_html=True,
             )
-            if st.button("Upgrade to Annual Pass", key="upgrade_annual", use_container_width=True, type="primary"):
+            if st.button("Upgrade to Annual Pass", key="upgrade_annual_m", use_container_width=True, type="primary"):
                 with st.spinner("Redirecting to checkout..."):
                     url = create_checkout_url(user, price_id=ANNUAL_PRICE_ID, mode="payment")
                     st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
                     st.stop()
 
-        # Manage Billing via Stripe Portal — shown for ALL active subscribers
-        if stripe_id:
-            st.markdown("")
-            if st.button("Manage Billing", key="manage_billing", use_container_width=True):
-                with st.spinner("Redirecting to Stripe..."):
-                    url = create_portal_url(stripe_id)
-                    st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
-                    st.stop()
-            st.caption("Update payment method, view invoices, or cancel your subscription.")
+            # Manage Billing — monthly subscribers only
+            if stripe_id:
+                st.markdown("")
+                if st.button("Manage Billing", key="manage_billing", use_container_width=True):
+                    with st.spinner("Redirecting to Stripe..."):
+                        url = create_portal_url(stripe_id)
+                        st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
+                        st.stop()
+                st.caption("Update payment method, view invoices, or cancel your subscription.")
 
         st.markdown("---")
 
