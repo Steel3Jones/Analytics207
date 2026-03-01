@@ -1,6 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
-from auth import get_user, get_profile, get_supabase, create_checkout_url
+from auth import get_user, get_profile, get_supabase, create_checkout_url, logout_button
 from layout import (
     apply_global_layout_tweaks,
     render_logo,
@@ -9,15 +9,19 @@ from layout import (
 )
 
 
+
 st.set_page_config(page_title="My Account", page_icon="👤", layout="wide")
 apply_global_layout_tweaks()
 
 
+
 user = get_user()
+logout_button()
 profile = get_profile() or {} if user else {}
 sub_status = profile.get("subscription_status", "free") if profile else "free"
 sub_type = profile.get("subscription_type", "") if profile else ""
 stripe_id = profile.get("stripe_customer_id", "") if profile else ""
+
 
 
 # ── Header ──
@@ -30,6 +34,7 @@ render_page_header(
 st.write("")
 
 
+
 # ── Account Details (logged in only) ──
 if user:
     name = profile.get("display_name") or (
@@ -37,11 +42,13 @@ if user:
     ).get("display_name", "") or getattr(user, "email", "User")
     email = getattr(user, "email", "")
 
+
     col_info, col_status = st.columns([2, 1])
     with col_info:
         st.subheader("Account Details")
         st.markdown(f"**Name:** {name}")
         st.markdown(f"**Email:** {email}")
+
 
     with col_status:
         st.subheader("Current Plan")
@@ -57,15 +64,19 @@ if user:
         else:
             st.info("🆓 Free Plan")
 
+
     st.markdown("---")
+
 
 
 # ── Plan Comparison (everyone sees this) ──
 st.subheader("Plan Comparison")
 
+
 current_col = "free"
 if sub_status == "active":
     current_col = sub_type if sub_type else "monthly"
+
 
 features = [
     ("Home Dashboard & Tonight's Games", True, True, True),
@@ -91,8 +102,10 @@ features = [
     ("Priority Support", False, False, True),
 ]
 
+
 def icon(val):
     return '<span style="color:#22c55e;font-size:16px;">✓</span>' if val else '<span style="color:rgba(148,163,184,0.3);font-size:16px;">—</span>'
+
 
 rows_html = ""
 for feat, free, monthly, season in features:
@@ -104,10 +117,12 @@ for feat, free, monthly, season in features:
         <td>{icon(season)}</td>
     </tr>"""
 
+
 def hdr(label, col_key):
     if current_col == col_key:
         return f'{label}<br><span style="font-size:9px;color:#22c55e;">✓ CURRENT</span>'
     return label
+
 
 table_html = f"""
 <html>
@@ -169,7 +184,9 @@ body {{ margin:0; background:transparent; }}
 </html>
 """
 
+
 components.html(table_html, height=900, scrolling=False)
+
 
 
 # ── Upgrade / Pricing (not active subscribers) ──
@@ -177,6 +194,7 @@ if sub_status != "active":
     st.markdown("---")
     st.subheader("Upgrade Your Plan")
     col1, col2 = st.columns(2)
+
 
     with col1:
         st.markdown("""
@@ -202,6 +220,7 @@ if sub_status != "active":
         else:
             st.caption("Sign in below to subscribe.")
 
+
     with col2:
         st.markdown("""
         <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3);
@@ -226,6 +245,7 @@ if sub_status != "active":
         else:
             st.caption("Sign in below to purchase.")
 
+
 else:
     st.markdown("---")
     st.subheader("Manage Subscription")
@@ -237,13 +257,16 @@ else:
         st.caption("To manage billing, update payment, or cancel — visit Stripe Customer Portal (coming soon).")
 
 
+
 # ── Login / Signup (not logged in only) ──
 if not user:
     st.markdown("---")
     st.subheader("Sign In / Sign Up")
     st.caption("Sign in to manage your account or subscribe to a plan.")
 
+
     tab_login, tab_signup = st.tabs(["Log In", "Sign Up"])
+
 
     with tab_login:
         sb = get_supabase()
@@ -258,6 +281,7 @@ if not user:
                 st.rerun()
             except Exception as e:
                 st.error(f"Login failed: {e}")
+
 
     with tab_signup:
         sb = get_supabase()
@@ -284,6 +308,7 @@ if not user:
                     st.error(f"Signup failed: {e}")
 
 
+
 # ── Log Out (logged in only) ──
 if user:
     st.markdown("---")
@@ -295,6 +320,7 @@ if user:
         for k in ["user", "session", "profile"]:
             st.session_state[k] = None
         st.rerun()
+
 
 
 render_footer()

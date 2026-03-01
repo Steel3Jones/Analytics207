@@ -37,6 +37,7 @@ inject_home_card_css()
 # ── SIDEBAR — clean, no auth forms ──
 # Auth is handled entirely on the My Account page
 
+logout_button()
 
 
 # ─────────────────────────────────────────────

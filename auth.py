@@ -122,6 +122,7 @@ def _do_signup(prefix=""):
                 st.error(f"Signup failed: {e}")
 
 def logout_button():
+    """Show user status in sidebar via CSS injection."""
     if not is_logged_in():
         return
     user = get_user()
@@ -131,17 +132,28 @@ def logout_button():
         or user.user_metadata.get("display_name", None)
         or user.email
     )
-    st.sidebar.markdown(f"\U0001f464 **{name}**")
-    if st.sidebar.button("Log Out"):
-        sb = get_supabase()
-        try:
-            sb.auth.sign_out()
-        except Exception:
-            pass
-        st.session_state["user"] = None
-        st.session_state["session"] = None
-        st.session_state["profile"] = None
-        st.rerun()
+    sub_status = profile.get("subscription_status", "free") if profile else "free"
+    sub_type = profile.get("subscription_type", "") if profile else ""
+    if sub_status == "active":
+        badge = "⭐ Pro" if sub_type != "season_pass" else "🏆 Season Pass"
+        status_text = f"👤 {name} · {badge}"
+    else:
+        status_text = f"👤 {name} · Free"
+
+    st.markdown(f"""
+    <style>
+    [data-testid="stSidebarNav"]::after {{
+        content: "{status_text}";
+        display: block;
+        font-size: 11px;
+        color: rgba(148,163,184,0.6);
+        padding: 6px 12px 0 12px;
+        pointer-events: none;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+
 
 def require_subscription(message="\U0001f512 Subscribe to unlock this content!"):
     """Call this before premium sections. Blocks content if not subscribed."""
