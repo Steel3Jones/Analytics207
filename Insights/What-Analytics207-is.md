@@ -1,4 +1,4 @@
-IMAGE: FKHLT.PNG
+IMAGE: FKHLT.png
 
 # What Analytics207 Is — and What The Model Tries to Show
 

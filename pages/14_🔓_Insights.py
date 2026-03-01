@@ -13,10 +13,14 @@ from auth import login_gate, logout_button
 # ----------------------------
 # Config
 # ----------------------------
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
+
+
+from sidebar_auth import render_sidebar_auth
+
+render_sidebar_auth()
+
+
+
 st.set_page_config(
     page_title="💡 Insights | ANALYTICS207",
     page_icon="💡",

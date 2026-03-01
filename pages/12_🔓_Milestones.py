@@ -16,10 +16,14 @@ from layout import (
 )
 from auth import login_gate, logout_button
 
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
+
+
+from sidebar_auth import render_sidebar_auth
+
+render_sidebar_auth()
+
+
+
 st.set_page_config(
     page_title="🏆 Milestones & Records | Analytics207",
     page_icon="🏆",
@@ -378,7 +382,7 @@ def compute_claim_statuses() -> pd.DataFrame:
 def get_user_id() -> str:
     """Use the auth user's ID if signed in, otherwise a session UUID."""
     if user is not None:
-        return str(user.get("id", user.get("email", str(uuid.uuid4()))))
+        return str(getattr(user, "id", None) or getattr(user, "email", None) or str(uuid.uuid4()))
     if "milestones_user_id" not in st.session_state:
         st.session_state["milestones_user_id"] = str(uuid.uuid4())
     return st.session_state["milestones_user_id"]
