@@ -8,10 +8,19 @@ from layout import (
     render_footer,
 )
 
-
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
 
 st.set_page_config(page_title="My Account", page_icon="👤", layout="wide")
 apply_global_layout_tweaks()
+
+# Fix sidebar scroll position
+components.html("""
+<script>
+    const sidebar = window.parent.document.querySelector('[data-testid="stSidebarContent"]');
+    if (sidebar) sidebar.scrollTop = 0;
+</script>
+""", height=0)
 
 
 
@@ -21,7 +30,6 @@ profile = get_profile() or {} if user else {}
 sub_status = profile.get("subscription_status", "free") if profile else "free"
 sub_type = profile.get("subscription_type", "") if profile else ""
 stripe_id = profile.get("stripe_customer_id", "") if profile else ""
-
 
 
 # ── Header ──
@@ -34,6 +42,53 @@ render_page_header(
 st.write("")
 
 
+# ── Login / Signup (not logged in — show FIRST) ──
+if not user:
+    st.subheader("Sign In / Sign Up")
+    st.caption("Sign in to manage your account or subscribe to a plan.")
+
+    tab_login, tab_signup = st.tabs(["Log In", "Sign Up"])
+
+    with tab_login:
+        sb = get_supabase()
+        email = st.text_input("Email", key="acct_login_email")
+        password = st.text_input("Password", type="password", key="acct_login_pw")
+        if st.button("Log In", key="acct_login_btn"):
+            try:
+                res = sb.auth.sign_in_with_password({"email": email, "password": password})
+                st.session_state["user"] = res.user
+                st.session_state["session"] = res.session
+                st.session_state["profile"] = None
+                st.rerun()
+            except Exception as e:
+                st.error(f"Login failed: {e}")
+
+    with tab_signup:
+        sb = get_supabase()
+        new_email = st.text_input("Email", key="acct_signup_email")
+        display_name = st.text_input("Display Name", key="acct_signup_name")
+        new_password = st.text_input("Password", type="password", key="acct_signup_pw")
+        confirm_password = st.text_input("Confirm Password", type="password", key="acct_signup_pw2")
+        if st.button("Sign Up", key="acct_signup_btn"):
+            if new_password != confirm_password:
+                st.error("Passwords don't match")
+            elif len(new_password) < 6:
+                st.error("Password must be at least 6 characters")
+            elif not display_name.strip():
+                st.error("Display name required")
+            else:
+                try:
+                    res = sb.auth.sign_up({
+                        "email": new_email,
+                        "password": new_password,
+                        "options": {"data": {"display_name": display_name.strip()}}
+                    })
+                    st.success("Check your email to confirm, then log in.")
+                except Exception as e:
+                    st.error(f"Signup failed: {e}")
+
+    st.markdown("---")
+
 
 # ── Account Details (logged in only) ──
 if user:
@@ -42,13 +97,11 @@ if user:
     ).get("display_name", "") or getattr(user, "email", "User")
     email = getattr(user, "email", "")
 
-
     col_info, col_status = st.columns([2, 1])
     with col_info:
         st.subheader("Account Details")
         st.markdown(f"**Name:** {name}")
         st.markdown(f"**Email:** {email}")
-
 
     with col_status:
         st.subheader("Current Plan")
@@ -64,19 +117,15 @@ if user:
         else:
             st.info("🆓 Free Plan")
 
-
     st.markdown("---")
-
 
 
 # ── Plan Comparison (everyone sees this) ──
 st.subheader("Plan Comparison")
 
-
 current_col = "free"
 if sub_status == "active":
     current_col = sub_type if sub_type else "monthly"
-
 
 features = [
     ("Home Dashboard & Tonight's Games", True, True, True),
@@ -102,10 +151,8 @@ features = [
     ("Priority Support", False, False, True),
 ]
 
-
 def icon(val):
     return '<span style="color:#22c55e;font-size:16px;">✓</span>' if val else '<span style="color:rgba(148,163,184,0.3);font-size:16px;">—</span>'
-
 
 rows_html = ""
 for feat, free, monthly, season in features:
@@ -117,12 +164,10 @@ for feat, free, monthly, season in features:
         <td>{icon(season)}</td>
     </tr>"""
 
-
 def hdr(label, col_key):
     if current_col == col_key:
         return f'{label}<br><span style="font-size:9px;color:#22c55e;">✓ CURRENT</span>'
     return label
-
 
 table_html = f"""
 <html>
@@ -184,17 +229,14 @@ body {{ margin:0; background:transparent; }}
 </html>
 """
 
-
 components.html(table_html, height=900, scrolling=False)
 
 
-
-# ── Upgrade / Pricing (not active subscribers) ──
+# ── Upgrade / Pricing ──
 if sub_status != "active":
     st.markdown("---")
     st.subheader("Upgrade Your Plan")
     col1, col2 = st.columns(2)
-
 
     with col1:
         st.markdown("""
@@ -218,8 +260,7 @@ if sub_status != "active":
                         unsafe_allow_html=True,
                     )
         else:
-            st.caption("Sign in below to subscribe.")
-
+            st.caption("Sign in above to subscribe.")
 
     with col2:
         st.markdown("""
@@ -243,8 +284,7 @@ if sub_status != "active":
                         unsafe_allow_html=True,
                     )
         else:
-            st.caption("Sign in below to purchase.")
-
+            st.caption("Sign in above to purchase.")
 
 else:
     st.markdown("---")
@@ -255,58 +295,6 @@ else:
         st.markdown("You have an active **Monthly** subscription.")
     if stripe_id:
         st.caption("To manage billing, update payment, or cancel — visit Stripe Customer Portal (coming soon).")
-
-
-
-# ── Login / Signup (not logged in only) ──
-if not user:
-    st.markdown("---")
-    st.subheader("Sign In / Sign Up")
-    st.caption("Sign in to manage your account or subscribe to a plan.")
-
-
-    tab_login, tab_signup = st.tabs(["Log In", "Sign Up"])
-
-
-    with tab_login:
-        sb = get_supabase()
-        email = st.text_input("Email", key="acct_login_email")
-        password = st.text_input("Password", type="password", key="acct_login_pw")
-        if st.button("Log In", key="acct_login_btn"):
-            try:
-                res = sb.auth.sign_in_with_password({"email": email, "password": password})
-                st.session_state["user"] = res.user
-                st.session_state["session"] = res.session
-                st.session_state["profile"] = None
-                st.rerun()
-            except Exception as e:
-                st.error(f"Login failed: {e}")
-
-
-    with tab_signup:
-        sb = get_supabase()
-        new_email = st.text_input("Email", key="acct_signup_email")
-        display_name = st.text_input("Display Name", key="acct_signup_name")
-        new_password = st.text_input("Password", type="password", key="acct_signup_pw")
-        confirm_password = st.text_input("Confirm Password", type="password", key="acct_signup_pw2")
-        if st.button("Sign Up", key="acct_signup_btn"):
-            if new_password != confirm_password:
-                st.error("Passwords don't match")
-            elif len(new_password) < 6:
-                st.error("Password must be at least 6 characters")
-            elif not display_name.strip():
-                st.error("Display name required")
-            else:
-                try:
-                    res = sb.auth.sign_up({
-                        "email": new_email,
-                        "password": new_password,
-                        "options": {"data": {"display_name": display_name.strip()}}
-                    })
-                    st.success("Check your email to confirm, then log in.")
-                except Exception as e:
-                    st.error(f"Signup failed: {e}")
-
 
 
 # ── Log Out (logged in only) ──
@@ -320,7 +308,6 @@ if user:
         for k in ["user", "session", "profile"]:
             st.session_state[k] = None
         st.rerun()
-
 
 
 render_footer()
