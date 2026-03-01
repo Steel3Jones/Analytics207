@@ -6,8 +6,7 @@ __pycache__/
 .vscode/
 .idea/
 
-data/
-aau/data/
+
 pages_backup/
 inject_sidebar_auth.py
 inject_sidebar_auth_v2.py
