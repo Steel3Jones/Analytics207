@@ -14,3 +14,4 @@ inject_sidebar_auth_v2.py
 inject_sidebar_auth_v3.py
 inject_sidebar_auth_v4.py
 test_auth.py
+supabase.exe 
