@@ -1,8 +1,10 @@
 import streamlit as st
 from supabase import create_client
 
+
 SUPABASE_URL = "https://lofxbafahfogptdkjhhv.supabase.co"
 SUPABASE_KEY = "sb_publishable_FpCxSeMXvTU3MhfD1qrTnQ_eCKaaySR"
+
 
 
 @st.cache_resource
@@ -10,9 +12,11 @@ def get_supabase():
     return create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
+
 def get_user():
     """Returns the current user or None if not logged in."""
     return st.session_state.get("user", None)
+
 
 
 def get_profile():
@@ -27,18 +31,22 @@ def get_profile():
     return st.session_state["profile"]
 
 
+
 def is_logged_in():
     return get_user() is not None
 
 
+
 def is_subscribed():
-    profile = get_profile()
-    return profile is not None and profile.get("subscribed", False)
+    # BETA: all logged-in users get premium access
+    return is_logged_in()
+
 
 
 def is_admin():
     profile = get_profile()
     return profile is not None and profile.get("role") == "admin"
+
 
 
 def login_gate(required=True):
@@ -49,17 +57,21 @@ def login_gate(required=True):
     """
     user = get_user()
 
+
     if user is not None:
         return user
+
 
     if not required:
         _sidebar_login()
         return None
 
+
     st.title("🏀 Maine Hoops Analytics")
     st.subheader("Sign in to continue")
     _login_form()
     st.stop()
+
 
 
 def _sidebar_login():
@@ -75,6 +87,7 @@ def _sidebar_login():
                 _do_signup(prefix="sb_")
 
 
+
 def _login_form():
     """Full-page login/signup form."""
     tab_login, tab_signup = st.tabs(["Log In", "Sign Up"])
@@ -82,6 +95,7 @@ def _login_form():
         _do_login(prefix="fp_")
     with tab_signup:
         _do_signup(prefix="fp_")
+
 
 
 def _do_login(prefix=""):
@@ -97,6 +111,7 @@ def _do_login(prefix=""):
             st.rerun()
         except Exception as e:
             st.error(f"Login failed: {e}")
+
 
 
 def _do_signup(prefix=""):
@@ -124,6 +139,7 @@ def _do_signup(prefix=""):
                 st.error(f"Signup failed: {e}")
 
 
+
 def logout_button():
     if not is_logged_in():
         return
@@ -145,6 +161,7 @@ def logout_button():
         st.session_state["session"] = None
         st.session_state["profile"] = None
         st.rerun()
+
 
 
 
