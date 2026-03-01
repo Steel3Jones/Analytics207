@@ -17,10 +17,14 @@ from layout import (
 )
 from auth import login_gate, logout_button
 
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
+
+
+from sidebar_auth import render_sidebar_auth
+
+render_sidebar_auth()
+
+
+
 st.set_page_config(
     page_title="💎 Pick 5 Challenge – Analytics207",
     page_icon="💎",
@@ -296,11 +300,12 @@ wlabel         = fmt_week(today)
 # Manager name from auth
 manager_name = ""
 if _signed_in:
-    _meta = _user.get("user_metadata", {}) or {}
+    _meta = getattr(_user, "user_metadata", {}) or {}
     manager_name = (
         _meta.get("display_name")
         or _meta.get("full_name")
-        or _user.get("email", "").split("@")[0]
+        or getattr(_user, "email", "").split("@")[0]
+
     )
 
 ctrl1, ctrl2, ctrl3 = st.columns([2, 1, 1])
