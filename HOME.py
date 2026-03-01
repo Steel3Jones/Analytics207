@@ -39,11 +39,11 @@ with st.sidebar:
     if "user" in st.session_state and st.session_state["user"]:
         user = st.session_state["user"]
         name = (
-            user.get("user_metadata", {}).get("display_name")
-            or user.get("user_metadata", {}).get("full_name")
-            or user.get("user_metadata", {}).get("name")
+            getattr(user, "user_metadata", {}).get("display_name", "") if hasattr(user, "user_metadata") else ""
+            or (getattr(user,"user_metadata",None) or {}).get("full_name","")
+            or (getattr(user,"user_metadata",None) or {}).get("name","")
             or st.session_state.get("profile", {}).get("display_name")
-            or user.get("email", "User")
+            or getattr(user,"email","User")
         )
         st.markdown(f"👤 **{name}**")
         if st.button("Log Out", key="sidebar_logout_top"):
