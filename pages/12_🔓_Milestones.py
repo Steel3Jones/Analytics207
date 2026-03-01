@@ -608,7 +608,7 @@ def render_submit_form(cats: list, label_to_id: dict, id_to_cfg: dict) -> None:
             source_note = st.text_area("Source / Notes", height=80)
 
         # Auto-fill submitter from auth
-        submitted_by = str(user.get("name", user.get("email", ""))) if user else ""
+        submitted_by = str(getattr(user, "name", None) or getattr(user, "email", "")) if user else ""
 
         submitted = st.form_submit_button("🏆 Submit Milestone", use_container_width=True)
 
