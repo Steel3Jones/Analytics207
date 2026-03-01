@@ -181,3 +181,13 @@ def create_checkout_url(user, price_id: str, mode: str = "subscription"):
         }],
     )
     return session.url
+def create_portal_url(customer_id: str):
+    """Create a Stripe Customer Portal session and return the URL."""
+    import stripe
+    import os
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+    session = stripe.billing_portal.Session.create(
+        customer=customer_id,
+        return_url="http://localhost:8501/My_Account",
+    )
+    return session.url

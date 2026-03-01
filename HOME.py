@@ -523,68 +523,73 @@ feat           = featured_game()
 
 col_left, col_right = st.columns([1.2, 1.6], gap="large")
 
+
 with col_left:
-    st.markdown(f"""
+        st.markdown(f"""
 <div style="position:relative;z-index:1;">
   <div class="a207-hero-tag">
     <span class="a207-hero-tag-dot"></span>
-    <span>LIVE SEASON 2025–26 · RATINGS. PREDICTIONS. EDGES.</span>
+    <span>LIVE SEASON 2025-26 &#183; RATINGS. PREDICTIONS. EDGES.</span>
   </div>
   <div class="a207-hero-title">
-    Every game, every edge,<br>🧠 The model for the entire state.
+    Every game, every edge,<br>&#129504; The model for the entire state.
   </div>
   <div class="a207-hero-sub">
     True Strength ratings, projected scores, and calculated spreads
-    driven by real data — updated every single night.
+    driven by real data &#8212; updated every single night.
   </div>
   <div class="a207-hero-highlight">
     <span class="a207-hero-highlight-badge">LAST NIGHT</span>
-    <span>Model went <strong>{last_night_s}</strong> &nbsp;·&nbsp; {last_night_pct} accuracy</span>
+    <span>Model went <strong>{last_night_s}</strong> &nbsp;&#183;&nbsp; {last_night_pct} accuracy</span>
   </div>
   <div class="a207-hero-pricing-row">
   <div>
-    <div class="a207-hero-price-main">Free Beta · 2025–26 season</div>
+    <div class="a207-hero-price-main">Starting at $6.99/mo</div>
     <div class="a207-hero-price-sub">
-      Live test launch — features may evolve as we tune the models.
+      Full access to all predictions, spreads, brackets, and analytics tools.
     </div>
   </div>
 </div>
 <div class="a207-hero-cta-row">
-  <div class="a207-hero-cta-primary">
-    <span>Free Beta · 2025–26 season</span> <span></span>
-  </div>
+  <a href="/My_Account" target="_self" style="text-decoration:none;">
+    <div class="a207-hero-cta-primary">
+      <span>Get Started</span> <span>&#8594;</span>
+    </div>
+  </a>
   <div class="a207-hero-cta-secondary">
-    Brackets, rankings, and projections — updated nightly during the beta.
+    Free account includes home dashboard, top 5 rankings, and model record.
   </div>
 </div>
-
   <div class="a207-hero-social-proof">
     Trusted by coaches, media, and hoops sickos across Maine.
   </div>
 </div>
 """, unsafe_allow_html=True)
 
-with col_right:
-    if feat:
-        prob_h  = feat["prob_home"]
-        prob_a  = feat["prob_away"]
-        score_s = (f"{feat['score_h']:.0f} – {feat['score_a']:.0f}"
-                   if pd.notna(feat["score_h"]) and pd.notna(feat["score_a"]) else "—")
-        bar_w   = f"{prob_h * 100:.1f}%"
-        fav     = feat["home"] if prob_h >= 0.5 else feat["away"]
-        fav_pct = f"{max(prob_h, prob_a) * 100:.0f}%"
-        conf    = ("HIGH CONFIDENCE"   if max(prob_h, prob_a) >= 0.75 else
-                   "MEDIUM CONFIDENCE" if max(prob_h, prob_a) >= 0.60 else "TOSS-UP")
-        conf_color = "#22c55e" if "HIGH" in conf else ("#f59e0b" if "MEDIUM" in conf else "#a855f7")
 
-        st.markdown(f"""
+with col_right:
+        if feat:
+            prob_h  = feat["prob_home"]
+            prob_a  = feat["prob_away"]
+            score_s = (f"{{feat['score_h']:.0f}} - {{feat['score_a']:.0f}}"
+                       if pd.notna(feat["score_h"]) and pd.notna(feat["score_a"]) else "")
+            score_s = (f"{feat['score_h']:.0f} - {feat['score_a']:.0f}"
+                       if pd.notna(feat["score_h"]) and pd.notna(feat["score_a"]) else "")
+            bar_w   = f"{prob_h * 100:.1f}%"
+            fav     = feat["home"] if prob_h >= 0.5 else feat["away"]
+            fav_pct = f"{max(prob_h, prob_a) * 100:.0f}%"
+            conf    = ("HIGH CONFIDENCE"   if max(prob_h, prob_a) >= 0.75 else
+                       "MEDIUM CONFIDENCE" if max(prob_h, prob_a) >= 0.60 else "TOSS-UP")
+            conf_color = "#22c55e" if "HIGH" in conf else ("#f59e0b" if "MEDIUM" in conf else "#a855f7")
+
+            st.markdown(f"""
 <div class="featured-game">
-  <div class="featured-eyebrow">🔥 FEATURED MATCHUP TONIGHT · CLOSEST GAME ON THE BOARD</div>
+  <div class="featured-eyebrow">&#128293; FEATURED MATCHUP TONIGHT &#183; CLOSEST GAME ON THE BOARD</div>
   <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
     <div>
       <div class="featured-teams">{feat['away']} at {feat['home']}</div>
       <div style="font-size:11px;color:rgba(203,213,225,0.5);margin-bottom:10px;">
-        {feat.get('gender','')} · Model: <strong style="color:#fde68a;">{fav} wins {fav_pct}</strong>
+        {feat.get('gender','')} &#183; Model: <strong style="color:#fde68a;">{fav} wins {fav_pct}</strong>
       </div>
     </div>
     <div style="text-align:right;">
@@ -606,92 +611,12 @@ with col_right:
     {conf}
   </span>
   <span style="font-size:9px;color:rgba(148,163,184,0.3);margin-left:10px;">
-    🤖 Prediction Engine
+    &#129302; Prediction Engine
   </span>
 </div>
 </body></html>
 """, height=320, scrolling=False)
 
-    else:
-        # Pull some quick stats for the graphic
-        total_teams = len(teams_df) if not teams_df.empty else 0
-        total_games = len(games_df[games_df["Played"] == True]) if not games_df.empty else 0
-        top_boy  = top_ti_teams("Boys",  1)
-        top_girl = top_ti_teams("Girls", 1)
-        top_boy_name  = str(top_boy.iloc[0]["_DisplayName"])  if not top_boy.empty  else "—"
-        top_girl_name = str(top_girl.iloc[0]["_DisplayName"]) if not top_girl.empty else "—"
-        top_boy_ti    = f'{top_boy.iloc[0]["TI"]:.2f}'        if not top_boy.empty  else "—"
-        top_girl_ti   = f'{top_girl.iloc[0]["TI"]:.2f}'       if not top_girl.empty else "—"
-
-        components.html(f"""<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body style="margin:0;background:transparent;">
-<div style="
-  background:linear-gradient(135deg,rgba(15,23,42,0.95),rgba(9,18,34,0.98));
-  border:1px solid rgba(255,255,255,0.09); border-radius:16px;
-  padding:20px 22px; height:100%;
-  font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;
-  position:relative; overflow:hidden;
-">
-  <!-- background glow -->
-  <div style="position:absolute;inset:0;pointer-events:none;
-    background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,0.12),transparent 60%),
-               radial-gradient(ellipse at 80% 50%,rgba(245,158,11,0.10),transparent 60%);"></div>
-
-  <div style="position:relative;z-index:1;">
-    <div style="font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
-                color:rgba(245,158,11,0.8);margin-bottom:14px;">
-      📊 Season At A Glance
-    </div>
-
-    <!-- Big stat row -->
-    <div style="display:flex;gap:12px;margin-bottom:16px;">
-      <div style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
-                  border-radius:10px;padding:10px 12px;text-align:center;">
-        <div style="font-size:28px;font-weight:900;color:#60a5fa;">{total_teams}</div>
-        <div style="font-size:9px;color:rgba(148,163,184,0.5);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;">Teams</div>
-      </div>
-      <div style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
-                  border-radius:10px;padding:10px 12px;text-align:center;">
-        <div style="font-size:28px;font-weight:900;color:#34d399;">{total_games}</div>
-        <div style="font-size:9px;color:rgba(148,163,184,0.5);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;">Games Played</div>
-      </div>
-      <div style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
-                  border-radius:10px;padding:10px 12px;text-align:center;">
-        <div style="font-size:28px;font-weight:900;color:#f59e0b;">5</div>
-        <div style="font-size:9px;color:rgba(148,163,184,0.5);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;">Classes</div>
-      </div>
-    </div>
-
-    <!-- Top ranked teams -->
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
-                color:rgba(148,163,184,0.4);margin-bottom:8px;">Current #1 Ranked Teams</div>
-
-    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);
-                border-radius:10px;padding:10px 12px;margin-bottom:6px;
-                display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <div style="font-size:9px;color:rgba(245,158,11,0.6);font-weight:700;letter-spacing:.1em;text-transform:uppercase;">🏀 Boys #1</div>
-        <div style="font-size:14px;font-weight:800;color:#f1f5f9;margin-top:2px;">{top_boy_name}</div>
-      </div>
-      <div style="font-size:18px;font-weight:900;color:#fde68a;">{top_boy_ti}</div>
-    </div>
-
-    <div style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);
-                border-radius:10px;padding:10px 12px;
-                display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <div style="font-size:9px;color:rgba(168,85,247,0.7);font-weight:700;letter-spacing:.1em;text-transform:uppercase;">🏀 Girls #1</div>
-        <div style="font-size:14px;font-weight:800;color:#f1f5f9;margin-top:2px;">{top_girl_name}</div>
-      </div>
-      <div style="font-size:18px;font-weight:900;color:#d8b4fe;">{top_girl_ti}</div>
-    </div>
-
-    <div style="margin-top:12px;font-size:9px;color:rgba(148,163,184,0.3);text-align:center;">
-      No games tonight · Check back tomorrow for predictions
-    </div>
-  </div>
-</div>
-</body></html>
-""", height=320, scrolling=False)
 
 _sp(1)
 
