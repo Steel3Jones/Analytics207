@@ -26,10 +26,14 @@ import os
 
 # ---------- PREDICTION HELPERS ----------
 
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
+
+
+from sidebar_auth import render_sidebar_auth
+
+render_sidebar_auth()
+
+
+
 @dataclass
 class WalkForwardConfig:
     min_games_before_scoring: int = 25
@@ -329,22 +333,6 @@ def load_v50_data():
 
 teams_df, games_df = load_v50_data()
 
-# ── TEMPORARY DEBUG ───────────────────────────────────────────────────────
-with st.expander("🔧 Debug: TeamKey check", expanded=False):
-    st.write("**teams_df TeamKey samples:**")
-    st.write(teams_df["TeamKey"].dropna().head(20).tolist())
-
-    st.write("**games_df HomeKey / AwayKey samples:**")
-    if "HomeKey" in games_df.columns:
-        st.write(games_df[["Home","Away","HomeKey","AwayKey"]].head(20))
-    else:
-        st.write("NO HomeKey column in games_df!")
-
-    st.write("**Bangor Christian row:**")
-    st.write(teams_df[teams_df["Team"].str.contains("Bangor Christian", case=False, na=False)][["Team","TeamKey","Gender","Class","Region"]].to_dict("records"))
-
-    st.write("**Hodgdon HS row:**")
-    st.write(teams_df[teams_df["Team"].str.contains("Hodgdon", case=False, na=False)][["Team","TeamKey","Gender","Class","Region"]].to_dict("records"))
 
     st.write("**games_df rows involving Bangor Christian or Hodgdon:**")
     if "HomeKey" in games_df.columns:
@@ -390,8 +378,6 @@ teams_filtered = filter_teams(teams_df)
 
 if "Team" not in teams_filtered.columns:
     st.error("teams_team_season_analytics_v50.parquet does not expose a Team column.")
-    with st.expander("Debug: teams_df columns", expanded=False):
-        st.write(list(teams_df.columns))
     render_footer()
     st.stop()
 
