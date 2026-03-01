@@ -37,8 +37,14 @@ inject_home_card_css()
 # ── SIDEBAR AUTH — top of sidebar, above page nav ──
 with st.sidebar:
     if "user" in st.session_state and st.session_state["user"]:
-        profile = st.session_state.get("profile", {}) or {}
-        name = profile.get("display_name", "User")
+        user = st.session_state["user"]
+        name = (
+            user.get("user_metadata", {}).get("display_name")
+            or user.get("user_metadata", {}).get("full_name")
+            or user.get("user_metadata", {}).get("name")
+            or st.session_state.get("profile", {}).get("display_name")
+            or user.get("email", "User")
+        )
         st.markdown(f"👤 **{name}**")
         if st.button("Log Out", key="sidebar_logout_top"):
             from auth import get_supabase
@@ -51,6 +57,7 @@ with st.sidebar:
             st.rerun()
     else:
         login_gate(required=False)
+
 
 # ─────────────────────────────────────────────
 # TEAM KEY PARSER

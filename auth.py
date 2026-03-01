@@ -150,7 +150,8 @@ def logout_button():
 
 def require_subscription(message="🔒 Subscribe to unlock this content!"):
     """Call this before premium sections. Blocks content if not subscribed."""
-    if is_subscribed() or is_admin():
+    # BETA: allow all logged-in users to see premium content
+    if is_logged_in():
         return True
     st.info(message)
     return False
