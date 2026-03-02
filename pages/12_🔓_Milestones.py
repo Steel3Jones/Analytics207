@@ -14,15 +14,10 @@ from layout import (
     render_page_header,
     render_footer,
 )
-from auth import login_gate, logout_button
-
-
+from auth import login_gate, logout_button, get_supabase, SUPABASE_URL, SUPABASE_KEY
 
 from sidebar_auth import render_sidebar_auth
-
 render_sidebar_auth()
-
-
 
 st.set_page_config(
     page_title="🏆 Milestones & Records | Analytics207",
@@ -36,26 +31,19 @@ logout_button()
 
 ROOT       = Path(__file__).resolve().parents[1]
 DATA_DIR   = Path(os.environ.get("DATA_DIR", ROOT / "data"))
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-CATS_FILE   = DATA_DIR / "milestone_categories.json"
-CLAIMS_FILE = DATA_DIR / "milestone_claims.csv"
-VOTES_FILE  = DATA_DIR / "milestone_votes.csv"
+CATS_FILE  = DATA_DIR / "milestone_categories.json"
 RATINGSFILE = DATA_DIR / "core" / "teams_team_season_core_v50.parquet"
 
-# Helper — True when a user is logged in (free or paid, doesn't matter)
 _signed_in = user is not None
 
+
 # ══════════════════════════════════════════════════════════════════════════
-#  SIGN-IN WALL (not a paywall — just needs an account)
+#  SIGN-IN WALL
 # ══════════════════════════════════════════════════════════════════════════
 _SIGN_IN_CSS = """
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: transparent;
-  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-  color: #f1f5f9;
-}
+body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: #f1f5f9; }
 </style>
 """
 
@@ -66,36 +54,36 @@ def _render_sign_in_wall(action: str) -> None:
             border:1px solid rgba(59,130,246,0.35);border-radius:14px;
             padding:32px 28px;text-align:center;">
   <div style="font-size:2.5rem;margin-bottom:10px;">🔑</div>
-  <div style="font-size:1.1rem;font-weight:800;color:#93c5fd;margin-bottom:6px;">
-    Sign In to {action}
-  </div>
+  <div style="font-size:1.1rem;font-weight:800;color:#93c5fd;margin-bottom:6px;">Sign In to {action}</div>
   <div style="font-size:0.85rem;color:#94a3b8;max-width:420px;margin:0 auto;">
-    Create a free account or sign in to submit milestones,
-    vote on records, and help build Maine's basketball history.
-    No subscription required.
+    Create a free account or sign in to submit milestones, vote on records,
+    and help build Maine's basketball history. No subscription required.
   </div>
 </div>
 """, height=170, scrolling=False)
 
+
 # ══════════════════════════════════════════════════════════════════════════
-#  CATEGORIES  (expanded)
+#  CATEGORIES
 # ══════════════════════════════════════════════════════════════════════════
 _DEFAULT_CATS = [
-    {"category_id": "1000_point_scorer",    "label": "1,000-Point Scorer",       "icon": "🏀", "value_label": "Career Points",   "requires": ["subject_name","value","season"], "optional": ["evidence_url","source_note"]},
-    {"category_id": "state_championship",   "label": "State Championship",       "icon": "🥇", "value_label": "Year",            "requires": ["season"],                         "optional": ["level","evidence_url","source_note"]},
-    {"category_id": "regional_championship","label": "Regional Championship",    "icon": "🏆", "value_label": "Year",            "requires": ["season"],                         "optional": ["level","evidence_url","source_note"]},
-    {"category_id": "single_game_record",   "label": "Single-Game Scoring Record","icon":"🔥", "value_label": "Points",          "requires": ["subject_name","value","season"], "optional": ["opponent","date","evidence_url","source_note"]},
-    {"category_id": "season_wins_record",   "label": "Season Wins Record",       "icon": "📈", "value_label": "Wins",            "requires": ["value","season"],                 "optional": ["evidence_url","source_note"]},
-    {"category_id": "win_streak",           "label": "Win Streak",               "icon": "⚡", "value_label": "Consecutive Wins","requires": ["value","season"],                 "optional": ["evidence_url","source_note"]},
-    {"category_id": "undefeated_season",    "label": "Undefeated Regular Season","icon": "💎", "value_label": "Year",            "requires": ["season"],                         "optional": ["evidence_url","source_note"]},
-    {"category_id": "coach_milestone",      "label": "Coach Milestone",          "icon": "🎓", "value_label": "Career Wins",     "requires": ["subject_name","value","season"], "optional": ["evidence_url","source_note"]},
+    {"category_id": "1000_point_scorer",    "label": "1,000-Point Scorer",        "icon": "🏀", "value_label": "Career Points",    "requires": ["subject_name","value","season"], "optional": ["evidence_url","source_note"]},
+    {"category_id": "state_championship",   "label": "State Championship",        "icon": "🥇", "value_label": "Year",             "requires": ["season"],                        "optional": ["level","evidence_url","source_note"]},
+    {"category_id": "regional_championship","label": "Regional Championship",     "icon": "🏆", "value_label": "Year",             "requires": ["season"],                        "optional": ["level","evidence_url","source_note"]},
+    {"category_id": "single_game_record",   "label": "Single-Game Scoring Record","icon": "🔥", "value_label": "Points",           "requires": ["subject_name","value","season"], "optional": ["opponent","date","evidence_url","source_note"]},
+    {"category_id": "season_wins_record",   "label": "Season Wins Record",        "icon": "📈", "value_label": "Wins",             "requires": ["value","season"],                "optional": ["evidence_url","source_note"]},
+    {"category_id": "win_streak",           "label": "Win Streak",                "icon": "⚡", "value_label": "Consecutive Wins", "requires": ["value","season"],                "optional": ["evidence_url","source_note"]},
+    {"category_id": "undefeated_season",    "label": "Undefeated Regular Season", "icon": "💎", "value_label": "Year",             "requires": ["season"],                        "optional": ["evidence_url","source_note"]},
+    {"category_id": "coach_milestone",      "label": "Coach Milestone",           "icon": "🎓", "value_label": "Career Wins",      "requires": ["subject_name","value","season"], "optional": ["evidence_url","source_note"]},
 ]
 
 def _seed_categories() -> None:
     if not CATS_FILE.exists() or CATS_FILE.stat().st_size == 0:
+        CATS_FILE.parent.mkdir(parents=True, exist_ok=True)
         with CATS_FILE.open("w") as f:
             json.dump(_DEFAULT_CATS, f, indent=2)
 _seed_categories()
+
 
 # ══════════════════════════════════════════════════════════════════════════
 #  CSS
@@ -103,193 +91,48 @@ _seed_categories()
 def _inject_css() -> None:
     st.markdown("""
 <style>
-/* ── Trophy Banner ── */
 .trophy-banner {
     background: linear-gradient(135deg, #1c1400 0%, #1e293b 60%, #0f172a 100%);
-    border: 1px solid #854d0e;
-    border-radius: 16px;
-    padding: 28px 32px 22px;
-    margin-bottom: 24px;
-    position: relative;
-    overflow: hidden;
+    border: 1px solid #854d0e; border-radius: 16px;
+    padding: 28px 32px 22px; margin-bottom: 24px;
+    position: relative; overflow: hidden;
 }
 .trophy-banner::before {
-    content: "🏆";
-    position: absolute;
-    right: 28px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 6rem;
-    opacity: 0.06;
+    content: "🏆"; position: absolute; right: 28px; top: 50%;
+    transform: translateY(-50%); font-size: 6rem; opacity: 0.06;
 }
-.trophy-banner-title {
-    font-size: 0.72rem;
-    color: #92400e;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 6px;
-}
-.trophy-banner-headline {
-    font-size: 1.8rem;
-    font-weight: 900;
-    color: #fef3c7;
-    line-height: 1.1;
-    margin-bottom: 8px;
-}
-.trophy-banner-sub {
-    font-size: 0.86rem;
-    color: #92400e;
-}
-
-/* ── Stat Pill ── */
-.ms-stat {
-    background: #1c1400;
-    border: 1px solid #85400e;
-    border-radius: 10px;
-    padding: 14px 18px;
-    text-align: center;
-}
-.ms-stat-val {
-    font-size: 2rem;
-    font-weight: 900;
-    color: #fbbf24;
-    line-height: 1;
-}
-.ms-stat-lbl {
-    font-size: 0.65rem;
-    color: #92400e;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-top: 4px;
-}
-
-/* ── Section Head ── */
-.ms-section {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #fbbf24;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    border-bottom: 1px solid #1c1400;
-    padding-bottom: 6px;
-    margin: 28px 0 16px;
-}
-
-/* ── Milestone Card ── */
-.ms-card {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 10px;
-    position: relative;
-}
+.trophy-banner-title { font-size: 0.72rem; color: #92400e; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+.trophy-banner-headline { font-size: 1.8rem; font-weight: 900; color: #fef3c7; line-height: 1.1; margin-bottom: 8px; }
+.trophy-banner-sub { font-size: 0.86rem; color: #92400e; }
+.ms-stat { background: #1c1400; border: 1px solid #85400e; border-radius: 10px; padding: 14px 18px; text-align: center; }
+.ms-stat-val { font-size: 2rem; font-weight: 900; color: #fbbf24; line-height: 1; }
+.ms-stat-lbl { font-size: 0.65rem; color: #92400e; text-transform: uppercase; letter-spacing: 0.07em; margin-top: 4px; }
+.ms-section { font-size: 0.72rem; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #1c1400; padding-bottom: 6px; margin: 28px 0 16px; }
+.ms-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 16px 20px; margin-bottom: 10px; position: relative; }
 .ms-card-verified  { border-left: 4px solid #22c55e; }
 .ms-card-contested { border-left: 4px solid #eab308; }
 .ms-card-pending   { border-left: 4px solid #475569; }
-
-.ms-card-icon {
-    font-size: 1.6rem;
-    line-height: 1;
-    margin-bottom: 4px;
-}
-.ms-card-category {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 4px;
-}
-.ms-card-headline {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #f1f5f9;
-    margin-bottom: 4px;
-}
-.ms-card-meta {
-    font-size: 0.76rem;
-    color: #64748b;
-    margin-top: 3px;
-}
-.ms-card-school {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #94a3b8;
-}
-
-/* ── Status Badge ── */
-.ms-badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 0.66rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
+.ms-card-icon { font-size: 1.6rem; line-height: 1; margin-bottom: 4px; }
+.ms-card-category { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.ms-card-headline { font-size: 1.05rem; font-weight: 800; color: #f1f5f9; margin-bottom: 4px; }
+.ms-card-meta { font-size: 0.76rem; color: #64748b; margin-top: 3px; }
+.ms-card-school { font-size: 0.82rem; font-weight: 600; color: #94a3b8; }
+.ms-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 .ms-badge-verified  { background:rgba(34,197,94,0.15);  border:1px solid rgba(34,197,94,0.5);  color:#22c55e; }
 .ms-badge-contested { background:rgba(234,179,8,0.15);  border:1px solid rgba(234,179,8,0.5);  color:#eab308; }
 .ms-badge-pending   { background:rgba(71,85,105,0.15);  border:1px solid rgba(71,85,105,0.5);  color:#64748b; }
-
-/* ── Vote Bar ── */
-.vote-bar-wrap {
-    background: #0f172a;
-    border-radius: 999px;
-    height: 6px;
-    width: 100%;
-    margin-top: 8px;
-    overflow: hidden;
-}
-.vote-bar-fill {
-    height: 100%;
-    border-radius: 999px;
-    background: #22c55e;
-}
-
-/* ── Category Chip ── */
-.cat-chip {
-    display: inline-block;
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    padding: 8px 14px;
-    margin: 4px;
-    cursor: pointer;
-    font-size: 0.82rem;
-    color: #cbd5e1;
-    font-weight: 600;
-    text-align: center;
-}
-.cat-chip-icon { font-size: 1.1rem; display: block; margin-bottom: 2px; }
-
-/* ── Submit Form ── */
-.submit-box {
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    border: 1px solid #334155;
-    border-radius: 14px;
-    padding: 24px 28px;
-}
-.submit-box-title {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: #f1f5f9;
-    margin-bottom: 4px;
-}
-.submit-box-sub {
-    font-size: 0.82rem;
-    color: #64748b;
-    margin-bottom: 16px;
-}
+.vote-bar-wrap { background: #0f172a; border-radius: 999px; height: 6px; width: 100%; margin-top: 8px; overflow: hidden; }
+.vote-bar-fill { height: 100%; border-radius: 999px; background: #22c55e; }
+.submit-box { background: linear-gradient(135deg, #0f172a, #1e293b); border: 1px solid #334155; border-radius: 14px; padding: 24px 28px; }
+.submit-box-title { font-size: 1.1rem; font-weight: 800; color: #f1f5f9; margin-bottom: 4px; }
+.submit-box-sub { font-size: 0.82rem; color: #64748b; margin-bottom: 16px; }
 </style>
 """, unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════════════════
-#  DATA HELPERS
-# ══════════════════════════════════════════════════════════════════════════
-def _ensure_csv(path: Path, columns: list[str]) -> None:
-    if not path.exists() or path.stat().st_size == 0:
-        pd.DataFrame(columns=columns).to_csv(path, index=False)
 
+# ══════════════════════════════════════════════════════════════════════════
+#  SUPABASE DATA HELPERS
+# ══════════════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=3600)
 def load_schools() -> list[str]:
     if not RATINGSFILE.exists(): return []
@@ -299,60 +142,93 @@ def load_schools() -> list[str]:
     if "Team" not in df.columns: return []
     return df["Team"].astype(str).str.strip().replace("", pd.NA).dropna().drop_duplicates().sort_values().tolist()
 
+
 @st.cache_data(ttl=300)
 def load_categories() -> list[dict]:
     if not CATS_FILE.exists(): return []
     with CATS_FILE.open() as f: return json.load(f)
 
-@st.cache_data(ttl=300)
+
 def load_claims() -> pd.DataFrame:
     cols = ["claim_id","category_id","school","gender","class","region",
             "subject_name","value_num","value_text","date","season","opponent",
             "level","evidence_url","source_note","payload_json",
             "submitted_by","submitted_at","status_override"]
-    _ensure_csv(CLAIMS_FILE, cols)
-    try: df = pd.read_csv(CLAIMS_FILE, dtype=str)
-    except pd.errors.EmptyDataError: df = pd.DataFrame(columns=cols)
-    if "value_num"    in df.columns: df["value_num"]    = pd.to_numeric(df["value_num"], errors="coerce")
-    if "submitted_at" in df.columns: df["submitted_at"] = pd.to_datetime(df["submitted_at"], errors="coerce")
-    if "date"         in df.columns: df["date"]         = pd.to_datetime(df["date"], errors="coerce")
-    return df
+    try:
+        sb  = get_supabase()
+        res = sb.table("milestone_claims").select("*").execute()
+        if not res.data:
+            return pd.DataFrame(columns=cols)
+        df = pd.DataFrame(res.data)
+        if "value_num"    in df.columns: df["value_num"]    = pd.to_numeric(df["value_num"], errors="coerce")
+        if "submitted_at" in df.columns: df["submitted_at"] = pd.to_datetime(df["submitted_at"], errors="coerce")
+        if "date"         in df.columns: df["date"]         = pd.to_datetime(df["date"], errors="coerce")
+        return df
+    except Exception:
+        return pd.DataFrame(columns=cols)
 
-@st.cache_data(ttl=300)
+
 def load_votes() -> pd.DataFrame:
     cols = ["claim_id","vote","user_id","timestamp"]
-    _ensure_csv(VOTES_FILE, cols)
-    try: df = pd.read_csv(VOTES_FILE, dtype=str)
-    except pd.errors.EmptyDataError: df = pd.DataFrame(columns=cols)
-    return df
+    try:
+        sb  = get_supabase()
+        res = sb.table("milestone_votes").select("*").execute()
+        if not res.data:
+            return pd.DataFrame(columns=cols)
+        return pd.DataFrame(res.data)
+    except Exception:
+        return pd.DataFrame(columns=cols)
+
 
 def append_claim(row: dict) -> None:
-    cols = ["claim_id","category_id","school","gender","class","region",
-            "subject_name","value_num","value_text","date","season","opponent",
-            "level","evidence_url","source_note","payload_json",
-            "submitted_by","submitted_at","status_override"]
-    _ensure_csv(CLAIMS_FILE, cols)
-    try: existing = pd.read_csv(CLAIMS_FILE, dtype=str)
-    except pd.errors.EmptyDataError: existing = pd.DataFrame(columns=cols)
-    pd.concat([existing, pd.DataFrame([row])], ignore_index=True).to_csv(CLAIMS_FILE, index=False)
-    load_claims.clear()
+    try:
+        sb = get_supabase()
+        # Use authenticated client if user is signed in
+        session = st.session_state.get("session")
+        if session:
+            from supabase import create_client
+            sb = create_client(SUPABASE_URL, SUPABASE_KEY)
+            sb.postgrest.auth(session.access_token)
+        sb.table("milestone_claims").insert(row).execute()
+    except Exception as e:
+        st.error(f"Submit failed: {e}")
+
 
 def upsert_vote(claim_id: str, vote: str, user_id: str) -> None:
-    cols = ["claim_id","vote","user_id","timestamp"]
-    _ensure_csv(VOTES_FILE, cols)
-    try: existing = pd.read_csv(VOTES_FILE, dtype=str)
-    except pd.errors.EmptyDataError: existing = pd.DataFrame(columns=cols)
-    ts = datetime.utcnow().isoformat()
-    df = existing.copy()
-    mask = (df["claim_id"] == claim_id) & (df["user_id"] == user_id)
-    if mask.any():
-        df.loc[mask, "vote"] = vote; df.loc[mask, "timestamp"] = ts
-    else:
-        df = pd.concat([df, pd.DataFrame([{"claim_id":claim_id,"vote":vote,"user_id":user_id,"timestamp":ts}])], ignore_index=True)
-    df.to_csv(VOTES_FILE, index=False)
-    load_votes.clear()
+    try:
+        session = st.session_state.get("session")
+        from supabase import create_client
+        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
+        if session:
+            sb.postgrest.auth(session.access_token)
+        sb.table("milestone_votes").upsert(
+            {
+                "claim_id":  claim_id,
+                "vote":      vote,
+                "user_id":   user_id,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+            on_conflict="claim_id,user_id",
+        ).execute()
+    except Exception as e:
+        st.error(f"Vote failed: {e}")
 
-@st.cache_data(ttl=5)
+
+def get_user_id() -> str:
+    if user is not None:
+        return str(getattr(user, "id", None) or getattr(user, "email", None) or str(uuid.uuid4()))
+    if "milestones_user_id" not in st.session_state:
+        st.session_state["milestones_user_id"] = str(uuid.uuid4())
+    return st.session_state["milestones_user_id"]
+
+
+def get_category_maps():
+    cats = load_categories()
+    id_to_cfg   = {c["category_id"]: c for c in cats} if cats else {}
+    label_to_id = {c["label"]: c["category_id"] for c in cats} if cats else {}
+    return cats, id_to_cfg, label_to_id
+
+
 def compute_claim_statuses() -> pd.DataFrame:
     claims = load_claims()
     votes  = load_votes()
@@ -379,19 +255,6 @@ def compute_claim_statuses() -> pd.DataFrame:
     merged["status"] = merged.apply(derive_status, axis=1)
     return merged
 
-def get_user_id() -> str:
-    """Use the auth user's ID if signed in, otherwise a session UUID."""
-    if user is not None:
-        return str(getattr(user, "id", None) or getattr(user, "email", None) or str(uuid.uuid4()))
-    if "milestones_user_id" not in st.session_state:
-        st.session_state["milestones_user_id"] = str(uuid.uuid4())
-    return st.session_state["milestones_user_id"]
-
-def get_category_maps():
-    cats = load_categories()
-    id_to_cfg    = {c["category_id"]: c for c in cats} if cats else {}
-    label_to_id  = {c["label"]: c["category_id"] for c in cats} if cats else {}
-    return cats, id_to_cfg, label_to_id
 
 # ══════════════════════════════════════════════════════════════════════════
 #  TROPHY BANNER
@@ -401,9 +264,7 @@ def render_trophy_banner(total: int, verified: int, contested: int, schools: int
 <div class="trophy-banner">
   <div class="trophy-banner-title">Analytics207 · Community Record Book</div>
   <div class="trophy-banner-headline">Maine Basketball History,<br>Preserved by the Community</div>
-  <div class="trophy-banner-sub">
-    Every record. Every milestone. Submitted, voted on, and verified by fans and coaches across Maine.
-  </div>
+  <div class="trophy-banner-sub">Every record. Every milestone. Submitted, voted on, and verified by fans and coaches across Maine.</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -417,11 +278,11 @@ def render_trophy_banner(total: int, verified: int, contested: int, schools: int
         with col:
             st.markdown(f'<div class="ms-stat"><div class="ms-stat-val">{val}</div><div class="ms-stat-lbl">{lbl}</div></div>', unsafe_allow_html=True)
 
+
 # ══════════════════════════════════════════════════════════════════════════
 #  MILESTONE CARD
 # ══════════════════════════════════════════════════════════════════════════
-def render_milestone_card(row: pd.Series, cat_cfg: dict, user_id: str,
-                          show_votes: bool = True) -> None:
+def render_milestone_card(row: pd.Series, cat_cfg: dict, user_id: str, show_votes: bool = True) -> None:
     status   = str(row.get("status", "pending")).lower()
     icon     = cat_cfg.get("icon", "🏅")
     label    = cat_cfg.get("label", row.get("category_id",""))
@@ -477,7 +338,6 @@ def render_milestone_card(row: pd.Series, cat_cfg: dict, user_id: str,
         unsafe_allow_html=True,
     )
 
-    # ── Vote buttons: only for signed-in users ──
     if show_votes and claim_id:
         if _signed_in:
             vc1, vc2, vc3, _ = st.columns([1, 1, 1, 4])
@@ -495,6 +355,7 @@ def render_milestone_card(row: pd.Series, cat_cfg: dict, user_id: str,
                     st.rerun()
         else:
             st.caption("🔑 Sign in to vote on this milestone.")
+
 
 # ══════════════════════════════════════════════════════════════════════════
 #  BROWSE VIEW
@@ -540,8 +401,7 @@ def render_browse(df: pd.DataFrame, cats: list, id_to_cfg: dict, user_id: str) -
         return
 
     if school_filter == "All Schools":
-        schools_in_view = view["school"].dropna().unique()
-        for school in sorted(schools_in_view):
+        for school in sorted(view["school"].dropna().unique()):
             school_ms = view[view["school"] == school]
             st.markdown(
                 f'<div style="font-size:1.0rem;font-weight:800;color:#f1f5f9;'
@@ -564,13 +424,13 @@ def render_browse(df: pd.DataFrame, cats: list, id_to_cfg: dict, user_id: str) -
             cfg = id_to_cfg.get(str(row.get("category_id", "")), {})
             render_milestone_card(row, cfg, user_id, show_votes=True)
 
+
 # ══════════════════════════════════════════════════════════════════════════
-#  SUBMIT FORM — requires sign-in
+#  SUBMIT FORM
 # ══════════════════════════════════════════════════════════════════════════
 def render_submit_form(cats: list, label_to_id: dict, id_to_cfg: dict) -> None:
     st.markdown('<div class="ms-section">➕ Submit a Milestone</div>', unsafe_allow_html=True)
 
-    # ── Gate: must be signed in to submit ──
     if not _signed_in:
         _render_sign_in_wall("Submit Milestones")
         return
@@ -578,23 +438,21 @@ def render_submit_form(cats: list, label_to_id: dict, id_to_cfg: dict) -> None:
     st.markdown("""
 <div class="submit-box">
   <div class="submit-box-title">Know a record that's missing?</div>
-  <div class="submit-box-sub">
-    Submit it here. The community will confirm or dispute it.
-    Verified records need 5+ confirms and a 3-vote confirm margin.
-  </div>
+  <div class="submit-box-sub">Submit it here. The community will confirm or dispute it.
+  Verified records need 5+ confirms and a 3-vote confirm margin.</div>
 </div>
 """, unsafe_allow_html=True)
     st.write("")
 
-    schools = load_schools()
+    schools    = load_schools()
     cat_labels = [c["label"] for c in cats]
 
     with st.form("ms_submit_form", clear_on_submit=True):
         fc1, fc2 = st.columns(2)
         with fc1:
-            school = st.selectbox("School *", [""] + schools)
+            school    = st.selectbox("School *", [""] + schools)
             cat_label = st.selectbox("Milestone Type *", cat_labels)
-            gender = st.selectbox("Gender", ["Boys","Girls","Both"])
+            gender    = st.selectbox("Gender", ["Boys","Girls","Both"])
         with fc2:
             subject = st.text_input("Player/Coach Name (if applicable)")
             value   = st.number_input("Value (points, wins, etc.)", min_value=0, value=0)
@@ -607,10 +465,8 @@ def render_submit_form(cats: list, label_to_id: dict, id_to_cfg: dict) -> None:
         with fd2:
             source_note = st.text_area("Source / Notes", height=80)
 
-        # Auto-fill submitter from auth
-        submitted_by = str(getattr(user, "name", None) or getattr(user, "email", "")) if user else ""
-
-        submitted = st.form_submit_button("🏆 Submit Milestone", use_container_width=True)
+        submitted_by = str(getattr(user, "email", "") or "") if user else ""
+        submitted    = st.form_submit_button("🏆 Submit Milestone", use_container_width=True)
 
         if submitted:
             if not school or not cat_label:
@@ -618,31 +474,32 @@ def render_submit_form(cats: list, label_to_id: dict, id_to_cfg: dict) -> None:
             else:
                 cat_id = label_to_id.get(cat_label, "")
                 claim  = {
-                    "claim_id":    str(uuid.uuid4()),
-                    "category_id": cat_id,
-                    "school":      school,
-                    "gender":      gender,
-                    "class":       "",
-                    "region":      "",
-                    "subject_name": subject,
-                    "value_num":   value if value > 0 else None,
-                    "value_text":  "",
-                    "date":        "",
-                    "season":      season,
-                    "opponent":    opponent,
-                    "level":       "",
-                    "evidence_url": evidence_url,
-                    "source_note": source_note,
-                    "payload_json": "{}",
-                    "submitted_by": submitted_by,
-                    "submitted_at": datetime.utcnow().isoformat(),
+                    "claim_id":        str(uuid.uuid4()),
+                    "category_id":     cat_id,
+                    "school":          school,
+                    "gender":          gender,
+                    "class":           "",
+                    "region":          "",
+                    "subject_name":    subject,
+                    "value_num":       value if value > 0 else None,
+                    "value_text":      "",
+                    "date":            None,
+                    "season":          season,
+                    "opponent":        opponent,
+                    "level":           "",
+                    "evidence_url":    evidence_url,
+                    "source_note":     source_note,
+                    "payload_json":    "{}",
+                    "submitted_by":    submitted_by,
+                    "submitted_at":    datetime.utcnow().isoformat(),
                     "status_override": "",
                 }
                 append_claim(claim)
                 st.success(f"✅ Milestone submitted for **{school}**! The community will review it.")
 
+
 # ══════════════════════════════════════════════════════════════════════════
-#  RECENTLY VERIFIED  (trophy shelf)
+#  TROPHY SHELF
 # ══════════════════════════════════════════════════════════════════════════
 def render_trophy_shelf(df: pd.DataFrame, id_to_cfg: dict, user_id: str) -> None:
     verified = df[df["status"] == "verified"].copy()
@@ -671,6 +528,7 @@ def render_trophy_shelf(df: pd.DataFrame, id_to_cfg: dict, user_id: str) -> None
                 unsafe_allow_html=True,
             )
 
+
 # ══════════════════════════════════════════════════════════════════════════
 #  MAIN
 # ══════════════════════════════════════════════════════════════════════════
@@ -684,8 +542,8 @@ def main() -> None:
     )
 
     cats, id_to_cfg, label_to_id = get_category_maps()
-    df   = compute_claim_statuses()
-    uid  = get_user_id()
+    df  = compute_claim_statuses()
+    uid = get_user_id()
 
     total     = len(df)
     verified  = int((df["status"] == "verified").sum())  if not df.empty else 0
@@ -704,6 +562,7 @@ def main() -> None:
         render_submit_form(cats, label_to_id, id_to_cfg)
 
     render_footer()
+
 
 if __name__ == "__main__":
     main()
