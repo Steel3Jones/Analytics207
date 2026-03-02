@@ -1,0 +1,6 @@
+NIGHTLY ORCHESTRATOR V50 START 20260301_222254
+Pre-run backup at: C:\ANALYTICS207\backup\20260301_222254__pre
+1) Running scrapers pipeline to build data/truth.csv
+Running: C:\ANALYTICS207\.venv\Scripts\python.exe MPA_SCRAPER_V50.py
+NIGHTLY ORCHESTRATOR V50 FAILED
+ERROR: Command failed (1): C:\ANALYTICS207\.venv\Scripts\python.exe MPA_SCRAPER_V50.py

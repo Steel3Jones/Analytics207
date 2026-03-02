@@ -10,15 +10,14 @@ import streamlit.components.v1 as components
 
 import layout as L
 from components.cards_trophy import inject_trophy_card_css, render_trophy_card
-from auth import login_gate, logout_button
+from auth import login_gate, logout_button, get_supabase, get_user
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
 
 # ============================================================
 # Helpers
 # ============================================================
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
 def _pick(mod, *names: str) -> Optional[Callable]:
     for n in names:
         fn = getattr(mod, n, None)
@@ -183,9 +182,9 @@ inject_trophy_card_css()
 _sp(1)
 
 # ─────────────────────────────────────────────
-# AUTH: signed-in check for participation (voting)
+# AUTH
 # ─────────────────────────────────────────────
-_user = st.session_state.get("user")
+_user     = st.session_state.get("user")
 _signed_in = _user is not None
 
 # ============================================================
@@ -193,12 +192,10 @@ _signed_in = _user is not None
 # ============================================================
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
-
 NOMINEES_PATH = DATA / "totw" / "team_of_week_nominees_v50.parquet"
-VOTES_PATH    = DATA / "totw" / "team_of_week_votes.csv"
 
 # ============================================================
-# Loaders
+# Loaders  ← SUPABASE VERSIONS
 # ============================================================
 @st.cache_data(ttl=60, show_spinner=False)
 def load_nominees() -> pd.DataFrame:
@@ -212,32 +209,40 @@ def load_nominees() -> pd.DataFrame:
 
 def load_votes() -> pd.DataFrame:
     cols = ["Timestamp", "WeekID", "Segment", "Pick", "TeamKey"]
-    if not VOTES_PATH.exists():
-        return pd.DataFrame(columns=cols)
     try:
-        df = pd.read_csv(VOTES_PATH, dtype=str, keep_default_na=False)
+        sb  = get_supabase()
+        res = sb.table("team_of_week_votes").select(
+            "timestamp, week_id, segment, pick, team_key"
+        ).execute()
+        if not res.data:
+            return pd.DataFrame(columns=cols)
+        df = pd.DataFrame(res.data).rename(columns={
+            "timestamp": "Timestamp",
+            "week_id":   "WeekID",
+            "segment":   "Segment",
+            "pick":      "Pick",
+            "team_key":  "TeamKey",
+        })
+        return df[cols]
     except Exception:
         return pd.DataFrame(columns=cols)
-    for c in cols:
-        if c not in df.columns:
-            df[c] = ""
-    return df[cols].copy()
 
 def append_vote(weekid: str, segment: str, pick: str, teamkey: str) -> None:
-    VOTES_PATH.parent.mkdir(parents=True, exist_ok=True)
-    row = pd.DataFrame([{
-        "Timestamp": pd.Timestamp.now().isoformat(timespec="seconds"),
-        "WeekID":    _safe_str(weekid),
-        "Segment":   _safe_str(segment),
-        "Pick":      _safe_str(pick),
-        "TeamKey":   _safe_str(teamkey),
-    }])
-    if VOTES_PATH.exists():
-        existing = pd.read_csv(VOTES_PATH, dtype=str, keep_default_na=False)
-        out = pd.concat([existing, row], ignore_index=True)
-    else:
-        out = row
-    out.to_csv(VOTES_PATH, index=False, encoding="utf-8")
+    try:
+        sb   = get_supabase()
+        user = get_user()
+        if not user:
+            st.warning("You must be signed in to vote.")
+            return
+        sb.table("team_of_week_votes").upsert({
+            "week_id":  _safe_str(weekid),
+            "segment":  _safe_str(segment),
+            "pick":     _safe_str(pick),
+            "team_key": _safe_str(teamkey),
+            "user_id":  user.id,
+        }, on_conflict="week_id,segment,user_id").execute()
+    except Exception as e:
+        st.error(f"Vote failed: {e}")
 
 # ============================================================
 # Main UI
@@ -279,9 +284,7 @@ with colR:
     regions    = sorted(nom["Region"].dropna().unique().tolist())
     region_sel = st.selectbox("Region", options=["All"] + regions)
 
-# ── apply filters ──────────────────────────────────────────
 d = nom[nom["WeekID"] == week_sel].copy()
-
 if gender_sel != "All":
     d = d[d["Gender"] == gender_sel]
 if class_sel != "All":
@@ -366,6 +369,8 @@ def render_matchup(segment: str) -> None:
             if st.button(f"Vote: {teamA}", key=f"voteA_{segment}", use_container_width=True, disabled=(teamA_key == "")):
                 append_vote(week_sel, segment, "A", teamA_key)
                 st.rerun()
+        else:
+            st.info("🔑 Sign in to vote.")
         if total > 0:
             st.progress(int(pctA), text=f"{votesA} vote(s) — {pctA:.0f}%")
         else:
@@ -393,14 +398,12 @@ def render_matchup(segment: str) -> None:
             if st.button(f"Vote: {teamB}", key=f"voteB_{segment}", use_container_width=True, disabled=(teamB_key == "")):
                 append_vote(week_sel, segment, "B", teamB_key)
                 st.rerun()
+        else:
+            st.info("🔑 Sign in to vote.")
         if total > 0:
             st.progress(int(pctB), text=f"{votesB} vote(s) — {pctB:.0f}%")
         else:
             st.caption("No votes yet")
-
-    # Sign-in prompt shown once per matchup for non-signed-in users
-    if not _signed_in:
-        st.info("🔑 **Sign in with a free account** to cast your vote.")
 
     st.divider()
 
@@ -408,7 +411,7 @@ for seg in segments:
     render_matchup(seg)
 
 # ============================================================
-# Past winners (respects filters)
+# Past winners
 # ============================================================
 st.subheader("Past winners")
 

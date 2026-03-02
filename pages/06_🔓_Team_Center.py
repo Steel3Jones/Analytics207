@@ -16,10 +16,15 @@ from components.cards import inject_card_css
 from components.cards_team_center import inject_team_center_card_css
 from auth import login_gate, logout_button, is_subscribed
 
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
+from components.cards_trophy import inject_trophy_card_css, render_trophy_card
+
+
+from sidebar_auth import render_sidebar_auth
+
+render_sidebar_auth()
+
+
+
 st.set_page_config(page_title="🏫 Team Center – Analytics207.com", page_icon="🏫", layout="wide")
 apply_global_layout_tweaks()
 inject_card_css()
@@ -72,12 +77,20 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.environ.get("DATA_DIR", ROOT / "data"))
 CORE_DIR = DATA_DIR / "core"
 
-ANALYTICS_FILE   = CORE_DIR  / "teams_team_season_analytics_v50.parquet"
-GAMES_FILE       = CORE_DIR  / "games_analytics_v50.parquet"
-POWER_FILE       = CORE_DIR  / "teams_power_index_v50.parquet"
-PREDICTIONS_FILE = DATA_DIR  / "predictions" / "games_predictions_current.parquet"
-SIM_PATH         = CORE_DIR  / "tournament_sim_v50.parquet"
-MILESTONE_FILE   = DATA_DIR  / "milestone_claims.csv"
+ANALYTICS_FILE   = CORE_DIR / "teams_team_season_analytics_v50.parquet"
+GAMES_FILE       = CORE_DIR / "games_analytics_v50.parquet"
+POWER_FILE       = CORE_DIR / "teams_power_index_v50.parquet"
+PREDICTIONS_FILE = DATA_DIR / "predictions" / "games_predictions_current.parquet"
+SIM_PATH         = CORE_DIR / "tournament_sim_v50.parquet"
+MILESTONE_FILE   = DATA_DIR / "milestone_claims.csv"
+TROPHY_PATH      = CORE_DIR / "trophy_room_v50.parquet"
+
+@st.cache_data(show_spinner=False, ttl=300)
+def load_trophies():
+    return pd.read_parquet(TROPHY_PATH) if TROPHY_PATH.exists() else pd.DataFrame()
+
+trophydf = load_trophies()
+
 
 # ══════════════════════════════════════════════════════════════════════════
 #  BRACKET SIZES  (mirrors heal_points.py)
@@ -1059,9 +1072,9 @@ else:
 
         total_miles = away_games["MilesRoundTrip"].sum()
         total_hours = away_games["BusHours"].sum()
-        avg_miles = away_games["MilesRoundTrip"].mean()
-        longest = away_games["MilesOneWay"].max()
-        trips = len(away_games)
+        avg_miles   = away_games["MilesRoundTrip"].mean()
+        longest     = away_games["MilesOneWay"].max()
+        trips       = len(away_games)
 
         played = away_games[away_games["Played"].fillna(False)]
         road_w = (played["WinnerTeam"] == played["Away"]).sum()
@@ -1092,20 +1105,18 @@ else:
       <div class="sm">{road_w}-{road_l}</div>
     </div>
   </div>
-
   <div style="margin-top:12px;">
     <div class="lbl">Last 5 Road Trips</div>
 """, unsafe_allow_html=True)
 
         recent = played.sort_values("Date", ascending=False).head(5)
         for _, row in recent.iterrows():
-            opp = row.get("Home", "Opponent")
-            miles = row["MilesRoundTrip"]
-            result = "W" if row["WinnerTeam"] == row["Away"] else "L"
-            margin = row.get("AwayScore", 0) - row.get("HomeScore", 0)
+            opp      = row.get("Home", "Opponent")
+            miles    = row["MilesRoundTrip"]
+            result   = "W" if row["WinnerTeam"] == row["Away"] else "L"
+            margin   = row.get("AwayScore", 0) - row.get("HomeScore", 0)
             date_str = pd.to_datetime(row["Date"]).strftime("%b %d")
-
-            color = "#22c55e" if result == "W" else "#ef4444"
+            color    = "#22c55e" if result == "W" else "#ef4444"
 
             st.markdown(f"""
 <div style="display:flex;gap:8px;padding:6px 0;font-size:0.82rem;border-bottom:1px solid #1e293b;">
@@ -1133,4 +1144,100 @@ else:
     with col_g: travel_block(girls_key, "Girls")
 
 
+# ══════════════════════════════════════════════════════════════════════════
+#  SECTION 7 – TROPHY ROOM  (🔒 LOCKED)
+# ══════════════════════════════════════════════════════════════════════════
+st.markdown('<div class="section-head">&#x1F3C6; Trophy Room</div>', unsafe_allow_html=True)
+
+if not _subscribed:
+    _render_lock_wall("Trophy Room")
+else:
+    inject_trophy_card_css()
+
+    def fmt_trophy_metric(name: str, v) -> str:
+        try:
+            f = float(v)
+        except:
+            return str(v)
+        n = (name or "").lower()
+        if any(k in n for k in ["win%", "blowout rate", "road win%", "home win%", "close win%", "possession rate"]):
+            return f"{f * 100:.1f}%"
+        if any(k in n for k in ["margin", "ppg", "oppg", "sos", "ti", "net", "l5", "l10", "split"]):
+            return f"{f:.1f}"
+        if any(k in n for k in ["wins", "losses", "streak"]):
+            return f"{int(round(f))}"
+        if "sched adj" in n:
+            return f"{f:.2f}"
+        return f"{f:.1f}"
+
+    def trophy_block(team_key: str, gender_label: str, cls: str, reg: str):
+        team_name = re.sub(r'(Boys|Girls)[ABCDS]?(North|South)?$', '', team_key).strip()
+
+        if trophydf.empty or not team_name:
+            held = pd.DataFrame()
+        else:
+            t = trophydf[
+                (trophydf["Gender"].astype(str).str.strip() == gender_label) &
+                (trophydf["CardTitle"].astype(str).str.strip().str.lower() == team_name.lower())
+            ].copy()
+
+            if "Scope" in t.columns:
+                scope_order = {"GenderClassRegion": 0, "GenderClass": 1, "Gender": 2}
+                t["_scope_rank"] = t["Scope"].map(scope_order).fillna(99)
+                t = (
+                    t.sort_values("_scope_rank")
+                    .drop_duplicates(subset=["CardKicker"])
+                    .drop(columns=["_scope_rank"])
+                )
+
+            held = t
+
+        if held.empty:
+            st.markdown(
+                f'<div class="card"><div class="lbl">{gender_label}</div>'
+                f'<div style="color:#475569;font-size:0.85rem;margin-top:6px">'
+                f'No trophies currently held.</div></div>',
+                unsafe_allow_html=True
+            )
+        else:
+            variant = "blue" if gender_label == "Boys" else "red"
+            card_cols = st.columns(min(len(held), 4))
+            for i, (_, row) in enumerate(held.iterrows()):
+                trophy_name = str(row.get("TrophyName", ""))
+                raw_scope = str(row.get("Scope", ""))
+                scope_labels = {
+                    "Gender": "STATEWIDE",
+                    "GenderClass": f"CLASS {cls}",
+                    "GenderClassRegion": f"{reg.upper()}-{cls}",
+                }
+                pill = scope_labels.get(raw_scope, raw_scope)
+                render_trophy_card(
+                    card_cols[i % 4],
+                    kicker=str(row.get("CardKicker", "")),
+                    title=str(row.get("CardTitle", "")),
+                    sub=str(row.get("CardSub", "")),
+                    metric=fmt_trophy_metric(trophy_name, row.get("CardMetric")),
+                    pill=pill,
+                    variant=variant,
+                    ribbon_text=trophy_name,
+                )
+
+    tc1, tc2 = st.columns(2)
+    with tc1: trophy_block(boys_key, "Boys", boys_cls, boys_reg)
+    with tc2: trophy_block(girls_key, "Girls", girls_cls, girls_reg)
+
+    st.markdown(
+        '<div style="margin-top:12px;text-align:center;">'
+        '<a href="/Trophy_Room" target="_self" '
+        'style="color:#38bdf8;font-size:0.82rem;font-weight:600;text-decoration:none;">'
+        '&#x1F3C6; View full Trophy Room</a>'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+
+
+
+
 render_footer()
+

@@ -1,0 +1,48 @@
+NIGHTLY ORCHESTRATOR V50 START 20260301_222327
+Pre-run backup at: C:\ANALYTICS207\backup\20260301_222327__pre
+1) Running scrapers pipeline to build data/truth.csv
+Running: C:\ANALYTICS207\.venv\Scripts\python.exe MPA_SCRAPER_V50.py
+Running: C:\ANALYTICS207\.venv\Scripts\python.exe MPA_SCORES_SCRAPER_V50.py
+Running: C:\ANALYTICS207\.venv\Scripts\python.exe JOIN_SCORES_V50.py
+Running: C:\ANALYTICS207\.venv\Scripts\python.exe FIX_HOME_AWAY_TEAM_NAMES.py
+Post-scrape backup at: C:\ANALYTICS207\backup\20260301_222327__post_scrape
+2) Running nightly_v50 build
+NIGHTLY V50 START
+1) Loading truth.csv
+2) Building game core (lean facts)
+3) Building teams core (lean facts)
+4) Building teams analytics (~150 metrics)
+   Backfilled TI in teams_core from analytics.
+5) Building games analytics (descriptive)
+6) Running prediction engine
+FIT sigma_m 18.406933661692968 n_resid 1156
+FIT sigma_m 20.093674248250878 n_resid 1158
+Wrote PIR table with 257 teams to C:\ANALYTICS207\data\core\teams_power_index_v50.parquet
+TIER_COUNTS {'lo': 1642, 'mid': 522, 'hi': 150}
+Wrote 2314 rows to C:\ANALYTICS207\data\predictions\games_predictions_current.parquet
+   BracketSim: 249 team-rows  →  C:\ANALYTICS207\data\core\tournament_sim_v50.parquet
+   Columns: ['TeamKey', 'Gender', 'Class', 'Region', 'ProjectedSeed', 'PI', 'SimChampWins', 'NSims', 'RegionalChampPct', 'BuiltAtUTC', 'StateChampPct']
+7) Building public bundle (facts + preds + grading)
+8) Building performance / calibration
+9) Building nightly report
+10) Building Team of the Week nominees
+   TOTW: 418 nominee rows across 10 week(s) → C:\ANALYTICS207\data\totw\team_of_week_nominees_v50.parquet
+11) Building Trophy Room
+  ✅ trophy_room_v50  →  799 trophies  →  C:\ANALYTICS207\data\core\trophy_room_v50.parquet
+  --- V50 OUTPUTS ---
+  games_core        C:\ANALYTICS207\data\core\games_game_core_v50.parquet  shape=(2314, 28)
+  teams_core        C:\ANALYTICS207\data\core\teams_team_season_core_v50.parquet  shape=(257, 23)
+  teams_analytics   C:\ANALYTICS207\data\core\teams_team_season_analytics_v50.parquet  shape=(257, 150)
+  games_analytics   C:\ANALYTICS207\data\core\games_analytics_v50.parquet  shape=(2314, 52)
+  public            C:\ANALYTICS207\data\public\games_public_v50.parquet  shape=(2314, 32)
+  perf_summary      C:\ANALYTICS207\data\calibration\performance_summary_v50.parquet
+  nightly_report    C:\ANALYTICS207\data\calibration\nightly_report_v50.parquet
+  trophy_room_v50   C:\ANALYTICS207\data\core\trophy_room_v50.parquet
+V50 SUCCESS
+3) Running postseason bracket scrape
+Running: C:\ANALYTICS207\.venv\Scripts\python.exe scrape_postseason.py
+4) Pushing updated parquets to GitHub
+Running: git add data/
+Running: git commit --allow-empty -m nightly update 20260301_222327
+Running: git push origin main
+NIGHTLY ORCHESTRATOR V50 SUCCESS
