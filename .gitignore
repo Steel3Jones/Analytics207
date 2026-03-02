@@ -22,3 +22,9 @@ data/core/tmp*.parquet
 data/public/games_public_v40_B*.parquet
 data/public/games_public_v40_A.parquet
 data/public/games_public_v40__*.parquet
+backup/ 
+logs/ 
+*.log 
+data/predictions/*.csv 
+pir_export.csv 
+merged_full.csv 

@@ -2,15 +2,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Callable, Optional, Dict, Any
+from typing import Callable, Optional
 
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 
 import layout as L
 from components.cards_trophy import inject_trophy_card_css, render_trophy_card
-from auth import login_gate, logout_button, get_supabase, get_user
+from auth import login_gate, logout_button, get_supabase, get_user, SUPABASE_URL, SUPABASE_KEY
 
 from sidebar_auth import render_sidebar_auth
 render_sidebar_auth()
@@ -182,9 +181,9 @@ inject_trophy_card_css()
 _sp(1)
 
 # ─────────────────────────────────────────────
-# AUTH
+# AUTH — use session_state as single source of truth
 # ─────────────────────────────────────────────
-_user     = st.session_state.get("user")
+_user      = st.session_state.get("user")
 _signed_in = _user is not None
 
 # ============================================================
@@ -195,7 +194,7 @@ DATA = ROOT / "data"
 NOMINEES_PATH = DATA / "totw" / "team_of_week_nominees_v50.parquet"
 
 # ============================================================
-# Loaders  ← SUPABASE VERSIONS
+# Loaders
 # ============================================================
 @st.cache_data(ttl=60, show_spinner=False)
 def load_nominees() -> pd.DataFrame:
@@ -228,19 +227,27 @@ def load_votes() -> pd.DataFrame:
         return pd.DataFrame(columns=cols)
 
 def append_vote(weekid: str, segment: str, pick: str, teamkey: str) -> None:
+    user    = st.session_state.get("user")
+    session = st.session_state.get("session")
+    if not user or not session:
+        st.warning("You must be signed in to vote.")
+        return
     try:
-        sb   = get_supabase()
-        user = get_user()
-        if not user:
-            st.warning("You must be signed in to vote.")
-            return
-        sb.table("team_of_week_votes").upsert({
-            "week_id":  _safe_str(weekid),
-            "segment":  _safe_str(segment),
-            "pick":     _safe_str(pick),
-            "team_key": _safe_str(teamkey),
-            "user_id":  user.id,
-        }, on_conflict="week_id,segment,user_id").execute()
+        from supabase import create_client
+        # Use a fresh client with the user's JWT so RLS sees authenticated user
+        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
+        sb.postgrest.auth(session.access_token)
+        sb.table("team_of_week_votes").upsert(
+            {
+                "week_id":  _safe_str(weekid),
+                "segment":  _safe_str(segment),
+                "pick":     _safe_str(pick),
+                "team_key": _safe_str(teamkey),
+                "user_id":  user.id,
+            },
+            on_conflict="week_id,segment,user_id",
+        ).execute()
+        st.rerun()
     except Exception as e:
         st.error(f"Vote failed: {e}")
 
@@ -368,7 +375,6 @@ def render_matchup(segment: str) -> None:
         if _signed_in:
             if st.button(f"Vote: {teamA}", key=f"voteA_{segment}", use_container_width=True, disabled=(teamA_key == "")):
                 append_vote(week_sel, segment, "A", teamA_key)
-                st.rerun()
         else:
             st.info("🔑 Sign in to vote.")
         if total > 0:
@@ -397,7 +403,6 @@ def render_matchup(segment: str) -> None:
         if _signed_in:
             if st.button(f"Vote: {teamB}", key=f"voteB_{segment}", use_container_width=True, disabled=(teamB_key == "")):
                 append_vote(week_sel, segment, "B", teamB_key)
-                st.rerun()
         else:
             st.info("🔑 Sign in to vote.")
         if total > 0:

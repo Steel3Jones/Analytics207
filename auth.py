@@ -1,10 +1,9 @@
+import time
 import streamlit as st
 from supabase import create_client
 
-
 SUPABASE_URL = "https://lofxbafahfogptdkjhhv.supabase.co"
 SUPABASE_KEY = "sb_publishable_FpCxSeMXvTU3MhfD1qrTnQ_eCKaaySR"
-
 
 @st.cache_resource
 def get_supabase():
@@ -15,19 +14,34 @@ def get_user():
     user = st.session_state.get("user", None)
     if user is None:
         return None
+
     session = st.session_state.get("session", None)
-    if session and hasattr(session, "refresh_token") and session.refresh_token:
+    if session is None:
+        return user
+
+    # Only refresh if session is actually expired (or within 60s of expiry)
+    expires_at = getattr(session, "expires_at", None)
+    if expires_at is not None:
+        try:
+            expiry = int(expires_at)
+            if expiry - int(time.time()) > 60:
+                return user  # still valid, skip refresh entirely
+        except Exception:
+            pass
+
+    # Session expired or expiry unknown — try to refresh
+    refresh_token = getattr(session, "refresh_token", None)
+    if refresh_token:
         try:
             sb = get_supabase()
-            res = sb.auth.refresh_session(session.refresh_token)
-            st.session_state["user"] = res.user
+            res = sb.auth.refresh_session(refresh_token)
+            st.session_state["user"]    = res.user
             st.session_state["session"] = res.session
             return res.user
         except Exception:
-            st.session_state["user"] = None
-            st.session_state["session"] = None
-            st.session_state["profile"] = None
-            return None
+            # Don't wipe the user on a failed refresh — return what we have
+            return user
+
     return user
 
 
@@ -102,12 +116,12 @@ def _login_form():
 
 def _do_login(prefix=""):
     sb = get_supabase()
-    email = st.text_input("Email", key=f"{prefix}login_email")
+    email    = st.text_input("Email", key=f"{prefix}login_email")
     password = st.text_input("Password", type="password", key=f"{prefix}login_pw")
     if st.button("Log In", key=f"{prefix}login_btn"):
         try:
             res = sb.auth.sign_in_with_password({"email": email, "password": password})
-            st.session_state["user"] = res.user
+            st.session_state["user"]    = res.user
             st.session_state["session"] = res.session
             st.session_state["profile"] = None
             st.rerun()
@@ -117,9 +131,9 @@ def _do_login(prefix=""):
 
 def _do_signup(prefix=""):
     sb = get_supabase()
-    new_email = st.text_input("Email", key=f"{prefix}signup_email")
-    display_name = st.text_input("Display Name", key=f"{prefix}signup_name")
-    new_password = st.text_input("Password", type="password", key=f"{prefix}signup_pw")
+    new_email        = st.text_input("Email", key=f"{prefix}signup_email")
+    display_name     = st.text_input("Display Name", key=f"{prefix}signup_name")
+    new_password     = st.text_input("Password", type="password", key=f"{prefix}signup_pw")
     confirm_password = st.text_input("Confirm Password", type="password", key=f"{prefix}signup_pw2")
     if st.button("Sign Up", key=f"{prefix}signup_btn"):
         if new_password != confirm_password:
@@ -144,15 +158,16 @@ def logout_button():
     """Show user status in sidebar via CSS injection."""
     if not is_logged_in():
         return
-    user = get_user()
+    user    = get_user()
     profile = get_profile()
     name = (
         (profile.get("display_name") if profile else None)
         or user.user_metadata.get("display_name", None)
         or user.email
     )
+
     sub_status = profile.get("subscription_status", "free") if profile else "free"
-    sub_type = profile.get("subscription_type", "") if profile else ""
+    sub_type   = profile.get("subscription_type", "")       if profile else ""
 
     if sub_status == "active":
         if sub_type == "annual_pass":
@@ -166,17 +181,18 @@ def logout_button():
         status_text = f"👤 {name} · Free"
 
     st.markdown(f"""
-    <style>
-    [data-testid="stSidebarNav"]::after {{
-        content: "{status_text}";
-        display: block;
-        font-size: 11px;
-        color: rgba(148,163,184,0.6);
-        padding: 6px 12px 0 12px;
-        pointer-events: none;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
+<style>
+[data-testid="stSidebarNav"]::before {{
+    content: "{status_text}";
+    display: block;
+    padding: 12px 16px 8px;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    border-bottom: 1px solid #1e293b;
+    margin-bottom: 6px;
+}}
+</style>
+""", unsafe_allow_html=True)
 
 
 def require_subscription(message="\U0001f512 Subscribe to unlock this content!"):
@@ -201,15 +217,15 @@ def create_checkout_url(user, price_id: str, mode: str = "subscription"):
     import os
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
-    profile = get_profile()
+    profile            = get_profile()
     stripe_customer_id = profile.get("stripe_customer_id") if profile else None
 
     session_params = {
         "success_url": "https://analytics207.com/My_Account?checkout=success",
-        "cancel_url": "https://analytics207.com/My_Account?checkout=cancel",
-        "mode": mode,
-        "metadata": {"supabase_user_id": user.id},
-        "line_items": [{"price": price_id, "quantity": 1}],
+        "cancel_url":  "https://analytics207.com/My_Account?checkout=cancel",
+        "mode":        mode,
+        "metadata":    {"supabase_user_id": user.id},
+        "line_items":  [{"price": price_id, "quantity": 1}],
     }
 
     if stripe_customer_id:
