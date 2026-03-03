@@ -28,3 +28,4 @@ logs/
 data/predictions/*.csv 
 pir_export.csv 
 merged_full.csv 
+".streamlit/secrets.toml" 
