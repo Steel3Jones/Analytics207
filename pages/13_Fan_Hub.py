@@ -34,6 +34,17 @@ WEEKLY_WINNERS_FILE = DATA_DIR / "pick5" / "pick5_weekly_winners_v50.parquet"
 
 MIN_PICKS_LEADERBOARD = 10
 
+SUPABASE_URL      = "https://lofxbafahfogptdkjhhv.supabase.co"
+import os as _os
+SUPABASE_ANON_KEY = _os.environ.get("SUPABASE_ANON_KEY", "")
+
+@st.cache_resource
+def _get_sb():
+    from supabase import create_client
+    import streamlit as _st
+    key = SUPABASE_ANON_KEY or _st.secrets.get("SUPABASE_KEY", "")
+    return create_client(SUPABASE_URL, key)
+
 
 # ══════════════════════════════════════════════════════════════
 #  CSS
@@ -155,6 +166,18 @@ def _inject_css() -> None:
 .badge-beating { background: rgba(52,211,153,0.12);  border: 1px solid rgba(52,211,153,0.3);  color: #34d399; }
 .badge-losing  { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: #f87171; }
 .badge-tied    { background: rgba(148,163,184,0.12); border: 1px solid rgba(148,163,184,0.3); color: #94a3b8; }
+
+/* ── Stump The Model styles ── */
+.stm-lb-card { background: #0a0f1e; border-radius: 16px; overflow: hidden; }
+.stm-lb-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.stm-lb-row:last-child { border-bottom: none; }
+.stm-lb-rank { font-size: 1.5rem; font-weight: 900; min-width: 40px; text-align: center; }
+.stm-lb-name { font-size: 0.95rem; font-weight: 800; color: #f1f5f9; flex: 1; }
+.stm-lb-sub  { font-size: 0.68rem; color: #475569; margin-top: 2px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -162,9 +185,28 @@ def _inject_css() -> None:
 # ══════════════════════════════════════════════════════════════
 #  DATA LOADERS
 # ══════════════════════════════════════════════════════════════
+
+def load_survivor_picks() -> pd.DataFrame:
+    try:
+        sb  = _get_sb()
+        res = sb.table("survivor_picks").select("*").execute()
+
+        if res.data:
+            df = pd.DataFrame(res.data)
+            if "survived"      in df.columns: df["survived"]      = df["survived"].fillna(False).astype(bool)
+            if "mulligan_used" in df.columns: df["mulligan_used"] = df["mulligan_used"].fillna(False).astype(bool)
+            return df
+        return pd.DataFrame()
+    except Exception as e:
+        st.warning(f"Survivor picks load error: {e}")
+        return pd.DataFrame()
+
+
+
+
 def load_totw_votes() -> pd.DataFrame:
     try:
-        sb  = get_supabase()
+        sb  = _get_sb()
         res = sb.table("team_of_week_votes").select("week_id,segment,team_key,user_id").execute()
         return pd.DataFrame(res.data) if res.data else pd.DataFrame()
     except Exception as e:
@@ -187,7 +229,7 @@ def load_totw_nominees() -> pd.DataFrame:
 
 def load_milestone_claims() -> pd.DataFrame:
     try:
-        sb  = get_supabase()
+        sb  = _get_sb()
         res = sb.table("milestone_claims").select("claim_id,school,submitted_by,submitted_at,category_id").execute()
         return pd.DataFrame(res.data) if res.data else pd.DataFrame()
     except Exception as e:
@@ -197,7 +239,7 @@ def load_milestone_claims() -> pd.DataFrame:
 
 def load_milestone_votes() -> pd.DataFrame:
     try:
-        sb  = get_supabase()
+        sb  = _get_sb()
         res = sb.table("milestone_votes").select("claim_id,vote,user_id").execute()
         return pd.DataFrame(res.data) if res.data else pd.DataFrame()
     except Exception as e:
@@ -207,7 +249,7 @@ def load_milestone_votes() -> pd.DataFrame:
 
 def load_pick5_rosters() -> pd.DataFrame:
     try:
-        sb  = get_supabase()
+        sb  = _get_sb()
         res = sb.table("pick_5_rosters").select("*").execute()
         return pd.DataFrame(res.data) if res.data else pd.DataFrame()
     except Exception as e:
@@ -217,7 +259,7 @@ def load_pick5_rosters() -> pd.DataFrame:
 
 def load_fan_picks() -> pd.DataFrame:
     try:
-        sb  = get_supabase()
+        sb  = _get_sb()
         res = sb.table("fan_picks").select("*").execute()
         return pd.DataFrame(res.data) if res.data else pd.DataFrame()
     except Exception as e:
@@ -225,12 +267,28 @@ def load_fan_picks() -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def load_stump_picks() -> pd.DataFrame:
+    try:
+        sb  = _get_sb()
+        res = sb.table("stump_picks").select("*").execute()
+        if res.data:
+            df = pd.DataFrame(res.data)
+            if "stumped"       in df.columns: df["stumped"]       = df["stumped"].fillna(False).astype(bool)
+            if "points_earned" in df.columns: df["points_earned"] = pd.to_numeric(df["points_earned"], errors="coerce").fillna(0)
+            if "model_conf"    in df.columns: df["model_conf"]    = pd.to_numeric(df["model_conf"],    errors="coerce").fillna(0)
+            return df
+        return pd.DataFrame()
+    except Exception as e:
+        st.warning(f"Stump picks load error: {e}")
+        return pd.DataFrame()
+
+
 def load_display_names() -> dict:
     try:
-        sb  = get_supabase()
+        sb  = _get_sb()
         res = sb.table("profiles").select("id, display_name").execute()
         return {
-            r["id"]: r.get("display_name") or f"Fan{r['id'][:6]}"
+            r["id"]: r.get("display_name") or f"Fan#{r['id'][:6]}"
             for r in (res.data or [])
         }
     except:
@@ -254,7 +312,7 @@ def fmt_week(d) -> str:
 # ══════════════════════════════════════════════════════════════
 #  RENDER HELPERS
 # ══════════════════════════════════════════════════════════════
-RANK_ICONS = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+RANK_ICONS = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
 P5_COLORS  = ["#fbbf24", "#94a3b8", "#cd7c2f"]
 
 
@@ -312,20 +370,23 @@ def render_community_tab(
     ms_votes: pd.DataFrame,
     p5: pd.DataFrame,
     fan_picks: pd.DataFrame,
+    stump_picks: pd.DataFrame,
 ) -> None:
-    total_voters     = totw_votes["user_id"].nunique()  if not totw_votes.empty and "user_id" in totw_votes.columns else 0
-    total_votes      = len(totw_votes)
-    total_claims     = len(ms_claims)
-    total_p5_players = p5["Manager"].nunique()          if not p5.empty and "Manager" in p5.columns else 0
-    total_fan_pickers = fan_picks["user_id"].nunique()  if not fan_picks.empty and "user_id" in fan_picks.columns else 0
+    total_voters      = totw_votes["user_id"].nunique()  if not totw_votes.empty  and "user_id" in totw_votes.columns  else 0
+    total_votes       = len(totw_votes)
+    total_claims      = len(ms_claims)
+    total_p5_players  = p5["Manager"].nunique()          if not p5.empty          and "Manager" in p5.columns          else 0
+    total_fan_pickers = fan_picks["user_id"].nunique()   if not fan_picks.empty   and "user_id" in fan_picks.columns   else 0
+    total_stumpers    = stump_picks["user_id"].nunique() if not stump_picks.empty and "user_id" in stump_picks.columns else 0
 
-    c1, c2, c3, c4, c5 = st.columns(5)
+    c1, c2, c3, c4, c5, c6 = st.columns(6)
     for col, val, lbl, color in [
         (c1, total_voters,       "TOTW Voters",       "#a78bfa"),
         (c2, total_votes,        "Total Votes Cast",  "#f9a8d4"),
         (c3, total_claims,       "Milestones Filed",  "#fbbf24"),
         (c4, total_p5_players,   "Pick 5 Players",    "#4ade80"),
         (c5, total_fan_pickers,  "Fan vs Model",      "#67e8f9"),
+        (c6, total_stumpers,     "Stump Players",     "#c4b5fd"),
     ]:
         with col:
             st.markdown(_pill(val, lbl, color), unsafe_allow_html=True)
@@ -721,11 +782,9 @@ def render_fan_vs_model_tab(fan_picks: pd.DataFrame, display_names: dict) -> Non
     scored["fan_correct"]   = scored["fan_correct"].fillna(False).astype(bool)
     scored["model_correct"] = scored["model_correct"].fillna(False).astype(bool)
 
-    # ── Global model benchmark ─────────────────────────────────
     model_wins, model_losses, model_pct = _model_on_fan_games(fan_picks)
     model_total = model_wins + model_losses
 
-    # ── Model banner ───────────────────────────────────────────
     st.markdown(
         f'<div style="background:linear-gradient(135deg,#1a0a2e,#2d1b4e);'
         f'border:1px solid rgba(249,115,22,0.3);border-radius:16px;'
@@ -743,7 +802,6 @@ def render_fan_vs_model_tab(fan_picks: pd.DataFrame, display_names: dict) -> Non
         unsafe_allow_html=True,
     )
 
-    # ── Per-fan leaderboard ────────────────────────────────────
     lb = (
         scored.groupby("user_id", dropna=False)
         .agg(Total=("fan_correct", "count"), FanWins=("fan_correct", "sum"), ModelWins=("model_correct", "sum"))
@@ -765,9 +823,8 @@ def render_fan_vs_model_tab(fan_picks: pd.DataFrame, display_names: dict) -> Non
     for i, row in lb.iterrows():
         icon  = RANK_ICONS[i] if i < len(RANK_ICONS) else f"#{i+1}"
         uid   = str(row["user_id"])
-        label = display_names.get(uid, f"Fan{uid[:6]}")
+        label = display_names.get(uid, f"Fan#{uid[:6]}")
         edge  = row["Edge"]
-
         is_me      = (_uid and uid == str(_uid))
         name_style = "color:#67e8f9;" if is_me else ""
         me_tag     = ' &nbsp;<span style="font-size:0.6rem;color:#67e8f9;font-weight:800;">(you)</span>' if is_me else ""
@@ -790,15 +847,216 @@ def render_fan_vs_model_tab(fan_picks: pd.DataFrame, display_names: dict) -> Non
             f'<div style="margin-right:16px;">'
             f'<span class="fvm-vs-model-badge {badge_cls}">{badge_txt}</span>'
             f'</div>'
-            f'<div class="fh-lb-stat" style="text-align:center;min-width:60px;">'
+            f'<div style="text-align:center;min-width:60px;">'
             f'<div style="font-size:1.1rem;font-weight:900;color:#67e8f9;">{row["FanPct"]:.1f}%</div>'
             f'<div style="font-size:0.55rem;color:#475569;text-transform:uppercase;letter-spacing:0.07em;margin-top:2px;">Win %</div>'
             f'</div>'
             f'</div>'
         )
     st.markdown(f'<div class="fh-lb-card">{rows_html}</div>', unsafe_allow_html=True)
-    st.caption(f"Minimum {MIN_PICKS_LEADERBOARD} scored picks required to appear · Head to 🤖 Fan vs. The Model to make picks")
+    st.caption(f"Minimum {MIN_PICKS_LEADERBOARD} scored picks required · Head to 🤖 Fan vs. The Model to make picks")
 
+
+# ══════════════════════════════════════════════════════════════
+#  TAB 6 — STUMP THE MODEL LEADERBOARD
+# ══════════════════════════════════════════════════════════════
+def render_stump_leaderboard_tab(stump_picks: pd.DataFrame, display_names: dict) -> None:
+    if stump_picks.empty:
+        _coming_soon("🧠", "No stump attempts yet", "Be the first to challenge the model!")
+        return
+
+    scored = stump_picks[
+        stump_picks["actual_winner"].notna() &
+        (stump_picks["actual_winner"].astype(str).str.strip() != "") &
+        (stump_picks["actual_winner"].astype(str).str.strip() != "None") &
+        (stump_picks["actual_winner"].astype(str).str.strip() != "nan")
+    ].copy()
+
+    if scored.empty:
+        _coming_soon("⏳", "No results yet", "Check back after tonight's games finish.")
+        return
+
+    scored["stumped"]       = scored["stumped"].fillna(False).astype(bool)
+    scored["points_earned"] = pd.to_numeric(scored["points_earned"], errors="coerce").fillna(0)
+
+    # ── Season stats strip ────────────────────────────────────
+    total_stumps  = int(scored["stumped"].sum())
+    total_pts     = int(scored["points_earned"].sum())
+    total_attempts = len(scored)
+    unique_players = scored["user_id"].nunique()
+
+    c1, c2, c3, c4 = st.columns(4)
+    for col, val, lbl, color in [
+        (c1, unique_players,  "Players",         "#a855f7"),
+        (c2, total_attempts,  "Total Attempts",  "#c4b5fd"),
+        (c3, total_stumps,    "Successful Stumps","#34d399"),
+        (c4, total_pts,       "Points Awarded",  "#f97316"),
+    ]:
+        with col:
+            st.markdown(_pill(val, lbl, color), unsafe_allow_html=True)
+
+    st.write("")
+
+    # ── Best stump trophy ─────────────────────────────────────
+    best_stump = scored[scored["stumped"] == True].nlargest(1, "model_conf") if "model_conf" in scored.columns else pd.DataFrame()
+    if not best_stump.empty:
+        bs      = best_stump.iloc[0]
+        bs_uid  = str(bs["user_id"])
+        bs_name = display_names.get(bs_uid, f"Fan#{bs_uid[:6]}")
+        bs_conf = float(bs["model_conf"])
+        bs_game = str(bs["game_id"])
+        st.markdown(
+            f'<div style="background:linear-gradient(135deg,#1a0533,#2d1b4e);'
+            f'border:1px solid rgba(168,85,247,0.4);border-radius:16px;'
+            f'padding:20px 28px;margin-bottom:24px;display:flex;align-items:center;gap:20px;">'
+            f'<div style="font-size:2.5rem;">👑</div>'
+            f'<div>'
+            f'<div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;'
+            f'letter-spacing:0.12em;color:#a855f7;margin-bottom:4px;">Best Stump This Season</div>'
+            f'<div style="font-size:1.4rem;font-weight:900;color:#f1f5f9;">{bs_name}</div>'
+            f'<div style="font-size:0.72rem;color:#475569;margin-top:2px;">'
+            f'Stumped the model at {bs_conf:.0f}% confidence · Game: {bs_game}</div>'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    # ── Leaderboard ───────────────────────────────────────────
+    lb = (
+        scored.groupby("user_id", dropna=False)
+        .agg(
+            TotalPts =("points_earned", "sum"),
+            Stumps   =("stumped",        "sum"),
+            Attempts =("stumped",        "count"),
+        )
+        .reset_index()
+    )
+    lb["StumpRate"] = (lb["Stumps"] / lb["Attempts"] * 100).round(1)
+    lb = lb[lb["Attempts"] >= 3]
+    lb = lb.sort_values(["TotalPts", "Stumps"], ascending=False).reset_index(drop=True)
+
+    _section("🧠 Season Stump Leaderboard", "#a855f7")
+
+    if lb.empty:
+        _coming_soon("⏳", "Need 3+ scored attempts to appear", "Keep stumping to unlock your spot!")
+        return
+
+    rows_html = ""
+    for i, row in lb.iterrows():
+        icon  = RANK_ICONS[i] if i < len(RANK_ICONS) else f"#{i+1}"
+        uid   = str(row["user_id"])
+        label = display_names.get(uid, f"Fan#{uid[:6]}")
+        is_me = (_uid and uid == str(_uid))
+        name_style = "color:#a855f7;" if is_me else ""
+        me_tag     = ' &nbsp;<span style="font-size:0.6rem;color:#a855f7;font-weight:800;">(you)</span>' if is_me else ""
+
+        rows_html += (
+            f'<div class="stm-lb-row">'
+            f'<div class="stm-lb-rank">{icon}</div>'
+            f'<div style="flex:1;">'
+            f'<div class="stm-lb-name" style="{name_style}">{label}{me_tag}</div>'
+            f'<div class="stm-lb-sub">'
+            f'{int(row["Stumps"])} stumps · {int(row["Attempts"])} attempts · {row["StumpRate"]:.0f}% rate'
+            f'</div>'
+            f'</div>'
+            f'<div style="text-align:center;min-width:80px;margin-right:12px;">'
+            f'<div style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:0.07em;">Stump Rate</div>'
+            f'<div style="font-size:1rem;font-weight:900;color:#ec4899;">{row["StumpRate"]:.0f}%</div>'
+            f'</div>'
+            f'<div style="text-align:center;min-width:70px;">'
+            f'<div style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:0.07em;">Points</div>'
+            f'<div style="font-size:1.2rem;font-weight:900;color:#a855f7;">+{int(row["TotalPts"])}</div>'
+            f'</div>'
+            f'</div>'
+        )
+    st.markdown(f'<div class="stm-lb-card">{rows_html}</div>', unsafe_allow_html=True)
+    st.caption("Minimum 3 scored attempts required · Head to 🧠 Stump The Model to play")
+
+def render_survivor_tab(survivor_picks: pd.DataFrame, display_names: dict) -> None:
+    
+    if survivor_picks.empty:
+
+        _coming_soon("☠️", "No survivors yet", "Head to ☠️ Survivor to make your first pick!")
+        return
+
+    all_users = survivor_picks["user_id"].dropna().unique().tolist()
+    scored    = survivor_picks[survivor_picks["survived"].notna()].copy()
+
+    standings = []
+    for uid in all_users:
+        u        = survivor_picks[survivor_picks["user_id"] == uid]
+        u_scored = scored[scored["user_id"] == uid]
+        mull     = bool(u["mulligan_used"].any())
+        survived = int(u_scored["survived"].fillna(False).sum())
+        losses   = u_scored[u_scored["survived"] == False]
+        alive    = True
+        if len(losses) >= 2 or (len(losses) == 1 and mull):
+            alive = False
+        standings.append({"user_id": uid, "alive": alive, "weeks_survived": survived, "mulligan_used": mull})
+
+    lb          = pd.DataFrame(standings).sort_values(["alive", "weeks_survived"], ascending=[False, False]).reset_index(drop=True)
+    alive_count = int(lb["alive"].sum())
+    total_count = len(lb)
+
+    # ── Summary pills ─────────────────────────────────────────
+    c1, c2, c3 = st.columns(3)
+    for col, val, lbl, color in [
+        (c1, alive_count,               "Still Alive",  "#22c55e"),
+        (c2, total_count - alive_count, "Eliminated",   "#dc2626"),
+        (c3, total_count,               "Total Players","#f97316"),
+    ]:
+        with col:
+            st.markdown(_pill(val, lbl, color), unsafe_allow_html=True)
+
+    st.write("")
+
+    # ── Still standing ────────────────────────────────────────
+    _section("🟢 Still Standing", "#22c55e")
+    alive_lb = lb[lb["alive"] == True]
+    if alive_lb.empty:
+        _coming_soon("☠️", "Everyone's been eliminated!", "No survivors remain.")
+    else:
+        rows_html = ""
+        for i, row in alive_lb.iterrows():
+            uid   = str(row["user_id"])
+            label = display_names.get(uid, f"Fan#{uid[:6]}")
+            is_me = (_uid and uid == str(_uid))
+            name_style = "color:#f97316;" if is_me else ""
+            me_tag     = ' &nbsp;<span style="font-size:0.6rem;color:#f97316;font-weight:800;">(you)</span>' if is_me else ""
+            mull_tag   = ' &nbsp;<span style="font-size:0.6rem;color:#fbbf24;">mulligan used</span>' if row["mulligan_used"] else ""
+            rows_html += (
+                f'<div class="fh-lb-row">'
+                f'<div class="fh-lb-rank">{"🥇" if i == 0 else "🟢"}</div>'
+                f'<div style="flex:1;">'
+                f'<div class="fh-lb-name" style="{name_style}">{label}{me_tag}{mull_tag}</div>'
+                f'<div class="fh-lb-sub">{int(row["weeks_survived"])} week(s) survived</div>'
+                f'</div>'
+                f'<div style="font-size:1.1rem;font-weight:900;color:#22c55e;">{int(row["weeks_survived"])}w</div>'
+                f'</div>'
+            )
+        st.markdown(f'<div class="fh-lb-card">{rows_html}</div>', unsafe_allow_html=True)
+
+    # ── Eliminated ────────────────────────────────────────────
+    dead_lb = lb[lb["alive"] == False]
+    if not dead_lb.empty:
+        _section("💀 Eliminated", "#dc2626")
+        rows_html = ""
+        for _, row in dead_lb.iterrows():
+            uid   = str(row["user_id"])
+            label = display_names.get(uid, f"Fan#{uid[:6]}")
+            rows_html += (
+                f'<div class="fh-lb-row" style="opacity:0.5;">'
+                f'<div class="fh-lb-rank">💀</div>'
+                f'<div style="flex:1;">'
+                f'<div class="fh-lb-name" style="color:#475569;">{label}</div>'
+                f'<div class="fh-lb-sub">{int(row["weeks_survived"])} week(s) survived</div>'
+                f'</div>'
+                f'<div style="font-size:1.1rem;font-weight:900;color:#475569;">{int(row["weeks_survived"])}w</div>'
+                f'</div>'
+            )
+        st.markdown(f'<div class="fh-lb-card">{rows_html}</div>', unsafe_allow_html=True)
+
+    st.caption("Head to ☠️ Survivor to make your weekly pick")
 
 # ══════════════════════════════════════════════════════════════
 #  MAIN
@@ -813,29 +1071,33 @@ def main() -> None:
   <div class="fh-hero-title">The Fan Hub</div>
   <div class="fh-hero-sub">
     Your home for everything community — vote totals, milestone records,
-    Pick 5 standings, and go head-to-head against THE MODEL itself.
+    Pick 5 standings, Fan vs. Model, Stump The Model, and Survivor standings.
   </div>
 </div>
 """, unsafe_allow_html=True)
 
-    totw_votes    = load_totw_votes()
-    nominees      = load_totw_nominees()
-    ms_claims     = load_milestone_claims()
-    ms_votes      = load_milestone_votes()
-    p5            = load_pick5_rosters()
-    fan_picks     = load_fan_picks()
-    display_names = load_display_names()
+    totw_votes      = load_totw_votes()
+    nominees        = load_totw_nominees()
+    ms_claims       = load_milestone_claims()
+    ms_votes        = load_milestone_votes()
+    p5              = load_pick5_rosters()
+    fan_picks       = load_fan_picks()
+    stump_picks     = load_stump_picks()
+    survivor_picks  = load_survivor_picks()
+    display_names   = load_display_names()
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "🏠 Community",
         "🗳️ Team of the Week",
         "💎 Pick 5",
         "🏆 Milestones",
         "🤖 Fan vs. Model",
+        "🧠 Stump The Model",
+        "☠️ Survivor",
     ])
 
     with tab1:
-        render_community_tab(totw_votes, ms_claims, ms_votes, p5, fan_picks)
+        render_community_tab(totw_votes, ms_claims, ms_votes, p5, fan_picks, stump_picks)
     with tab2:
         render_totw_tab(totw_votes, nominees)
     with tab3:
@@ -844,9 +1106,14 @@ def main() -> None:
         render_milestones_tab(ms_claims, ms_votes)
     with tab5:
         render_fan_vs_model_tab(fan_picks, display_names)
+    with tab6:
+        render_stump_leaderboard_tab(stump_picks, display_names)
+    with tab7:
+        render_survivor_tab(survivor_picks, display_names)
 
     render_footer()
 
 
 if __name__ == "__main__":
     main()
+
