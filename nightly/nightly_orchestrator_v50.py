@@ -13,17 +13,16 @@ from datetime import datetime
 from pathlib import Path
 
 
-ROOT = Path(r"C:\ANALYTICS207")
-DATADIR = ROOT / "data"
-BACKUPDIR = ROOT / "backup"
-LOGSDIR = ROOT / "logs"
+ROOT        = Path(r"C:\ANALYTICS207")
+DATADIR     = ROOT / "data"
+BACKUPDIR   = ROOT / "backup"
+LOGSDIR     = ROOT / "logs"
 SCRAPERSDIR = ROOT / "scrapers"
-TRUTHPATH = DATADIR / "truth.csv"
+TRUTHPATH   = DATADIR / "truth.csv"
 
 
 #-----------------FOOTER: Imports & Constants
 # ======================================================================================
-
 
 
 # ======================================================================================
@@ -38,7 +37,6 @@ def run_cmd(cmd: list[str], cwd: Path | None = None) -> None:
         raise RuntimeError(f"Command failed ({result.returncode}): {' '.join(cmd)}")
 
 
-
 def backup_pre_run(timestamp: str) -> Path:
     dest = BACKUPDIR / f"{timestamp}__pre"
     dest.mkdir(parents=True, exist_ok=True)
@@ -47,7 +45,6 @@ def backup_pre_run(timestamp: str) -> Path:
             shutil.copy2(src, dest / src.name)
     print(f"Pre-run backup at: {dest}")
     return dest
-
 
 
 def backup_post_scrape(timestamp: str) -> Path:
@@ -64,7 +61,6 @@ def backup_post_scrape(timestamp: str) -> Path:
 # ======================================================================================
 
 
-
 # ======================================================================================
 #-----------------HEADER: Main
 # ======================================================================================
@@ -75,55 +71,49 @@ def main() -> None:
     LOGSDIR.mkdir(exist_ok=True)
     BACKUPDIR.mkdir(exist_ok=True)
 
-
-    logfile = LOGSDIR / f"nightly_v50_{ts}.log"
+    logfile    = LOGSDIR / f"nightly_v50_{ts}.log"
     sys.stdout = open(logfile, "w", buffering=1, encoding="utf-8")
     sys.stderr = sys.stdout
 
-
     print("NIGHTLY ORCHESTRATOR V50 START", ts)
-
 
     try:
         backup_pre_run(ts)
 
-
         print("1) Running scrapers pipeline to build data/truth.csv")
-        run_cmd([sys.executable, "MPA_SCRAPER_V50.py"],        cwd=SCRAPERSDIR)
-        run_cmd([sys.executable, "MPA_SCORES_SCRAPER_V50.py"], cwd=SCRAPERSDIR)
-        run_cmd([sys.executable, "JOIN_SCORES_V50.py"],        cwd=SCRAPERSDIR)
+        run_cmd([sys.executable, "MPA_SCRAPER_V50.py"],          cwd=SCRAPERSDIR)
+        run_cmd([sys.executable, "MPA_SCORES_SCRAPER_V50.py"],   cwd=SCRAPERSDIR)
+        run_cmd([sys.executable, "JOIN_SCORES_V50.py"],          cwd=SCRAPERSDIR)
         run_cmd([sys.executable, "FIX_HOME_AWAY_TEAM_NAMES.py"], cwd=SCRAPERSDIR)
-
 
         backup_post_scrape(ts)
 
-
         if not TRUTHPATH.exists():
             raise FileNotFoundError(f"Expected truth file not found at {TRUTHPATH}")
-
 
         print("2) Running nightly_v50 build")
         if str(ROOT) not in sys.path:
             sys.path.insert(0, str(ROOT))
 
-
         from nightly.nightly_v50 import main as run_build  # type: ignore
         run_build()
-
 
         print("3) Running postseason bracket scrape")
         run_cmd([sys.executable, "scrape_postseason.py"], cwd=SCRAPERSDIR)
 
-
         print("4) Pushing updated parquets to GitHub")
-        run_cmd(["git", "add", "data/"], cwd=ROOT)
+        run_cmd(["git", "add",    "data/"],                                        cwd=ROOT)
         run_cmd(["git", "commit", "--allow-empty", "-m", f"nightly update {ts}"], cwd=ROOT)
-        run_cmd(["git", "push", "origin", "main"], cwd=ROOT)
+        run_cmd(["git", "push",   "origin", "main"],                               cwd=ROOT)
 
+        print("5) Scoring stump picks against tonight's results")
+        run_cmd([sys.executable, "score_stump_picks.py"],    cwd=ROOT / "tools")
+
+        print("6) Scoring survivor picks against tonight's results")
+        run_cmd([sys.executable, "score_survivor_picks.py"], cwd=ROOT / "tools")
 
         print("NIGHTLY ORCHESTRATOR V50 SUCCESS")
         sys.exit(0)
-
 
     except Exception as e:
         print("NIGHTLY ORCHESTRATOR V50 FAILED")

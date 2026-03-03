@@ -17,18 +17,23 @@ from layout import (
 from sidebar_auth import render_sidebar_auth
 
 
+
 ANNUAL_PRICE_ID = "price_1T6GIqLWG769Pv4aEBoXjLgq"
+
 
 st.set_page_config(page_title="My Account", page_icon="👤", layout="wide")
 
+
 render_sidebar_auth()
 apply_global_layout_tweaks()
+
 
 user = get_user()
 profile = (get_profile() or {}) if user else {}
 sub_status = profile.get("subscription_status", "free") if profile else "free"
 sub_type = profile.get("subscription_type", "") if profile else ""
 stripe_id = profile.get("stripe_customer_id", "") if profile else ""
+
 
 render_logo()
 render_page_header(
@@ -37,6 +42,7 @@ render_page_header(
     subtitle="Manage your plan, view features, and access premium content.",
 )
 st.write("")
+
 
 
 # ── Login / Signup (not logged in) ──
@@ -88,6 +94,7 @@ if not user:
     st.markdown("---")
 
 
+
 # ── Account Details (logged in only) ──
 if user:
     name = profile.get("display_name") or (
@@ -129,7 +136,7 @@ if user:
                     ANNUAL PASS MEMBER
                 </div>
                 <div style="font-size: 13px; color: #94a3b8; margin-top: 6px;">
-                    Full year access — live season tools plus all offseason content, blog deep dives, and historical data.
+                    Full year access — live season tools plus all offseason content and priority support.
                     You're locked in through the entire 2026–27 cycle.
                 </div>
             </div>
@@ -140,7 +147,6 @@ if user:
             """
             <ul style="font-size:13px; color:#cbd5e1; margin-top:8px; margin-bottom:16px;">
                 <li>Full-season access to every prediction, ranking, and bracket tool.</li>
-                <li>Offseason content: blog posts, historical data, preseason previews.</li>
                 <li>Early access to new features as they roll out.</li>
                 <li>Priority support and feature request consideration.</li>
             </ul>
@@ -160,7 +166,7 @@ if user:
                     SEASON PASS MEMBER
                 </div>
                 <div style="font-size: 13px; color: #94a3b8; margin-top: 6px;">
-                    Full access to every live tool for the entire 2026–27 season (Nov–Feb).
+                    Full access to every live tool for the entire 2025–26 season (December–March).
                 </div>
             </div>
             """,
@@ -176,7 +182,7 @@ if user:
             """,
             unsafe_allow_html=True,
         )
-        st.info("All live season features are unlocked through February.")
+        st.info("All live season features are unlocked through March.")
 
     elif sub_status == "active" and sub_type not in ("season_pass", "annual_pass"):
         st.info("You're a Pro Monthly member with full access while your subscription is active.")
@@ -194,12 +200,10 @@ if user:
         st.subheader("Manage Subscription")
 
         if sub_type == "annual_pass":
-            # ✅ One-time purchase — no billing to manage, no Stripe portal
             st.markdown("You have an **Annual Pass** — no recurring billing. Full year access is locked in!")
 
         elif sub_type == "season_pass":
-            # ✅ One-time purchase — offer upgrade only, no Stripe portal
-            st.markdown("You have a **Season Pass** — no recurring billing. You're all set for the 2026–27 season!")
+            st.markdown("You have a **Season Pass** — no recurring billing. You're all set for the 2025–26 season!")
             st.markdown(
                 """
                 <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.3);
@@ -208,8 +212,7 @@ if user:
                         ⬆ Upgrade to Annual Pass — $49.99
                     </span><br>
                     <span style="font-size:12px; color:#94a3b8;">
-                        Add offseason content, blog deep dives, historical data, and priority support.
-                        Full year access locked in.
+                        Add priority support and full year access locked in.
                     </span>
                 </div>
                 """,
@@ -222,17 +225,16 @@ if user:
                     st.stop()
 
         else:
-            # ✅ Monthly subscriber — show upgrades AND Manage Billing
             st.markdown("You have an active **Monthly** subscription.")
             st.markdown(
                 """
                 <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3);
                      border-radius:12px; padding:16px; margin:8px 0;">
                     <span style="font-size:14px; font-weight:700; color:#fbbf24;">
-                        ⬆ Upgrade to Season Pass — $19.99 (save 28%)
+                        ⬆ Upgrade to Season Pass — $19.99 (28.5% Savings!)
                     </span><br>
                     <span style="font-size:12px; color:#94a3b8;">
-                        One-time payment for the full 2026–27 season (Nov–Feb).
+                        One-time payment for the full 2025–26 season (December–March).
                     </span>
                 </div>
                 """,
@@ -249,10 +251,10 @@ if user:
                 <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.3);
                      border-radius:12px; padding:16px; margin:8px 0;">
                     <span style="font-size:14px; font-weight:700; color:#a78bfa;">
-                        ⬆ Upgrade to Annual Pass — $49.99 (save 40%)
+                        ⬆ Upgrade to Annual Pass — $49.99 (40.4% Savings!)
                     </span><br>
                     <span style="font-size:12px; color:#94a3b8;">
-                        Full year access including offseason content, blog deep dives, and historical data.
+                        Full year access including priority support.
                     </span>
                 </div>
                 """,
@@ -264,7 +266,6 @@ if user:
                     st.markdown(f'<meta http-equiv="refresh" content="0;url={url}">', unsafe_allow_html=True)
                     st.stop()
 
-            # Manage Billing — monthly subscribers only
             if stripe_id:
                 st.markdown("")
                 if st.button("Manage Billing", key="manage_billing", use_container_width=True):
@@ -277,6 +278,7 @@ if user:
         st.markdown("---")
 
 
+
 # ── Plan Comparison (everyone sees this) ──
 st.subheader("Plan Comparison")
 
@@ -285,30 +287,33 @@ if sub_status == "active":
     current_col = sub_type if sub_type else "monthly"
 
 features = [
-    ("Home Dashboard & Tonight's Games",    True,  True,  True,  True),
-    ("Power Index Ratings (Top 5)",          True,  True,  True,  True),
-    ("Heal Points (Top 5)",                  True,  True,  True,  True),
-    ("Model Record / Report Card",           True,  True,  True,  True),
-    ("Full Power Index Rankings",            False, True,  True,  True),
-    ("Full Heal Point Rankings",             False, True,  True,  True),
-    ("The Slate - Full Game Predictions",    False, True,  True,  True),
-    ("The Aftermath - Full Results",         False, True,  True,  True),
-    ("Team Center - Deep Team Analytics",    False, True,  True,  True),
-    ("Bracketology",                         False, True,  True,  True),
-    ("The Model - Prediction Engine",        False, True,  True,  True),
-    ("The Projector",                        False, True,  True,  True),
-    ("Milestones & Records",                 False, True,  True,  True),
-    ("The Press Box",                        False, True,  True,  True),
-    ("Road Trip Planner",                    False, True,  True,  True),
-    ("Insights & Trends",                    False, True,  True,  True),
-    ("Pick 5 Challenge",                     False, True,  True,  True),
-    ("Trophy Room",                          False, True,  True,  True),
-    ("All-State Analytics Team",             False, True,  True,  True),
-    ("Mover Board",                          False, True,  True,  True),
-    ("Offseason Blog & Deep Dives",          False, False, False, True),
-    ("Historical Data Browser",              False, False, False, True),
-    ("Preseason Power Index Previews",       False, False, False, True),
-    ("Priority Support",                     False, False, True,  True),
+    # ── FREE ──
+    ("🏟️ Fan Hub",                            True,  True,  True,  True),
+    ("🤖 Fan vs. The Model",                   True,  True,  True,  True),
+    ("☠️ Survivor",                            True,  True,  True,  True),
+    ("🧠 Stump The Model",                     True,  True,  True,  True),
+    ("🏅 Milestones & Records",                True,  True,  True,  True),
+    ("💎 Pick 5 Challenge",                    True,  True,  True,  True),
+    ("🏠 Home Dashboard & Tonight's Games",    True,  True,  True,  True),
+    ("📋 The Slate",                           True,  True,  True,  True),
+    ("💊 Heal Points",                         True,  True,  True,  True),
+    ("🚗 Road Trip Planner",                   True,  True,  True,  True),
+    ("📈 Insights & Trends",                   True,  True,  True,  True),
+    # ── PRO ──
+    ("📰 The Press Box",                       False, True,  True,  True),
+    ("📊 The Aftermath - Full Results",        False, True,  True,  True),
+    ("⚡ Power Index Ratings",                 False, True,  True,  True),
+    ("🏀 Team Center - Deep Team Analytics",   False, True,  True,  True),
+    ("🏆 Bracketology",                        False, True,  True,  True),
+    ("📋 The Report Card",                     False, True,  True,  True),
+    ("🥇 Trophy Room",                         False, True,  True,  True),
+    ("🗳️ Team of the Week",                   False, True,  True,  True),
+    ("🤖 The Model - Prediction Engine",       False, True,  True,  True),
+    ("🔭 The Projector",                       False, True,  True,  True),
+    ("📉 The Mover Board",                     False, True,  True,  True),
+    ("⭐ All-State Analytics Team",            False, True,  True,  True),
+    # ── Season / Annual ──
+    ("🎯 Priority Support",                    False, False, True,  True),
 ]
 
 
@@ -396,8 +401,8 @@ body {{ margin:0; background:transparent; }}
             <th>Feature</th>
             <th>{hdr("Free", "free")}</th>
             <th>{hdr("Monthly — $6.99/mo", "monthly")}</th>
-            <th>{hdr("Season Pass — $19.99", "season_pass")}</th>
-            <th>{hdr("Annual Pass — $49.99", "annual_pass")}</th>
+            <th>{hdr("Season Pass — $19.99<br><small style='font-size:10px;color:#86efac;text-transform:none;letter-spacing:0;font-weight:600;'>December–March · 28.5% Savings!</small>", "season_pass")}</th>
+            <th>{hdr("Annual Pass — $49.99<br><small style='font-size:10px;color:#86efac;text-transform:none;letter-spacing:0;font-weight:600;'>40.4% Savings!</small>", "annual_pass")}</th>
         </tr>
     </thead>
     <tbody>
@@ -409,6 +414,7 @@ body {{ margin:0; background:transparent; }}
 """
 
 components.html(table_html, height=computed_height, scrolling=False)
+
 
 
 # ── Upgrade / Pricing (not active subscribers) ──
@@ -446,10 +452,10 @@ if sub_status != "active":
             <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3);
                  border-radius:16px; padding:24px; text-align:center; height:160px;">
                 <div style="font-size:24px; font-weight:900; color:#fbbf24;">$19.99</div>
-                <div style="font-size:12px; color:#94a3b8; margin-bottom:4px;">one-time — Nov through Feb</div>
-                <div style="font-size:11px; color:#86efac; margin-bottom:8px;">Save 28% vs monthly</div>
+                <div style="font-size:12px; color:#94a3b8; margin-bottom:4px;">one-time — December through March</div>
+                <div style="font-size:11px; color:#86efac; margin-bottom:8px;">28.5% Savings!</div>
                 <div style="font-size:12px; color:#cbd5e1;">
-                    Full live tools for the entire 2026–27 season.
+                    Full live tools for the entire 2025–26 season.
                 </div>
             </div>
             """,
@@ -471,9 +477,9 @@ if sub_status != "active":
                  border-radius:16px; padding:24px; text-align:center; height:160px;">
                 <div style="font-size:24px; font-weight:900; color:#a78bfa;">$49.99</div>
                 <div style="font-size:12px; color:#94a3b8; margin-bottom:4px;">one-time — full year access</div>
-                <div style="font-size:11px; color:#86efac; margin-bottom:8px;">Save 40% vs monthly</div>
+                <div style="font-size:11px; color:#86efac; margin-bottom:8px;">40.4% Savings!</div>
                 <div style="font-size:12px; color:#cbd5e1;">
-                    Live season tools + offseason content, blog, and historical data.
+                    Live season tools + priority support locked in all year.
                 </div>
             </div>
             """,
@@ -489,6 +495,7 @@ if sub_status != "active":
             st.caption("Sign in above to purchase.")
 
 
+
 # ── Log Out ──
 if user:
     st.markdown("---")
@@ -501,6 +508,7 @@ if user:
             st.session_state[k] = None
         st.rerun()
         st.stop()
+
 
 
 render_footer()
