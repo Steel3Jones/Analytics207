@@ -15,15 +15,10 @@ from layout import (
     render_footer,
     render_page_header,
 )
-from auth import login_gate, logout_button
-
-
+from auth import login_gate, logout_button, get_supabase, SUPABASE_URL, SUPABASE_KEY
 
 from sidebar_auth import render_sidebar_auth
-
 render_sidebar_auth()
-
-
 
 st.set_page_config(
     page_title="💎 Pick 5 Challenge – Analytics207",
@@ -42,9 +37,9 @@ render_page_header(
 )
 
 # ─────────────────────────────────────────────
-# AUTH: signed-in check for participation
+# AUTH
 # ─────────────────────────────────────────────
-_user = st.session_state.get("user")
+_user      = st.session_state.get("user")
 _signed_in = _user is not None
 
 # ─────────────────────────────────────────────
@@ -55,17 +50,16 @@ DATA_DIR = ROOT / "data"
 
 GAMES_ANALYTICS_FILE = DATA_DIR / "core"        / "games_analytics_v50.parquet"
 PRED_FILE            = DATA_DIR / "predictions" / "games_predictions_current.parquet"
-ROSTERS_FILE         = DATA_DIR / "pick5"       / "pick5_rosters_v50.csv"
 WEEKLY_WINNERS_FILE  = DATA_DIR / "pick5"       / "pick5_weekly_winners_v50.parquet"
 
 # ─────────────────────────────────────────────
 # CONSTANTS
 # ─────────────────────────────────────────────
-CLASS_ORDER  = ["A", "B", "C", "D", "S"]
-CLASS_COLOR  = {"A": "#f43f5e", "B": "#f97316", "C": "#facc15", "D": "#4ade80", "S": "#60a5fa"}
-CLASS_LABEL  = {"A": "Class A", "B": "Class B", "C": "Class C", "D": "Class D", "S": "Class S"}
-GENDER_ICON  = {"Boys": "♂️", "Girls": "♀️"}
-TOP_N_GAMES  = 6
+CLASS_ORDER = ["A", "B", "C", "D", "S"]
+CLASS_COLOR = {"A": "#f43f5e", "B": "#f97316", "C": "#facc15", "D": "#4ade80", "S": "#60a5fa"}
+CLASS_LABEL = {"A": "Class A", "B": "Class B", "C": "Class C", "D": "Class D", "S": "Class S"}
+GENDER_ICON = {"Boys": "♂️", "Girls": "♀️"}
+TOP_N_GAMES = 6
 
 HIDDEN = ["_gid", "_team", "_upset", "_pts", "_fav", "_fav_pct", "_played", "_final"]
 
@@ -159,32 +153,40 @@ def load_games() -> pd.DataFrame:
 
     return df.reset_index(drop=True)
 
+
 def load_rosters() -> pd.DataFrame:
-    if not ROSTERS_FILE.exists():
-        return pd.DataFrame()
+    """Load pick_5_rosters from Supabase."""
+    cols = ["Manager","WeekID","WeekLabel","Class","Gender","GameID","Matchup",
+            "GameDate","Pick","IsUpset","FavPct","MaxPts","ActualPts","Result","LockedAt","user_id"]
     try:
-        return pd.read_csv(ROSTERS_FILE, dtype=str, keep_default_na=False)
+        sb  = get_supabase()
+        res = sb.table("pick_5_rosters").select("*").execute()
+        if not res.data:
+            return pd.DataFrame(columns=cols)
+        return pd.DataFrame(res.data)
     except Exception:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=cols)
+
 
 def save_roster_row(row: dict) -> None:
-    ROSTERS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    existing = load_rosters()
-    if not existing.empty:
-        mask = ~(
-            (existing.get("Manager", "") == row["Manager"]) &
-            (existing.get("WeekID",   "") == row["WeekID"]) &
-            (existing.get("Class",    "") == row["Class"])
-        )
-        existing = existing[mask]
-    out = pd.concat([existing, pd.DataFrame([row])], ignore_index=True)
-    out.to_csv(ROSTERS_FILE, index=False, encoding="utf-8")
+    """Upsert a pick into pick_5_rosters via Supabase (service role)."""
+    try:
+        from supabase import create_client
 
-@st.cache_data(ttl=300)
-def load_winners() -> pd.DataFrame:
-    if not WEEKLY_WINNERS_FILE.exists():
-        return pd.DataFrame()
-    return pd.read_parquet(WEEKLY_WINNERS_FILE).copy()
+        user = st.session_state.get("user")
+
+        service_key = st.secrets.get("SUPABASE_SERVICE_KEY", "")
+        sb = create_client(SUPABASE_URL, service_key)
+
+        row["user_id"] = str(user.id) if user else ""
+        sb.table("pick_5_rosters").upsert(
+            row,
+            on_conflict="user_id,WeekID,Class",
+        ).execute()
+
+    except Exception as e:
+        st.error(f"Save failed: {e}")
+
 
 # ─────────────────────────────────────────────
 # BUILD PICK TABLE
@@ -256,6 +258,7 @@ def build_pick_table(
 
     return pd.DataFrame(rows)
 
+
 def filter_cls_games(week_games: pd.DataFrame, cls: str) -> pd.DataFrame:
     cls_games = (
         week_games[
@@ -283,6 +286,7 @@ def filter_cls_games(week_games: pd.DataFrame, cls: str) -> pd.DataFrame:
         .reset_index(drop=True)
     )
 
+
 # ─────────────────────────────────────────────
 # LOAD + CONTROLS
 # ─────────────────────────────────────────────
@@ -297,7 +301,6 @@ w_start, w_end = week_bounds(today)
 week_id        = f"{w_start.strftime('%Y-%m-%d')}_to_{w_end.strftime('%Y-%m-%d')}"
 wlabel         = fmt_week(today)
 
-# Manager name from auth
 manager_name = ""
 if _signed_in:
     _meta = getattr(_user, "user_metadata", {}) or {}
@@ -305,7 +308,6 @@ if _signed_in:
         _meta.get("display_name")
         or _meta.get("full_name")
         or getattr(_user, "email", "").split("@")[0]
-
     )
 
 ctrl1, ctrl2, ctrl3 = st.columns([2, 1, 1])
@@ -320,12 +322,8 @@ body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-sy
             border:1px solid rgba(96,165,250,0.3);border-radius:14px;
             padding:20px 24px;text-align:center;">
   <div style="font-size:1.5rem;margin-bottom:6px;">🔑</div>
-  <div style="font-size:0.95rem;font-weight:700;color:#93c5fd;margin-bottom:4px;">
-    Sign in to make your picks
-  </div>
-  <div style="font-size:0.78rem;color:#94a3b8;">
-    Free account required to participate. Leaderboard visible to everyone.
-  </div>
+  <div style="font-size:0.95rem;font-weight:700;color:#93c5fd;margin-bottom:4px;">Sign in to make your picks</div>
+  <div style="font-size:0.78rem;color:#94a3b8;">Free account required to participate. Leaderboard visible to everyone.</div>
 </div>
 """, height=120, scrolling=False)
 with ctrl2:
@@ -340,7 +338,7 @@ with ctrl3:
 
 st.caption(f"📅 **{wlabel}**")
 if dev_mode:
-    st.warning("🛠 Dev mode — showing all games including played. Submit disabled.", icon="⚠️")
+    st.warning("🛠 Dev mode — showing all games including played.", icon="⚠️")
 
 with st.expander("📐 How point values work", expanded=False):
     c1, c2, c3, c4 = st.columns(4)
@@ -364,14 +362,13 @@ with st.expander("📐 How point values work", expanded=False):
 st.divider()
 
 # ─────────────────────────────────────────────
-# SIGN-IN GATE — viewing continues, picks require auth
+# SIGN-IN GATE
 # ─────────────────────────────────────────────
 if not _signed_in:
     st.markdown("### 🎯 Pick Slate")
     st.info("🔑 **Sign in with a free account** to make your picks. Browse the leaderboard below!")
     st.divider()
 
-    # Show leaderboard for non-signed-in users
     st.markdown("### 🏆 Leaderboard")
     tab_week, tab_season = st.tabs(["This Week", "Season"])
     rosters = load_rosters()
@@ -383,9 +380,7 @@ if not _signed_in:
             if wk_data.empty:
                 st.info("No picks for this week yet — be the first!")
             else:
-                wk_data["Pts"] = pd.to_numeric(
-                    wk_data.get("ActualPts", pd.Series(dtype=str)), errors="coerce"
-                ).fillna(0)
+                wk_data["Pts"] = pd.to_numeric(wk_data.get("ActualPts", pd.Series(dtype=str)), errors="coerce").fillna(0)
                 lb = (
                     wk_data.groupby("Manager", dropna=False)
                     .agg(TotalPts=("Pts", "sum"), Picks=("Class", "count"))
@@ -399,11 +394,7 @@ if not _signed_in:
                     c1, c2, c3 = st.columns([1, 6, 2])
                     c1.markdown(f"**{icon}**")
                     c2.markdown(f"**{row['Manager']}** · {int(row['Picks'])} picks")
-                    c3.markdown(
-                        f'<div style="text-align:right;color:#fde68a;font-weight:900;">'
-                        f'+{int(row["TotalPts"])} pts</div>',
-                        unsafe_allow_html=True,
-                    )
+                    c3.markdown(f'<div style="text-align:right;color:#fde68a;font-weight:900;">+{int(row["TotalPts"])} pts</div>', unsafe_allow_html=True)
     with tab_season:
         src = rosters if not rosters.empty else pd.DataFrame()
         if not src.empty and "ActualPts" in src.columns:
@@ -421,11 +412,7 @@ if not _signed_in:
                 c1, c2, c3 = st.columns([1, 6, 2])
                 c1.markdown(f"**{icon}**")
                 c2.markdown(f"**{row['Manager']}** · {int(row['Weeks'])} week(s)")
-                c3.markdown(
-                    f'<div style="text-align:right;color:#fde68a;font-weight:900;">'
-                    f'+{int(row["TotalPts"])} pts</div>',
-                    unsafe_allow_html=True,
-                )
+                c3.markdown(f'<div style="text-align:right;color:#fde68a;font-weight:900;">+{int(row["TotalPts"])} pts</div>', unsafe_allow_html=True)
         else:
             st.info("Season standings available once weekly results are scored.")
     render_footer()
@@ -449,7 +436,6 @@ genders_to_show = (
     else ["Boys", "Girls"]
 )
 week_games = week_games[week_games["Gender"].isin(genders_to_show)].copy()
-
 show_gender_col = (slate_mode == "Both")
 
 # ─────────────────────────────────────────────
@@ -596,26 +582,19 @@ for cls in CLASS_ORDER:
         )
         rows_html.append(
             f'<tr>'
-            f'<td style="color:{cls_hex};font-weight:900;padding:8px 12px;">'
-            f'{CLASS_LABEL[cls]}</td>'
-            f'<td style="color:#e2e8f0;font-weight:800;padding:8px 12px;">'
-            f'{g_icon} {p["team"]}</td>'
-            f'<td style="color:rgba(148,163,184,0.7);font-size:0.82rem;padding:8px 12px;">'
-            f'{p.get("matchup","—")}</td>'
-            f'<td style="color:rgba(148,163,184,0.6);font-size:0.80rem;padding:8px 12px;">'
-            f'{conf_str}</td>'
-            f'<td style="color:{tier_color};font-weight:900;text-align:right;padding:8px 12px;">'
-            f'+{p["pts"]}</td>'
+            f'<td style="color:{cls_hex};font-weight:900;padding:8px 12px;">{CLASS_LABEL[cls]}</td>'
+            f'<td style="color:#e2e8f0;font-weight:800;padding:8px 12px;">{g_icon} {p["team"]}</td>'
+            f'<td style="color:rgba(148,163,184,0.7);font-size:0.82rem;padding:8px 12px;">{p.get("matchup","—")}</td>'
+            f'<td style="color:rgba(148,163,184,0.6);font-size:0.80rem;padding:8px 12px;">{conf_str}</td>'
+            f'<td style="color:{tier_color};font-weight:900;text-align:right;padding:8px 12px;">+{p["pts"]}</td>'
             f'</tr>'
         )
     else:
         all_picked = False
         rows_html.append(
             f'<tr style="opacity:0.35;">'
-            f'<td style="color:{cls_hex};font-weight:900;padding:8px 12px;">'
-            f'{CLASS_LABEL[cls]}</td>'
-            f'<td style="color:rgba(148,163,184,0.4);font-style:italic;padding:8px 12px;"'
-            f' colspan="3">No pick yet</td>'
+            f'<td style="color:{cls_hex};font-weight:900;padding:8px 12px;">{CLASS_LABEL[cls]}</td>'
+            f'<td style="color:rgba(148,163,184,0.4);font-style:italic;padding:8px 12px" colspan="3">No pick yet</td>'
             f'<td style="text-align:right;padding:8px 12px;color:rgba(148,163,184,0.3);">—</td>'
             f'</tr>'
         )
@@ -623,29 +602,21 @@ for cls in CLASS_ORDER:
 if total_pts:
     rows_html.append(
         f'<tr style="border-top:1px solid rgba(245,158,11,0.3);">'
-        f'<td colspan="4" style="color:#f1f5f9;font-weight:900;padding:10px 12px;'
-        f'font-size:0.95rem;">TOTAL</td>'
-        f'<td style="color:#fde68a;font-weight:900;font-size:1.1rem;'
-        f'text-align:right;padding:10px 12px;">+{total_pts}</td>'
+        f'<td colspan="4" style="color:#f1f5f9;font-weight:900;padding:10px 12px;font-size:0.95rem;">TOTAL</td>'
+        f'<td style="color:#fde68a;font-weight:900;font-size:1.1rem;text-align:right;padding:10px 12px;">+{total_pts}</td>'
         f'</tr>'
     )
 
 st.markdown(
-    f'<table style="width:100%;border-collapse:collapse;'
-    f'background:rgba(8,15,30,0.6);border:1px solid rgba(255,255,255,0.08);'
-    f'border-radius:12px;overflow:hidden;'
+    f'<table style="width:100%;border-collapse:collapse;background:rgba(8,15,30,0.6);'
+    f'border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden;'
     f'font-family:ui-sans-serif,system-ui,sans-serif;">'
     f'<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.08);">'
-    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;'
-    f'letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Class</th>'
-    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;'
-    f'letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Pick</th>'
-    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;'
-    f'letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Matchup</th>'
-    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;'
-    f'letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Confidence</th>'
-    f'<th style="text-align:right;color:rgba(148,163,184,0.6);font-size:0.68rem;'
-    f'letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Pts</th>'
+    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Class</th>'
+    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Pick</th>'
+    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Matchup</th>'
+    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Confidence</th>'
+    f'<th style="text-align:right;color:rgba(148,163,184,0.6);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Pts</th>'
     f'</tr></thead>'
     f'<tbody>{"".join(rows_html)}</tbody>'
     f'</table>',
@@ -657,12 +628,12 @@ st.write("")
 # ─────────────────────────────────────────────
 # SUBMIT
 # ─────────────────────────────────────────────
-if dev_mode:
-    st.info("🛠 Dev mode — submit disabled.")
-elif not all_picked:
+if not all_picked:
     missing = [f"Class {c}" for c in CLASS_ORDER if not picks.get(c)]
     st.warning(f"Still need: {', '.join(missing)}")
 else:
+    if dev_mode:
+        st.warning("🛠 Dev mode — submitting with played games included.", icon="⚠️")
     if st.button("💾 Lock In My Picks", type="primary"):
         for cls in CLASS_ORDER:
             p = picks.get(cls)
@@ -677,17 +648,14 @@ else:
                     "Matchup":   p.get("matchup", ""),
                     "GameDate":  p.get("date", ""),
                     "Pick":      p["team"],
-                    "IsUpset":   str(p.get("upset", False)),
-                    "FavPct":    str(round(p.get("fav_pct", 0), 1)),
-                    "MaxPts":    str(p["pts"]),
-                    "ActualPts": "",
-                    "Result":    "",
+                    "IsUpset":   bool(p.get("upset", False)),
+                    "FavPct":    float(round(p.get("fav_pct", 0), 1)),
+                    "MaxPts":    float(p["pts"]),
+                    "ActualPts": None,
+                    "Result":    None,
                     "LockedAt":  datetime.utcnow().isoformat(timespec="seconds"),
                 })
-        st.success(
-            f"✅ **{manager_name}** — picks locked! "
-            f"Max this week: **+{total_pts} pts**."
-        )
+        st.success(f"✅ **{manager_name}** — picks locked! Max this week: **+{total_pts} pts**.")
         st.balloons()
 
 st.divider()
@@ -707,9 +675,7 @@ with tab_week:
         if wk_data.empty:
             st.info("No picks for this week yet — be the first!")
         else:
-            wk_data["Pts"] = pd.to_numeric(
-                wk_data.get("ActualPts", pd.Series(dtype=str)), errors="coerce"
-            ).fillna(0)
+            wk_data["Pts"] = pd.to_numeric(wk_data.get("ActualPts", pd.Series(dtype=str)), errors="coerce").fillna(0)
             lb = (
                 wk_data.groupby("Manager", dropna=False)
                 .agg(TotalPts=("Pts", "sum"), Picks=("Class", "count"))
@@ -723,11 +689,7 @@ with tab_week:
                 c1, c2, c3 = st.columns([1, 6, 2])
                 c1.markdown(f"**{icon}**")
                 c2.markdown(f"**{row['Manager']}** · {int(row['Picks'])} picks")
-                c3.markdown(
-                    f'<div style="text-align:right;color:#fde68a;font-weight:900;">'
-                    f'+{int(row["TotalPts"])} pts</div>',
-                    unsafe_allow_html=True,
-                )
+                c3.markdown(f'<div style="text-align:right;color:#fde68a;font-weight:900;">+{int(row["TotalPts"])} pts</div>', unsafe_allow_html=True)
 
 with tab_season:
     src = rosters if not rosters.empty else pd.DataFrame()
@@ -746,11 +708,7 @@ with tab_season:
             c1, c2, c3 = st.columns([1, 6, 2])
             c1.markdown(f"**{icon}**")
             c2.markdown(f"**{row['Manager']}** · {int(row['Weeks'])} week(s)")
-            c3.markdown(
-                f'<div style="text-align:right;color:#fde68a;font-weight:900;">'
-                f'+{int(row["TotalPts"])} pts</div>',
-                unsafe_allow_html=True,
-            )
+            c3.markdown(f'<div style="text-align:right;color:#fde68a;font-weight:900;">+{int(row["TotalPts"])} pts</div>', unsafe_allow_html=True)
     else:
         st.info("Season standings available once weekly results are scored.")
 
