@@ -4,6 +4,7 @@ import base64
 from pathlib import Path
 
 import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 
 from auth import logout_button
@@ -24,7 +25,7 @@ st.set_page_config(
 render_sidebar_auth()
 logout_button()
 
-render_logo  = getattr(L, "render_logo",  None)
+render_logo   = getattr(L, "render_logo",   None)
 render_footer = getattr(L, "render_footer", None)
 
 def _sp(n: int = 1) -> None:
@@ -118,53 +119,9 @@ st.markdown("""
   padding-top:6px; margin-top:6px;
 }
 
-/* ── Pricing Cards ── */
-.pricing-grid {
-  display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
-  margin:24px 0;
-}
-.pricing-card {
-  border-radius:18px; padding:24px 20px;
-  font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;
-  position:relative; overflow:hidden;
-}
-.pricing-card-free     { background:rgba(15,23,42,0.6);   border:1px solid rgba(148,163,184,0.2); }
-.pricing-card-monthly  { background:rgba(37,99,235,0.10); border:1px solid rgba(59,130,246,0.35); }
-.pricing-card-season   { background:rgba(180,83,9,0.12);  border:1px solid rgba(245,158,11,0.45); }
-.pricing-card-annual   { background:rgba(79,70,229,0.12); border:1px solid rgba(99,102,241,0.45); }
-.pricing-badge {
-  display:inline-block; padding:3px 10px; border-radius:999px;
-  font-size:10px; font-weight:800; text-transform:uppercase;
-  letter-spacing:.1em; margin-bottom:12px;
-}
-.badge-free    { background:rgba(148,163,184,0.15); color:#94a3b8; }
-.badge-monthly { background:rgba(59,130,246,0.2);  color:#60a5fa; }
-.badge-season  { background:rgba(245,158,11,0.2);  color:#fbbf24; }
-.badge-annual  { background:rgba(99,102,241,0.2);  color:#a78bfa; }
-.pricing-price {
-  font-size:2rem; font-weight:900; line-height:1; margin-bottom:4px;
-}
-.pricing-period { font-size:12px; color:#64748b; margin-bottom:8px; }
-.pricing-savings {
-  font-size:11px; font-weight:700; color:#86efac;
-  margin-bottom:14px; min-height:16px;
-}
-.pricing-features {
-  font-size:12px; color:#94a3b8; line-height:1.8;
-  border-top:1px solid rgba(255,255,255,0.07);
-  padding-top:12px; margin-top:4px;
-}
-.pricing-features li { list-style:none; padding:0; }
-.pricing-features li::before { content:"✓ "; color:#22c55e; font-weight:700; }
-.pricing-cta {
-  display:block; text-align:center; margin-top:16px;
-  padding:8px 0; border-radius:999px;
-  font-size:13px; font-weight:700; text-decoration:none;
-}
-.cta-free    { background:rgba(148,163,184,0.1); color:#94a3b8; border:1px solid rgba(148,163,184,0.2); }
-.cta-monthly { background:rgba(59,130,246,0.2);  color:#93c5fd; border:1px solid rgba(59,130,246,0.4); }
-.cta-season  { background:rgba(245,158,11,0.2);  color:#fcd34d; border:1px solid rgba(245,158,11,0.4); }
-.cta-annual  { background:linear-gradient(135deg,#fb7185,#f97316); color:#111827; border:none; }
+/* kill plotly default white bg & toolbar padding */
+.js-plotly-plot .plotly, .js-plotly-plot .plotly div { background:transparent !important; }
+[data-testid="stPlotlyChart"] > div { padding-top:0 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -174,19 +131,15 @@ st.markdown("""
 
 if callable(render_logo):
     render_logo()
-_sp(1)
 
 # ─────────────────────────────────────────────
 # HERO
 # ─────────────────────────────────────────────
 
-season_start   = pd.Timestamp(year=2026, month=12, day=1)
-days_to_tip    = max(0, (season_start.normalize() - pd.Timestamp.now().normalize()).days)
-
 col_left, col_right = st.columns([1.4, 1.0], gap="large")
 
 with col_left:
-    st.markdown(f"""
+    st.markdown("""
 <div class="a207-hero-card" style="position:relative;z-index:1;">
   <div class="a207-hero-tag">
     <span class="a207-hero-tag-dot"></span>
@@ -201,12 +154,12 @@ with col_left:
   </div>
   <div class="a207-hero-highlight">
     <span class="a207-hero-highlight-badge">FREE</span>
-    <span>Fan Hub, Survivor, Stump The Model &amp; more — no account needed</span>
+    <span>Fan Hub, Survivor, Stump The Model &amp; more — free account to play</span>
   </div>
   <div class="a207-hero-cta-row">
     <a href="/My_Account" target="_self" style="text-decoration:none;">
       <div class="a207-hero-cta-primary">
-        <span>View plans &amp; pricing</span> <span>→</span>
+        <span>Create free account</span> <span>→</span>
       </div>
     </a>
     <div class="a207-hero-cta-secondary">
@@ -231,10 +184,10 @@ with col_right:
   </div>
   <div style="font-size:11px;color:#e5e7eb;">
     <ul style="padding-left:18px;margin:0;">
-      <li><strong>965–191</strong> boys model record — <strong>83.5% accuracy</strong>.</li>
-      <li><strong>974–184</strong> girls model record — <strong>84.1% accuracy</strong>.</li>
-      <li>Combined favorite record over <strong>2,100+ games</strong> statewide.</li>
-      <li>Average miss on the spread: <strong>13.2 pts MAE</strong>, <strong>17.0 pts RMSE</strong>.</li>
+      ><strong>965–191</strong> boys model record — <strong>83.5% accuracy</strong>.</li>
+      ><strong>974–184</strong> girls model record — <strong>84.1% accuracy</strong>.</li>
+      >Combined favorite record over <strong>2,100+ games</strong> statewide.</li>
+      >Average miss on the spread: <strong>13.2 pts MAE</strong>, <strong>17.0 pts RMSE</strong>.</li>
     </ul>
   </div>
   <div class="feat-card-footer">
@@ -248,115 +201,220 @@ with col_right:
 <div class="feat-card-shell">
   <div class="feat-card-header">
     <span class="feat-card-title">🏟️ Fan Games — Free to Play</span>
-    <span class="feat-card-link">No account needed</span>
+    <span class="feat-card-link">Free account required</span>
   </div>
   <div class="feat-card-body">
-    Jump in and compete with the community right now.
+    Create a free account and compete with the community.
   </div>
   <div style="font-size:11px;color:#e5e7eb;">
     <ul style="padding-left:18px;margin:0;">
-      <li>☠️ <strong>Survivor</strong> — pick one team per week, don't repeat.</li>
-      <li>🤖 <strong>Fan vs. The Model</strong> — can you outpick the AI?</li>
-      <li>🧠 <strong>Stump The Model</strong> — find the upsets it missed.</li>
-      <li>💎 <strong>Pick 5 Challenge</strong> — weekly 5-team roster picks.</li>
+      >☠️ <strong>Survivor</strong> — pick one team per week, don't repeat.</li>
+      >🤖 <strong>Fan vs. The Model</strong> — can you outpick the AI?</li>
+      >🧠 <strong>Stump The Model</strong> — find the upsets it missed.</li>
+      >💎 <strong>Pick 5 Challenge</strong> — weekly 5-team roster picks.</li>
     </ul>
   </div>
   <div class="feat-card-footer">
-    All fan games are free — sign up for a leaderboard spot.
+    Free account needed to make picks and appear on leaderboards.
   </div>
 </div>
 """, unsafe_allow_html=True)
 
-_sp(1)
-
 # ─────────────────────────────────────────────
-# PRICING STRIP
+# PLANS & PRICING — DOT MATRIX
 # ─────────────────────────────────────────────
 
 st.markdown("### Plans & Pricing")
+st.caption("Free account to play fan games · Upgrade anytime · No credit card required for free tier")
 
-st.markdown("""
-<div class="pricing-grid">
+_features = [
+    ("🏟️ Fan Hub",               True,  True,  True,  True),
+    ("🤖 Fan vs. The Model",      True,  True,  True,  True),
+    ("☠️ Survivor",               True,  True,  True,  True),
+    ("🧠 Stump The Model",        True,  True,  True,  True),
+    ("💎 Pick 5 Challenge",       True,  True,  True,  True),
+    ("🏠 Home Dashboard",         True,  True,  True,  True),
+    ("📋 The Slate",              True,  True,  True,  True),
+    ("💊 Heal Points",            True,  True,  True,  True),
+    ("🏅 Milestones & Records",   True,  True,  True,  True),
+    ("📈 Insights & Trends",      True,  True,  True,  True),
+    ("🚗 Road Trip Planner",      True,  True,  True,  True),
+    ("⚡ Power Index Rankings",   False, True,  True,  True),
+    ("🤖 The Model - Predictions",False, True,  True,  True),
+    ("📊 The Aftermath",          False, True,  True,  True),
+    ("🏀 Team Center",            False, True,  True,  True),
+    ("🏆 Bracketology",           False, True,  True,  True),
+    ("📋 Report Card",            False, True,  True,  True),
+    ("🥇 Trophy Room",            False, True,  True,  True),
+    ("🗳️ Team of the Week",      False, True,  True,  True),
+    ("🔭 The Projector",          False, True,  True,  True),
+    ("📉 The Mover Board",        False, True,  True,  True),
+    ("⭐ All-State Analytics",    False, True,  True,  True),
+    ("📰 The Press Box",          False, True,  True,  True),
+]
+
+feat_names = [f[0] for f in _features]
+feat_data  = [f[1:] for f in _features]
+feat_rev   = list(reversed(feat_names))
+data_rev   = list(reversed(feat_data))
+
+_plan_colors = [
+    "rgba(148,163,184,0.85)",
+    "rgba(96,165,250,0.95)",
+    "rgba(251,191,36,0.95)",
+    "rgba(167,139,250,0.95)",
+]
+_plan_names = ["Free", "Monthly", "Season Pass", "Annual Pass"]
+
+dot_fig = go.Figure()
+
+for pi in range(4):
+    xf, yf, xe, ye = [], [], [], []
+    for fi, row in enumerate(data_rev):
+        if row[pi]: xf.append(pi); yf.append(fi)
+        else:       xe.append(pi); ye.append(fi)
+
+    if xf:
+        dot_fig.add_trace(go.Scatter(
+            x=xf, y=yf, mode="markers",
+            marker=dict(size=13, color=_plan_colors[pi],
+                        line=dict(width=1, color="rgba(255,255,255,0.2)")),
+            name=_plan_names[pi],
+            hovertemplate=f"<b>{_plan_names[pi]}</b><br>%{{customdata}}<extra></extra>",
+            customdata=[feat_rev[i] for i in yf],
+        ))
+    if xe:
+        dot_fig.add_trace(go.Scatter(
+            x=xe, y=ye, mode="markers",
+            marker=dict(size=13, color="rgba(15,23,42,0.9)",
+                        line=dict(width=1, color="rgba(148,163,184,0.10)")),
+            hovertemplate="<b>Not included</b><br>%{customdata}<extra></extra>",
+            customdata=[feat_rev[i] for i in ye],
+            showlegend=False,
+        ))
+
+dot_fig.update_layout(
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(family="ui-sans-serif, system-ui, sans-serif", color="#cbd5e1", size=13),
+    xaxis=dict(
+        tickvals=list(range(4)),
+        ticktext=[
+            "<b>Free</b><br><span style='font-size:11px;color:#94a3b8;'>account req.</span>",
+            "<b>Monthly</b><br><span style='font-size:11px;color:#86efac;'>$6.99/mo</span>",
+            "<b>Season Pass</b><br><span style='font-size:11px;color:#86efac;'>$19.99 · 28% off</span>",
+            "<b>Annual Pass</b><br><span style='font-size:11px;color:#86efac;'>$49.99 · 40% off</span>",
+        ],
+        side="top", showgrid=False, zeroline=False,
+        tickfont=dict(size=13), title_text="", fixedrange=True,
+        range=[-0.6, 3.6],
+    ),
+    yaxis=dict(
+        tickvals=list(range(len(feat_names))),
+        ticktext=feat_rev,
+        showgrid=True, gridcolor="rgba(255,255,255,0.04)",
+        zeroline=False, tickfont=dict(size=12),
+        title_text="", autorange=True, fixedrange=True,
+    ),
+    legend=dict(
+        orientation="h", yanchor="top", y=-0.02,
+        xanchor="center", x=0.5,
+        font=dict(size=12), bgcolor="rgba(0,0,0,0)",
+        itemsizing="constant",
+    ),
+    margin=dict(l=175, r=20, t=80, b=50),
+    height=580,
+    dragmode=False,
+)
+
+# ── Put chart on left, upgrade CTA card on right ──
+price_left, price_right = st.columns([1.6, 1.0], gap="large")
+
+with price_left:
+    st.plotly_chart(dot_fig, use_container_width=True, config={
+        "displayModeBar": False,
+        "staticPlot": False,
+    })
+
+with price_right:
+    st.markdown("""
+<div style="height:60px;"></div>
+<div style="
+  background:linear-gradient(135deg,rgba(99,102,241,0.10),rgba(245,158,11,0.06));
+  border:1px solid rgba(99,102,241,0.30); border-radius:18px;
+  padding:20px 18px; font-family:ui-sans-serif,system-ui,sans-serif;
+">
+  <div style="font-size:10px;font-weight:800;letter-spacing:.14em;
+              text-transform:uppercase;color:#f59e0b;margin-bottom:14px;">
+    🌟 Choose Your Plan
+  </div>
 
   <!-- FREE -->
-  <div class="pricing-card pricing-card-free">
-    <span class="pricing-badge badge-free">Free</span>
-    <div class="pricing-price" style="color:#94a3b8;">$0</div>
-    <div class="pricing-period">forever free</div>
-    <div class="pricing-savings">&nbsp;</div>
-    <ul class="pricing-features">
-      <li>Fan Hub &amp; Community</li>
-      <li>Fan vs. The Model</li>
-      <li>Survivor</li>
-      <li>Stump The Model</li>
-      <li>Pick 5 Challenge</li>
-      <li>Milestones &amp; Records</li>
-      <li>Home Dashboard</li>
-      <li>The Slate</li>
-      <li>Heal Points</li>
-      <li>Road Trip Planner</li>
-      <li>Insights &amp; Trends</li>
-    </ul>
-    <a href="/My_Account" target="_self" class="pricing-cta cta-free">Create Free Account</a>
-  </div>
+  <a href="/My_Account" target="_self" style="text-decoration:none;">
+    <div style="
+      display:flex;align-items:center;justify-content:space-between;
+      padding:.45rem 1rem; border-radius:999px; margin-bottom:8px;
+      background:rgba(148,163,184,0.08); border:1px solid rgba(148,163,184,0.25);
+      color:#94a3b8; font-size:.82rem; font-weight:600;
+    ">
+      <span>Free Pass</span>
+      <span style="font-size:.75rem;opacity:.7;">$0 · always free</span>
+    </div>
+  </a>
 
   <!-- MONTHLY -->
-  <div class="pricing-card pricing-card-monthly">
-    <span class="pricing-badge badge-monthly">Monthly</span>
-    <div class="pricing-price" style="color:#60a5fa;">$6.99</div>
-    <div class="pricing-period">per month · cancel anytime</div>
-    <div class="pricing-savings">&nbsp;</div>
-    <ul class="pricing-features">
-      <li>Everything in Free</li>
-      <li>Full Power Index Rankings</li>
-      <li>The Model — Predictions</li>
-      <li>Bracketology</li>
-      <li>Team Center</li>
-      <li>The Aftermath</li>
-      <li>The Projector</li>
-      <li>The Press Box</li>
-      <li>Trophy Room</li>
-      <li>The Mover Board</li>
-      <li>All-State Analytics</li>
-    </ul>
-    <a href="/My_Account" target="_self" class="pricing-cta cta-monthly">Subscribe Monthly</a>
-  </div>
+  <a href="/My_Account" target="_self" style="text-decoration:none;">
+    <div style="
+      display:flex;align-items:center;justify-content:space-between;
+      padding:.45rem 1rem; border-radius:999px; margin-bottom:8px;
+      background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.35);
+      color:#60a5fa; font-size:.82rem; font-weight:600;
+    ">
+      <span>Monthly Pass</span>
+      <span style="font-size:.75rem;opacity:.85;">$6.99/mo</span>
+    </div>
+  </a>
 
   <!-- SEASON PASS -->
-  <div class="pricing-card pricing-card-season">
-    <span class="pricing-badge badge-season">Season Pass</span>
-    <div class="pricing-price" style="color:#fbbf24;">$19.99</div>
-    <div class="pricing-period">one-time · December–March</div>
-    <div class="pricing-savings">28.5% Savings vs Monthly!</div>
-    <ul class="pricing-features">
-      <li>Everything in Monthly</li>
-      <li>Full season locked in</li>
-      <li>No recurring billing</li>
-      <li>Priority support</li>
-    </ul>
-    <a href="/My_Account" target="_self" class="pricing-cta cta-season">Buy Season Pass</a>
-  </div>
+  <a href="/My_Account" target="_self" style="text-decoration:none;">
+    <div style="
+      display:flex;align-items:center;justify-content:space-between;
+      padding:.45rem 1rem; border-radius:999px; margin-bottom:8px;
+      background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.40);
+      color:#fbbf24; font-size:.82rem; font-weight:600;
+    ">
+      <span>🏆 Season Pass</span>
+      <span style="font-size:.75rem;opacity:.85;">$19.99 · 28% off</span>
+    </div>
+  </a>
 
   <!-- ANNUAL PASS -->
-  <div class="pricing-card pricing-card-annual">
-    <span class="pricing-badge badge-annual">Annual Pass</span>
-    <div class="pricing-price" style="color:#a78bfa;">$49.99</div>
-    <div class="pricing-period">one-time · full year access</div>
-    <div class="pricing-savings">40.4% Savings vs Monthly!</div>
-    <ul class="pricing-features">
-      <li>Everything in Season Pass</li>
-      <li>Full year locked in</li>
-      <li>No recurring billing</li>
-      <li>Priority support</li>
-      <li>Early feature access</li>
-    </ul>
-    <a href="/My_Account" target="_self" class="pricing-cta cta-annual">Buy Annual Pass →</a>
-  </div>
+  <a href="/My_Account" target="_self" style="text-decoration:none;">
+    <div style="
+      display:flex;align-items:center;justify-content:space-between;
+      padding:.5rem 1rem; border-radius:999px; margin-bottom:14px;
+      background:linear-gradient(135deg,#fb7185,#f97316);
+      border:1px solid rgba(251,113,133,1);
+      color:#111827; font-size:.86rem; font-weight:800;
+    ">
+      <span>🌟 Annual Pass — Best Value</span>
+      <span style="font-size:.78rem;">$49.99 · 40% off</span>
+    </div>
+  </a>
 
+  <div style="
+    font-size:10.5px; color:#94a3b8; line-height:1.85;
+    border-top:1px solid rgba(255,255,255,0.07);
+    padding-top:12px;
+  ">
+    ✓ Every feature unlocked on any paid plan<br>
+    ✓ No recurring billing on Season &amp; Annual<br>
+    ✓ Early feature access on Annual<br>
+    ✓ Free tier never requires a credit card
+  </div>
 </div>
 """, unsafe_allow_html=True)
 
-_sp(1)
 
 # ─────────────────────────────────────────────
 # CAPABILITY EXAMPLES
@@ -386,7 +444,7 @@ def feature_card_html(title: str, subtitle: str, img_b64: str, footer: str) -> s
     <span style="font-size:10px;color:rgba(148,163,184,0.7);">Example</span>
   </div>
   <div style="font-size:11px;color:#cbd5e1;margin-bottom:8px;">{subtitle}</div>
-  <div style="width:100%;height:220px;border-radius:10px;overflow:hidden;">
+  <div style="width:100%;height:200px;border-radius:10px;overflow:hidden;">
     <img src="{img_b64}" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;" />
   </div>
   <div style="font-size:9px;color:rgba(148,163,184,0.6);
@@ -454,23 +512,22 @@ with right:
 - Compete against others in the **Pick 5 Challenge** and climb the leaderboard.
 """)
 
-_sp(1)
-
 # ─────────────────────────────────────────────
 # BOTTOM CTA
 # ─────────────────────────────────────────────
 
 st.markdown("""
-<div style="text-align:center;margin-top:8px;">
+<div style="text-align:center;margin-top:8px;margin-bottom:16px;">
   <a href="/My_Account" target="_self" style="text-decoration:none;">
     <div class="a207-hero-cta-primary" style="display:inline-flex;margin-top:4px;">
-      <span>Choose your plan and get started</span> <span>→</span>
+      <span>Create your free account and get started</span> <span>→</span>
     </div>
   </a>
+  <div style="font-size:12px;color:#475569;margin-top:8px;">
+    Free forever · No credit card required · Upgrade anytime
+  </div>
 </div>
 """, unsafe_allow_html=True)
-
-_sp(2)
 
 # ─────────────────────────────────────────────
 # FOOTER

@@ -1,6 +1,7 @@
 Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Boys,A,South,Prelim,2026-BA-S-P1,8,Scarborough,50.0,9,Kennebunk,44.0
-2026,Girls,B,North,Final,2026-GB-N-F1,1,Gardiner Area,53.0,3,Lawrence,65.0
+2026,Girls,B,South,SF,2026-GB-S-SF2,3,York,37.0,2,Oceanside,52.0
+2026,Girls,B,North,QF,2026-GB-N-QF4,2,Old Town,46.0,7,Ellsworth,49.0
 2026,Girls,B,South,QF,2026-GB-S-QF1,1,Gray-New Gloucester,44.0,8,Freeport,28.0
 2026,Girls,B,South,QF,2026-GB-S-QF2,4,Greely,43.0,5,Marshwood,46.0
 2026,Girls,B,South,QF,2026-GB-S-QF3,3,York,58.0,6,Poland Regional,51.0
@@ -8,9 +9,9 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Girls,B,North,SF,2026-GB-N-SF1,1,Gardiner Area,46.0,4,Presque Isle,29.0
 2026,Girls,B,North,SF,2026-GB-N-SF2,3,Lawrence,47.0,7,Ellsworth,42.0
 2026,Girls,B,South,SF,2026-GB-S-SF1,1,Gray-New Gloucester,51.0,5,Marshwood,40.0
-2026,Girls,B,South,SF,2026-GB-S-SF2,3,York,37.0,2,Oceanside,52.0
+2026,Girls,B,North,Final,2026-GB-N-F1,1,Gardiner Area,53.0,3,Lawrence,65.0
+2026,Girls,B,North,QF,2026-GB-N-QF2,4,Presque Isle,48.0,5,Hermon,37.0
 2026,Girls,B,South,Final,2026-GB-S-F1,1,Gray-New Gloucester,51.0,2,Oceanside,68.0
-2026,Girls,A,South,Prelim,2026-GA-S-P2,7,Thornton Academy,58.0,10,Kennebunk,44.0
 2026,Girls,B,North,State,2026-GB-N-ST1,3,Lawrence,52.0,2,Oceanside,41.0
 2026,Girls,C,South,Prelim,2026-GC-S-P1,8,Mount View,51.0,9,Hall-Dale HS,23.0
 2026,Girls,C,North,Prelim,2026-GC-N-P1,8,Orono,54.0,9,Washington Academy,27.0
@@ -18,11 +19,11 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Girls,C,South,Prelim,2026-GC-S-P2,7,Dirigo,56.0,10,Traip Academy,38.0
 2026,Girls,C,North,QF,2026-GC-N-QF1,1,Mattanawcook Academy,64.0,8,Orono,30.0
 2026,Girls,C,North,QF,2026-GC-N-QF2,4,Dexter/PCHS,40.0,5,Caribou,43.0
-2026,Girls,C,North,QF,2026-GC-N-QF3,3,Foxcroft Academy,32.0,6,Calais,22.0
-2026,Girls,B,North,QF,2026-GB-N-QF4,2,Old Town,46.0,7,Ellsworth,49.0
 2026,Girls,B,North,QF,2026-GB-N-QF3,3,Lawrence,74.0,6,Mount Desert Island,45.0
-2026,Girls,B,North,QF,2026-GB-N-QF2,4,Presque Isle,48.0,5,Hermon,37.0
 2026,Girls,B,North,QF,2026-GB-N-QF1,1,Gardiner Area,49.0,9,Cony HS,38.0
+2026,Girls,C,North,QF,2026-GC-N-QF4,2,George Stevens Academy,46.0,7,Sumner Memorial,30.0
+2026,Girls,A,South,QF,2026-GA-S-QF4,2,Sanford,57.0,7,Thornton Academy,35.0
+2026,Girls,A,South,Prelim,2026-GA-S-P3,6,Westbrook,50.0,11,Massabesic,24.0
 2026,Girls,A,North,QF,2026-GA-N-QF1,1,Mt. Ararat,62.0,8,Skowhegan Area,24.0
 2026,Girls,A,North,QF,2026-GA-N-QF2,4,Edward Little,45.0,5,Bangor,36.0
 2026,Girls,A,North,QF,2026-GA-N-QF3,3,Camden Hills Regional,59.0,6,Brunswick,31.0
@@ -30,20 +31,21 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Girls,A,South,QF,2026-GA-S-QF1,1,Cheverus,47.0,8,Gorham,37.0
 2026,Girls,A,South,QF,2026-GA-S-QF2,4,Biddeford,45.0,5,Windham,42.0
 2026,Girls,A,South,QF,2026-GA-S-QF3,3,South Portland,43.0,6,Westbrook,31.0
-2026,Girls,A,South,QF,2026-GA-S-QF4,2,Sanford,57.0,7,Thornton Academy,35.0
 2026,Girls,A,North,SF,2026-GA-N-SF1,1,Mt. Ararat,69.0,4,Edward Little,48.0
+2026,Girls,B,South,Prelim,2026-GB-S-P2,7,Leavitt Area,25.0,10,Lake Region,33.0
 2026,Girls,A,North,SF,2026-GA-N-SF2,3,Camden Hills Regional,39.0,2,Hampden Academy,41.0
 2026,Girls,A,South,SF,2026-GA-S-SF1,1,Cheverus,45.0,4,Biddeford,39.0
 2026,Girls,A,South,SF,2026-GA-S-SF2,3,South Portland,43.0,2,Sanford,38.0
 2026,Girls,A,North,Final,2026-GA-N-F1,1,Mt. Ararat,26.0,2,Hampden Academy,33.0
 2026,Girls,A,South,Final,2026-GA-S-F1,1,Cheverus,46.0,3,South Portland,35.0
-2026,Girls,B,North,Prelim,2026-GB-N-P1,8,Erskine Academy,59.0,9,Cony HS,72.0
+2026,Girls,A,North,State,2026-GA-N-ST1,2,Hampden Academy,61.0,1,Cheverus,63.0
 2026,Girls,B,South,Prelim,2026-GB-S-P1,8,Freeport,47.0,9,Yarmouth,26.0
-2026,Girls,B,South,Prelim,2026-GB-S-P2,7,Leavitt Area,25.0,10,Lake Region,33.0
-2026,Girls,C,North,QF,2026-GC-N-QF4,2,George Stevens Academy,46.0,7,Sumner Memorial,30.0
+2026,Girls,B,North,Prelim,2026-GB-N-P1,8,Erskine Academy,59.0,9,Cony HS,72.0
+2026,Girls,C,North,QF,2026-GC-N-QF3,3,Foxcroft Academy,32.0,6,Calais,22.0
 2026,Girls,C,South,QF,2026-GC-S-QF1,1,Spruce Mountain,58.0,8,Mount View,29.0
-2026,Girls,C,South,QF,2026-GC-S-QF2,4,Oak Hill,39.0,5,Winthrop,41.0
-2026,Girls,D,South,SF,2026-GD-S-SF1,1,Mt. Abram,40.0,4,Monmouth Academy,17.0
+2026,Boys,A,South,Prelim,2026-BA-S-P2,7,Westbrook,36.0,10,Bonny Eagle,47.0
+2026,Girls,S,South,QF,2026-GS-S-QF1,1,Valley HS,82.0,8,Rangeley Lakes Regional,13.0
+2026,Girls,D,South,SF,2026-GD-S-SF2,6,Madison High School,23.0,2,Buckfield HS,41.0
 2026,Girls,D,North,Final,2026-GD-N-F1,4,Penobscot Valley,53.0,2,Machias Memorial,37.0
 2026,Girls,D,South,Final,2026-GD-S-F1,1,Mt. Abram,50.0,2,Buckfield HS,38.0
 2026,Girls,D,North,State,2026-GD-N-ST1,4,Penobscot Valley,42.0,1,Mt. Abram,35.0
@@ -51,8 +53,8 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Girls,S,North,QF,2026-GS-N-QF2,4,Deer Isle-Stonington,16.0,5,Ashland District,27.0
 2026,Girls,S,North,QF,2026-GS-N-QF3,3,Jonesport-Beals,41.0,6,Shead,30.0
 2026,Girls,S,North,QF,2026-GS-N-QF4,2,Katahdin HS,48.0,7,Van Buren District,23.0
-2026,Girls,S,South,QF,2026-GS-S-QF1,1,Valley HS,82.0,8,Rangeley Lakes Regional,13.0
 2026,Girls,S,South,QF,2026-GS-S-QF2,4,Temple Academy,38.0,5,North Haven Community,25.0
+2026,Girls,D,North,SF,2026-GD-N-SF2,3,Central Aroostook Sr,38.0,2,Machias Memorial,47.0
 2026,Girls,S,South,QF,2026-GS-S-QF3,3,Vinalhaven,43.0,6,Pine Tree Academy,37.0
 2026,Girls,S,South,QF,2026-GS-S-QF4,2,Forest Hills Consolidate,56.0,7,Greenville,33.0
 2026,Girls,S,North,SF,2026-GS-N-SF1,1,Wisdom HS,47.0,5,Ashland District,20.0
@@ -61,10 +63,11 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Girls,S,South,SF,2026-GS-S-SF2,3,Vinalhaven,30.0,2,Forest Hills Consolidate,42.0
 2026,Girls,S,North,Final,2026-GS-N-F1,1,Wisdom HS,41.0,2,Katahdin HS,26.0
 2026,Girls,S,South,Final,2026-GS-S-F1,1,Valley HS,79.0,2,Forest Hills Consolidate,29.0
-2026,Girls,D,South,SF,2026-GD-S-SF2,6,Madison High School,23.0,2,Buckfield HS,41.0
-2026,Girls,D,North,SF,2026-GD-N-SF2,3,Central Aroostook Sr,38.0,2,Machias Memorial,47.0
-2026,Girls,C,South,QF,2026-GC-S-QF3,3,Wells,46.0,6,Winslow,24.0
+2026,Girls,D,South,SF,2026-GD-S-SF1,1,Mt. Abram,40.0,4,Monmouth Academy,17.0
 2026,Girls,D,North,SF,2026-GD-N-SF1,1,Bangor Christian,37.0,4,Penobscot Valley,52.0
+2026,Girls,C,South,QF,2026-GC-S-QF2,4,Oak Hill,39.0,5,Winthrop,41.0
+2026,Girls,C,North,State,2026-GC-N-ST1,1,Mattanawcook Academy,54.0,1,Spruce Mountain,40.0
+2026,Girls,C,South,QF,2026-GC-S-QF3,3,Wells,46.0,6,Winslow,24.0
 2026,Girls,C,South,QF,2026-GC-S-QF4,2,Maranacook Community,55.0,7,Dirigo,43.0
 2026,Girls,C,North,SF,2026-GC-N-SF1,1,Mattanawcook Academy,59.0,5,Caribou,43.0
 2026,Girls,C,North,SF,2026-GC-N-SF2,3,Foxcroft Academy,46.0,2,George Stevens Academy,35.0
@@ -73,6 +76,7 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Girls,C,North,Final,2026-GC-N-F1,1,Mattanawcook Academy,41.0,3,Foxcroft Academy,22.0
 2026,Girls,C,South,Final,2026-GC-S-F1,1,Spruce Mountain,51.0,3,Wells,24.0
 2026,Girls,D,North,Prelim,2026-GD-N-P1,8,Schenck,52.0,9,Stearns Sr.,49.0
+2026,Girls,D,South,QF,2026-GD-S-QF4,2,Buckfield HS,61.0,7,Boothbay Region,37.0
 2026,Girls,D,North,Prelim,2026-GD-N-P2,7,Narraguagus Sr,52.0,10,Fort Fairfield HS,17.0
 2026,Girls,D,North,QF,2026-GD-N-QF1,1,Bangor Christian,87.0,8,Schenck,27.0
 2026,Girls,D,North,QF,2026-GD-N-QF2,4,Penobscot Valley,73.0,5,Southern Aroostook,19.0
@@ -81,10 +85,9 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Girls,D,South,QF,2026-GD-S-QF1,1,Mt. Abram,71.0,8,North Yarmouth Academy,21.0
 2026,Girls,D,South,QF,2026-GD-S-QF2,4,Monmouth Academy,49.0,5,Old Orchard Beach,35.0
 2026,Girls,D,South,QF,2026-GD-S-QF3,3,Carrabec,34.0,6,Madison High School,42.0
-2026,Girls,D,South,QF,2026-GD-S-QF4,2,Buckfield HS,61.0,7,Boothbay Region,37.0
-2026,Girls,A,South,Prelim,2026-GA-S-P3,6,Westbrook,50.0,11,Massabesic,24.0
+2026,Girls,A,South,Prelim,2026-GA-S-P2,7,Thornton Academy,58.0,10,Kennebunk,44.0
 2026,Girls,A,South,Prelim,2026-GA-S-P1,8,Gorham,58.0,9,Scarborough,47.0
-2026,Boys,A,South,Prelim,2026-BA-S-P2,7,Westbrook,36.0,10,Bonny Eagle,47.0
+2026,Boys,S,North,State,2026-BS-N-ST1,2,Easton Senior,46.0,1,Valley HS,77.0
 2026,Boys,B,South,SF,2026-BB-S-SF2,6,Poland Regional,57.0,2,Medomak Valley,63.0
 2026,Boys,B,North,QF,2026-BB-N-QF4,2,Hermon,61.0,7,Belfast Area,44.0
 2026,Boys,B,South,QF,2026-BB-S-QF1,1,York,63.0,9,Gray-New Gloucester,45.0
@@ -95,19 +98,19 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Boys,B,North,SF,2026-BB-N-SF2,3,Gardiner Area,50.0,2,Hermon,33.0
 2026,Boys,B,South,SF,2026-BB-S-SF1,1,York,72.0,4,Yarmouth,77.0
 2026,Boys,B,North,Final,2026-BB-N-F1,1,Cony HS,71.0,3,Gardiner Area,80.0
-2026,Boys,S,North,State,2026-BS-N-ST1,2,Easton Senior,46.0,1,Valley HS,77.0
+2026,Boys,B,North,QF,2026-BB-N-QF2,4,Mount Desert Island,42.0,5,Ellsworth,47.0
 2026,Boys,B,South,Final,2026-BB-S-F1,4,Yarmouth,63.0,2,Medomak Valley,58.0
 2026,Boys,B,North,State,2026-BB-N-ST1,3,Gardiner Area,58.0,4,Yarmouth,54.0
-2026,Boys,C,North,Prelim,2026-BC-N-P1,8,Calais,51.0,9,Dexter Regional,48.0
 2026,Boys,C,South,Prelim,2026-BC-S-P1,8,Oak Hill,44.0,9,Wells,50.0
+2026,Boys,C,North,Prelim,2026-BC-N-P1,8,Calais,51.0,9,Dexter Regional,48.0
 2026,Boys,C,South,Prelim,2026-BC-S-P2,7,Dirigo,49.0,10,Winslow,37.0
 2026,Boys,C,North,Prelim,2026-BC-N-P2,7,Orono,69.0,10,Bucksport,32.0
 2026,Boys,C,North,QF,2026-BC-N-QF1,1,Caribou,73.0,8,Calais,47.0
 2026,Boys,C,North,QF,2026-BC-N-QF2,4,Foxcroft Academy,42.0,5,Washington Academy,52.0
 2026,Boys,B,North,QF,2026-BB-N-QF3,3,Gardiner Area,62.0,6,Erskine Academy,29.0
-2026,Boys,B,North,QF,2026-BB-N-QF2,4,Mount Desert Island,42.0,5,Ellsworth,47.0
 2026,Boys,B,North,QF,2026-BB-N-QF1,1,Cony HS,63.0,8,Presque Isle,51.0
-2026,Boys,B,South,Prelim,2026-BB-S-P2,7,Oceanside,53.0,10,Lincoln Academy,56.0
+2026,Boys,S,South,Final,2026-BS-S-F1,1,Valley HS,89.0,3,Forest Hills Consolidate,42.0
+2026,Boys,A,South,QF,2026-BA-S-QF4,2,Sanford,62.0,10,Bonny Eagle,48.0
 2026,Boys,A,South,Prelim,2026-BA-S-P3,6,Portland,51.0,11,Falmouth,42.0
 2026,Boys,A,North,QF,2026-BA-N-QF1,1,Camden Hills Regional,69.0,8,Skowhegan Area,44.0
 2026,Boys,A,North,QF,2026-BA-N-QF2,4,Bangor,54.0,5,Lewiston,43.0
@@ -116,27 +119,30 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Boys,A,South,QF,2026-BA-S-QF1,1,Windham,62.0,8,Scarborough,66.0
 2026,Boys,A,South,QF,2026-BA-S-QF2,4,Thornton Academy,60.0,5,Cheverus,61.0
 2026,Boys,A,South,QF,2026-BA-S-QF3,3,South Portland,33.0,6,Portland,34.0
-2026,Boys,A,South,QF,2026-BA-S-QF4,2,Sanford,62.0,10,Bonny Eagle,48.0
 2026,Boys,A,North,SF,2026-BA-N-SF1,1,Camden Hills Regional,61.0,4,Bangor,52.0
+2026,Boys,B,South,Prelim,2026-BB-S-P2,7,Oceanside,53.0,10,Lincoln Academy,56.0
 2026,Boys,A,North,SF,2026-BA-N-SF2,3,Brunswick,52.0,2,Edward Little,44.0
 2026,Boys,A,South,SF,2026-BA-S-SF1,8,Scarborough,59.0,5,Cheverus,68.0
 2026,Boys,A,South,SF,2026-BA-S-SF2,6,Portland,61.0,2,Sanford,51.0
 2026,Boys,A,North,Final,2026-BA-N-F1,1,Camden Hills Regional,60.0,3,Brunswick,48.0
 2026,Boys,A,South,Final,2026-BA-S-F1,5,Cheverus,30.0,6,Portland,48.0
-2026,Boys,B,South,Prelim,2026-BB-S-P1,8,Cape Elizabeth,59.0,9,Gray-New Gloucester,63.0
+2026,Boys,A,North,State,2026-BA-N-ST1,1,Camden Hills Regional,60.0,6,Portland,76.0
 2026,Boys,B,North,Prelim,2026-BB-N-P1,8,Presque Isle,69.0,9,Nokomis,42.0
+2026,Boys,B,South,Prelim,2026-BB-S-P1,8,Cape Elizabeth,59.0,9,Gray-New Gloucester,63.0
 2026,Boys,C,North,QF,2026-BC-N-QF3,3,Fort Kent Community,75.0,6,Sumner Memorial,45.0
 2026,Boys,C,North,QF,2026-BC-N-QF4,2,Mattanawcook Academy,70.0,7,Orono,57.0
 2026,Boys,C,South,QF,2026-BC-S-QF1,1,Spruce Mountain,63.0,9,Wells,39.0
-2026,Boys,D,North,SF,2026-BD-N-SF2,3,Fort Fairfield HS,38.0,2,Madawaska HS,51.0
+2026,Boys,S,North,QF,2026-BS-N-QF4,2,Easton Senior,83.0,7,Wisdom HS,35.0
+2026,Boys,D,South,SF,2026-BD-S-SF1,1,Mt. Abram,55.0,4,Carrabec,49.0
 2026,Boys,D,South,SF,2026-BD-S-SF2,3,Madison High School,46.0,2,Monmouth Academy,50.0
 2026,Boys,D,North,Final,2026-BD-N-F1,1,Machias Memorial,61.0,2,Madawaska HS,57.0
 2026,Boys,D,South,Final,2026-BD-S-F1,1,Mt. Abram,42.0,2,Monmouth Academy,60.0
+2026,Boys,D,North,State,2026-BD-N-ST1,1,Machias Memorial,41.0,2,Monmouth Academy,51.0
 2026,Boys,S,North,QF,2026-BS-N-QF1,1,Jonesport-Beals,77.0,8,Deer Isle-Stonington,25.0
 2026,Boys,S,North,QF,2026-BS-N-QF2,4,Washburn District,38.0,5,Shead,50.0
 2026,Boys,S,North,QF,2026-BS-N-QF3,3,Katahdin HS,54.0,6,Van Buren District,42.0
-2026,Boys,S,North,QF,2026-BS-N-QF4,2,Easton Senior,83.0,7,Wisdom HS,35.0
 2026,Boys,S,South,QF,2026-BS-S-QF1,1,Valley HS,70.0,8,Greenville,16.0
+2026,Boys,C,South,QF,2026-BC-S-QF2,4,Sacopee Valley,46.0,5,Mount View,58.0
 2026,Boys,S,South,QF,2026-BS-S-QF2,4,Islesboro Central,55.0,5,Vinalhaven,46.0
 2026,Boys,S,South,QF,2026-BS-S-QF3,3,Forest Hills Consolidate,77.0,6,Temple Academy,55.0
 2026,Boys,S,South,QF,2026-BS-S-QF4,2,Pine Tree Academy,86.0,7,Rangeley Lakes Regional,32.0
@@ -145,11 +151,10 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Boys,S,South,SF,2026-BS-S-SF1,1,Valley HS,72.0,4,Islesboro Central,44.0
 2026,Boys,S,South,SF,2026-BS-S-SF2,3,Forest Hills Consolidate,64.0,2,Pine Tree Academy,60.0
 2026,Boys,S,North,Final,2026-BS-N-F1,1,Jonesport-Beals,42.0,2,Easton Senior,58.0
-2026,Boys,S,South,Final,2026-BS-S-F1,1,Valley HS,89.0,3,Forest Hills Consolidate,42.0
-2026,Boys,D,South,SF,2026-BD-S-SF1,1,Mt. Abram,55.0,4,Carrabec,49.0
+2026,Boys,D,North,SF,2026-BD-N-SF2,3,Fort Fairfield HS,38.0,2,Madawaska HS,51.0
 2026,Boys,D,North,SF,2026-BD-N-SF1,1,Machias Memorial,56.0,5,Hodgdon HS,51.0
-2026,Boys,C,South,QF,2026-BC-S-QF2,4,Sacopee Valley,46.0,5,Mount View,58.0
 2026,Boys,D,South,QF,2026-BD-S-QF4,2,Monmouth Academy,54.0,7,Telstar Regional,40.0
+2026,Boys,D,South,QF,2026-BD-S-QF3,3,Madison High School,68.0,6,Buckfield HS,53.0
 2026,Boys,C,South,QF,2026-BC-S-QF3,3,Maranacook Community,83.0,6,Waynflete,69.0
 2026,Boys,C,South,QF,2026-BC-S-QF4,2,Hall-Dale HS,64.0,7,Dirigo,32.0
 2026,Boys,C,North,SF,2026-BC-N-SF1,1,Caribou,70.0,5,Washington Academy,55.0
@@ -158,6 +163,7 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Boys,C,South,SF,2026-BC-S-SF2,3,Maranacook Community,73.0,2,Hall-Dale HS,65.0
 2026,Boys,C,North,Final,2026-BC-N-F1,1,Caribou,47.0,3,Fort Kent Community,48.0
 2026,Boys,C,South,Final,2026-BC-S-F1,1,Spruce Mountain,47.0,3,Maranacook Community,49.0
+2026,Boys,C,North,State,2026-BC-N-ST1,3,Fort Kent Community,70.0,3,Maranacook Community,63.0
 2026,Boys,D,North,Prelim,2026-BD-N-P1,8,Central Aroostook Sr,55.0,9,Schenck,40.0
 2026,Boys,D,North,Prelim,2026-BD-N-P2,7,Penobscot Valley,57.0,10,Stearns Sr.,47.0
 2026,Boys,D,North,QF,2026-BD-N-QF1,1,Machias Memorial,71.0,8,Central Aroostook Sr,46.0
@@ -166,5 +172,4 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Boys,D,North,QF,2026-BD-N-QF4,2,Madawaska HS,53.0,7,Penobscot Valley,37.0
 2026,Boys,D,South,QF,2026-BD-S-QF1,1,Mt. Abram,85.0,8,Old Orchard Beach,53.0
 2026,Boys,D,South,QF,2026-BD-S-QF2,4,Carrabec,61.0,5,Wiscasset HS,51.0
-2026,Boys,D,South,QF,2026-BD-S-QF3,3,Madison High School,68.0,6,Buckfield HS,53.0
 2026,Girls,S,North,State,2026-GS-N-ST1,1,Wisdom HS,30.0,1,Valley HS,48.0

@@ -13,11 +13,10 @@ import streamlit.components.v1 as components
 
 from layout import apply_global_layout_tweaks, render_logo, render_page_header, render_footer
 from auth import login_gate, logout_button, is_subscribed
+from sidebar_auth import render_sidebar_auth
 
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
+render_sidebar_auth()
+
 PROJECT_ROOT   = Path(__file__).resolve().parent.parent
 DATA_DIR       = Path(os.environ.get("DATA_DIR", PROJECT_ROOT / "data"))
 TEAMS_PATH     = DATA_DIR / "core" / "teams_team_season_core_v50.parquet"
@@ -248,11 +247,11 @@ def resolve_winners(df: pd.DataFrame, gender: str, cls: str, region: str) -> pd.
 
     for rnd_idx in range(len(round_order) - 1):
         current_rnd = round_order[rnd_idx]
-        next_rnd = round_order[rnd_idx + 1]
+        next_rnd    = round_order[rnd_idx + 1]
 
         current_games = bracket[bracket["Round"] == current_rnd].sort_values("Seed1", na_position="last")
-        next_mask = sub & (df["Round"] == next_rnd)
-        next_indices = df[next_mask].index.tolist()
+        next_mask     = sub & (df["Round"] == next_rnd)
+        next_indices  = df[next_mask].index.tolist()
 
         if current_games.empty or not next_indices:
             continue
@@ -320,7 +319,7 @@ def build_state_game(df: pd.DataFrame, gender: str, cls: str,
         a_row = _fuzzy_find_team(df_teams, north_champ, gender, cls)
         b_row = _fuzzy_find_team(df_teams, south_champ, gender, cls)
         if a_row is not None and b_row is not None:
-            m = matchup_pred(a_row, b_row)
+            m     = matchup_pred(a_row, b_row)
             prob1 = m["prob_a"]
             prob2 = 1.0 - prob1
 
@@ -430,18 +429,32 @@ def tbd_card(lbl1: str, lbl2: str, header: str = "UPCOMING") -> str:
 def champ_card(team: str, seed: int | None) -> str:
     sd = str(seed) if seed else "?"
     return (
-        '<div style="background:linear-gradient(135deg,rgba(245,158,11,0.18),rgba(234,179,8,0.08));'
-        'border:2px solid rgba(245,158,11,0.6);border-radius:10px;'
-        'padding:10px 12px;height:{}px;box-sizing:border-box;'
+        '<div style="'
+        'background:linear-gradient(135deg,rgba(245,158,11,0.28),rgba(234,179,8,0.14));'
+        'border:2px solid rgba(245,158,11,0.95);'
+        'border-radius:14px;'
+        'padding:16px 12px;'
+        'height:{}px;'
+        'box-sizing:border-box;'
         'display:flex;flex-direction:column;align-items:center;justify-content:center;'
-        'text-align:center">'.format(CARD_H) +
-        '<div style="font-size:18px;margin-bottom:2px">🏆</div>' +
-        '<div style="color:#fde68a;font-size:9px;font-weight:900;letter-spacing:.18em;'
-        'text-transform:uppercase;margin-bottom:3px">GOLD BALL CHAMPION</div>' +
-        '<div style="color:#f1f5f9;font-size:13px;font-weight:900;white-space:nowrap;'
-        'overflow:hidden;text-overflow:ellipsis;max-width:190px">'
-        '<span style="color:rgba(245,158,11,0.7);font-size:10px;font-weight:700;'
-        'margin-right:4px">{}</span>{}</div></div>'.format(sd, team)
+        'text-align:center;'
+        'box-shadow:0 0 40px rgba(245,158,11,0.50), 0 0 100px rgba(245,158,11,0.18);'
+        'position:relative;overflow:hidden;">'.format(CARD_H * 2 + GAP) +
+        '<div style="position:absolute;top:0;left:0;right:0;height:3px;'
+        'background:linear-gradient(90deg,transparent,rgba(245,158,11,0.9),transparent);"></div>' +
+        '<div style="font-size:32px;margin-bottom:6px;'
+        'filter:drop-shadow(0 0 10px rgba(245,158,11,0.9));">🏆</div>' +
+        '<div style="color:#fde68a;font-size:9px;font-weight:900;letter-spacing:.22em;'
+        'text-transform:uppercase;margin-bottom:6px;opacity:0.95;">'
+        'Gold Ball Champion</div>' +
+        '<div style="color:#ffffff;font-size:15px;font-weight:900;'
+        'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px;'
+        'text-shadow:0 0 24px rgba(245,158,11,1.0);">'
+        '<span style="color:rgba(245,158,11,0.8);font-size:11px;font-weight:700;'
+        'margin-right:4px">#{} </span>{}</div>'.format(sd, team) +
+        '<div style="margin-top:8px;width:75%;height:2px;'
+        'background:linear-gradient(90deg,transparent,rgba(245,158,11,0.9),transparent);"></div>' +
+        '</div>'
     )
 
 # ─────────────────────────────────────────────
@@ -503,7 +516,7 @@ def build_region_html(prelims: List[dict], qf: List[dict],
     return html
 
 # ─────────────────────────────────────────────
-# FULL BRACKET HTML
+# FULL BRACKET HTML  — with centered Gold Ball card
 # ─────────────────────────────────────────────
 
 def build_full_bracket_html(gender: str, cls: str, df: pd.DataFrame,
@@ -536,19 +549,41 @@ def build_full_bracket_html(gender: str, cls: str, df: pd.DataFrame,
             cards_html += '<div style="width:{}px">{}</div>'.format(COL_W, card_html(g))
         cards_html += '</div>'
         prelim_html = prelim_label_html + cards_html
-        rows    = (len(all_prelims) + 3) // 4
+        rows     = (len(all_prelims) + 3) // 4
         prelim_h = rows * (CARD_H + GAP) + 36
 
     n_round_cols = 3
     state_col_x  = n_round_cols * (COL_W + COL_GAP)
     champ_col_x  = state_col_x + COL_W + COL_GAP
-    n_qf_h       = max(len(n_qf), 4) * SLOT
-    s_qf_h       = max(len(s_qf), 4) * SLOT
-    region_sep   = 40
 
-    n_fin_mid = fin_top(0) + CARD_H // 2
-    s_fin_mid = n_qf_h + region_sep + fin_top(0) + CARD_H // 2
-    state_y   = (n_fin_mid + s_fin_mid) // 2 - CARD_H // 2
+    n_qf_h     = max(len(n_qf), 4) * SLOT
+    s_qf_h     = max(len(s_qf), 4) * SLOT
+    region_sep = 40
+
+    champ_card_h = CARD_H * 2 + GAP
+
+    # Header + region tops
+    hdr_h     = 26
+    lbl_h     = 16
+    north_top = hdr_h + lbl_h
+    south_top = north_top + n_qf_h + region_sep
+
+    # Midpoints of North/South regional finals in absolute coordinates
+    n_fin_mid_abs = north_top + fin_top(0) + CARD_H // 2
+    s_fin_mid_abs = south_top + fin_top(0) + CARD_H // 2
+
+    has_north = bool(n_fn)
+    has_south = bool(s_fn)
+    if has_north and has_south:
+        bracket_mid = (n_fin_mid_abs + s_fin_mid_abs) // 2
+    elif has_north:
+        bracket_mid = n_fin_mid_abs
+    else:
+        bracket_mid = s_fin_mid_abs
+
+    # state_y is relative to north_top block; champ_y is absolute
+    state_y = bracket_mid - (north_top + CARD_H // 2)
+    champ_y = bracket_mid - champ_card_h // 2
 
     has_champ = state_game and state_game["done"]
     hdrs = ["Quarterfinal", "Semifinal", "Regional Final", "State Final"]
@@ -582,15 +617,13 @@ def build_full_bracket_html(gender: str, cls: str, df: pd.DataFrame,
             else:
                 champ_team = state_game["team2"]
                 champ_seed = state_game["seed2"]
-            champ_html = '<div style="position:absolute;top:{}px;left:{}px;width:{}px">{}</div>'.format(
-                state_y, champ_col_x, COL_W, champ_card(champ_team, champ_seed))
+            champ_html = (
+                '<div style="position:absolute;top:{}px;left:{}px;width:{}px">{}</div>'.format(
+                    champ_y, champ_col_x, COL_W + 20, champ_card(champ_team, champ_seed))
+            )
 
-    hdr_h      = 26
-    lbl_h      = 16
-    north_top  = hdr_h + lbl_h
-    south_top  = north_top + n_qf_h + region_sep
-    total_w    = (champ_col_x + COL_W + 20) if has_champ else (state_col_x + COL_W + 20)
-    bracket_h  = south_top + s_qf_h + 40
+    total_w   = (champ_col_x + COL_W + 40) if has_champ else (state_col_x + COL_W + 20)
+    bracket_h = south_top + s_qf_h + 40
 
     bracket_html = (
         '<div style="position:relative;height:{}px;width:{}px">'.format(bracket_h, total_w) +
@@ -794,7 +827,7 @@ def run_state_odds(gender: str, cls: str,
         cs = sim_region_once("South")
         if cn is None or cs is None:
             continue
-        m = matchup_pred(cn, cs)
+        m     = matchup_pred(cn, cs)
         champ = cn if random.random() < m["prob_a"] else cs
         name  = str(champ.get("Team", ""))
         state_wins[name] = state_wins.get(name, 0) + 1
@@ -840,8 +873,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ── Hero banner ──────────────────────────────
-site = SITE_MAP.get((cls, sub["Region"].iloc[0] if not sub.empty else ""), "Regional Site") if not sub.empty else ""
+site          = SITE_MAP.get((cls, sub["Region"].iloc[0] if not sub.empty else ""), "Regional Site") if not sub.empty else ""
 n_games_total = n_tot
 n_complete    = n_done
 n_remaining   = n_tot - n_done
@@ -889,9 +921,6 @@ hero_html = f"""
 components.html(hero_html, height=145, scrolling=False)
 st.write("")
 
-# ══════════════════════════════════════════════════════════════════════════
-#  TABS — Bracket is FREE, Championship Odds is 🔒 LOCKED
-# ══════════════════════════════════════════════════════════════════════════
 _subscribed = is_subscribed()
 
 tab_bracket, tab_odds = st.tabs(["📋 Bracket", "🎯 Championship Odds"])
