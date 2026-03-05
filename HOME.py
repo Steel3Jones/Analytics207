@@ -3,9 +3,9 @@ from __future__ import annotations
 import base64
 from pathlib import Path
 
-import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 from auth import logout_button
 import layout as L
@@ -16,7 +16,7 @@ from sidebar_auth import render_sidebar_auth
 # ─────────────────────────────────────────────
 
 st.set_page_config(
-    page_title="🏀 ANALYTICS207 | Maine HS Hoops",
+    page_title="Analytics207 | Maine HS Basketball",
     page_icon="🏀",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -39,218 +39,485 @@ def img_to_b64(path: str) -> str:
     return f"data:image/{ext};base64,{b64}"
 
 # ─────────────────────────────────────────────
-# STYLES
+# GLOBAL STREAMLIT STYLE OVERRIDES
+# (only things that affect Streamlit's own chrome)
 # ─────────────────────────────────────────────
 
 st.markdown("""
 <style>
-.block-container { padding-top: 0.7rem; }
-
-.a207-hero-card {
-  position:relative; border-radius:24px; padding:1.5rem 1.6rem;
-  background:radial-gradient(circle at 0% 0%,#020617,#020617);
-  box-shadow:0 28px 50px rgba(15,23,42,0.95),inset 0 0 0 1px rgba(148,163,184,0.35);
-  color:#e5e7eb; margin-bottom:1.6rem; overflow:hidden;
-}
-.a207-hero-card::before {
-  content:""; position:absolute; inset:-40%;
-  background:
-    radial-gradient(circle at 5% 0%,rgba(59,130,246,0.50),transparent 60%),
-    radial-gradient(circle at 75% 0%,rgba(244,114,182,0.42),transparent 60%),
-    radial-gradient(circle at 100% 40%,rgba(34,197,94,0.28),transparent 60%);
-  mix-blend-mode:screen; opacity:0.95; pointer-events:none;
-}
-.a207-hero-tag {
-  font-size:.78rem; letter-spacing:.18em; text-transform:uppercase;
-  color:#a5b4fc; margin-bottom:.35rem;
-  display:inline-flex; align-items:center; gap:.4rem;
-}
-.a207-hero-tag-dot {
-  width:8px; height:8px; border-radius:999px; background:#4ade80;
-  box-shadow:0 0 0 4px rgba(74,222,128,0.40);
-}
-.a207-hero-title {
-  font-size:2rem; line-height:1.1; font-weight:800;
-  letter-spacing:.02em; margin-bottom:.35rem;
-}
-.a207-hero-sub {
-  font-size:.95rem; color:#e5e7eb; max-width:32rem; margin-bottom:.7rem;
-}
-.a207-hero-highlight {
-  display:inline-flex; align-items:center; gap:.45rem;
-  padding:.28rem .75rem; border-radius:999px;
-  border:1px solid rgba(248,250,252,0.5);
-  background:rgba(15,23,42,0.9); font-size:.8rem; margin-bottom:.8rem;
-}
-.a207-hero-highlight-badge {
-  padding:.08rem .45rem; border-radius:999px;
-  background:rgba(34,197,94,0.30); color:#86efac;
-  font-size:.72rem; text-transform:uppercase; letter-spacing:.12em;
-}
-.a207-hero-cta-row    { display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; }
-.a207-hero-cta-primary {
-  display:inline-flex; align-items:center; gap:.5rem;
-  padding:.4rem 1.1rem; border-radius:999px;
-  border:1px solid rgba(251,113,133,1);
-  background:linear-gradient(135deg,#fb7185,#f97316);
-  color:#111827; font-size:.86rem; font-weight:700; cursor:pointer;
-}
-.a207-hero-cta-secondary { font-size:.8rem; color:#9ca3af; }
-.a207-hero-social-proof  { margin-top:.55rem; font-size:.75rem; color:#9ca3af; }
-
-.feat-card-shell {
-  background:#0f1e35; border:1px solid rgba(255,255,255,0.14);
-  border-radius:14px; padding:12px 14px;
-  font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;
-}
-.feat-card-header {
-  display:flex; justify-content:space-between; align-items:center;
-  margin-bottom:6px;
-}
-.feat-card-title {
-  font-size:10px; font-weight:800; letter-spacing:.14em;
-  text-transform:uppercase; color:#f59e0b;
-}
-.feat-card-link { font-size:10px; color:rgba(148,163,184,0.55); }
-.feat-card-body { font-size:11px; color:#cbd5e1; margin-bottom:6px; }
-.feat-card-footer {
-  font-size:9px; color:rgba(148,163,184,0.60);
-  border-top:1px solid rgba(255,255,255,0.08);
-  padding-top:6px; margin-top:6px;
-}
-
-/* kill plotly default white bg & toolbar padding */
-.js-plotly-plot .plotly, .js-plotly-plot .plotly div { background:transparent !important; }
-[data-testid="stPlotlyChart"] > div { padding-top:0 !important; }
+.block-container { padding-top: 0.5rem !important; padding-bottom: 0 !important; }
+[data-testid="stPlotlyChart"] > div { padding-top: 0 !important; }
+.js-plotly-plot .plotly, .js-plotly-plot .plotly div { background: transparent !important; }
 </style>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# HEADER
+# HEADER / LOGO
 # ─────────────────────────────────────────────
 
 if callable(render_logo):
     render_logo()
 
 # ─────────────────────────────────────────────
-# HERO
+# SHARED CSS — injected into every components.html block
 # ─────────────────────────────────────────────
 
-col_left, col_right = st.columns([1.4, 1.0], gap="large")
+SHARED_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
 
-with col_left:
-    st.markdown("""
-<div class="a207-hero-card" style="position:relative;z-index:1;">
-  <div class="a207-hero-tag">
-    <span class="a207-hero-tag-dot"></span>
-    <span>LIVE NOW · 2025–26 SEASON · MAINE HIGH SCHOOL HOOPS</span>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: transparent; font-family: 'Barlow', sans-serif; color: #e2e8f0; }
+
+/* ── TICKER ── */
+.a207-ticker {
+  background: rgba(15,23,42,0.97);
+  border-bottom: 1px solid rgba(251,191,36,0.2);
+  padding: 0.5rem 0;
+  overflow: hidden;
+}
+.a207-ticker-inner {
+  display: flex;
+  gap: 3rem;
+  animation: ticker-scroll 32s linear infinite;
+  white-space: nowrap;
+  width: max-content;
+}
+.a207-ticker-inner:hover { animation-play-state: paused; }
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.a207-ticker-item {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+.a207-ticker-item strong { color: #fbbf24; }
+
+/* ── HERO ── */
+.a207-hero {
+  position: relative;
+  min-height: 400px;
+  border-radius: 24px;
+  overflow: hidden;
+  margin: 1rem 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  padding: 2.5rem 3rem;
+  background: #020617;
+}
+.a207-hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 0% 0%,   rgba(59,130,246,0.45), transparent),
+    radial-gradient(ellipse 60% 50% at 100% 0%,  rgba(244,114,182,0.32), transparent),
+    radial-gradient(ellipse 50% 70% at 50% 100%, rgba(34,197,94,0.12),   transparent);
+  mix-blend-mode: screen;
+}
+.a207-hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 80% at 30% 50%, black 40%, transparent 100%);
+}
+.a207-hero-content { position: relative; z-index: 2; max-width: 560px; }
+
+.a207-eyebrow {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: #7dd3fc; margin-bottom: 0.9rem;
+}
+.a207-eyebrow-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 4px rgba(74,222,128,0.3);
+  animation: pulse 2s ease infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(74,222,128,0.3); }
+  50%       { box-shadow: 0 0 0 8px rgba(74,222,128,0.1); }
+}
+
+.a207-headline {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 3.8rem; font-weight: 900;
+  line-height: 0.95; letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: #f8fafc; margin-bottom: 1rem;
+}
+.a207-headline em {
+  font-style: normal;
+  background: linear-gradient(135deg, #fbbf24, #fb7185);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.a207-sub {
+  font-size: 1rem; color: #cbd5e1; line-height: 1.65;
+  margin-bottom: 1.3rem; max-width: 450px;
+}
+
+.a207-accuracy-strip { display: flex; gap: 0.65rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
+.a207-pill {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.32rem 0.85rem; border-radius: 999px;
+  background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.32);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem; font-weight: 700; color: #86efac;
+}
+.a207-pill .num { font-size: 1.05rem; font-weight: 900; color: #4ade80; }
+
+.a207-cta-row { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+.a207-btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.62rem 1.5rem; border-radius: 999px;
+  background: linear-gradient(135deg, #fb7185, #f97316);
+  color: #0f172a; text-decoration: none;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem; font-weight: 800;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  box-shadow: 0 4px 18px rgba(251,113,133,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.a207-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(251,113,133,0.55);
+}
+.a207-btn-ghost {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.6rem 1.3rem; border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.3);
+  background: rgba(15,23,42,0.5);
+  color: #94a3b8; text-decoration: none;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.88rem; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.a207-trust { margin-top: 1rem; font-size: 0.73rem; color: #475569; }
+
+/* HERO RIGHT PANEL */
+.a207-hero-panel {
+  position: absolute; right: 2rem; top: 50%; transform: translateY(-50%);
+  z-index: 2; display: flex; flex-direction: column; gap: 0.7rem; width: 250px;
+}
+.a207-stat-card {
+  background: rgba(15,23,42,0.85);
+  border: 1px solid rgba(148,163,184,0.13);
+  border-radius: 14px; padding: 0.85rem 1rem;
+  backdrop-filter: blur(12px);
+}
+.a207-stat-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.63rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: #64748b; margin-bottom: 0.2rem;
+}
+.a207-stat-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.85rem; font-weight: 900; line-height: 1; color: #f8fafc;
+}
+.a207-stat-sub { font-size: 0.7rem; color: #64748b; margin-top: 0.15rem; }
+.accent { color: #4ade80; }
+.gold   { color: #fbbf24; }
+
+/* ── RHYTHM STRIP ── */
+.a207-rhythm {
+  background: rgba(251,191,36,0.05);
+  border: 1px solid rgba(251,191,36,0.18);
+  border-radius: 16px; padding: 1.1rem 1.4rem;
+  display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap;
+  margin-bottom: 1.8rem;
+}
+.a207-rhythm-icon { font-size: 1.8rem; flex-shrink: 0; }
+.a207-rhythm-text { flex: 1; }
+.a207-rhythm-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #fbbf24; margin-bottom: 0.2rem;
+}
+.a207-rhythm-body { font-size: 0.85rem; color: #94a3b8; line-height: 1.5; }
+.a207-rhythm-days { display: flex; gap: 0.35rem; }
+.a207-day {
+  width: 32px; height: 32px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em;
+}
+.a207-day.on  { background: rgba(251,191,36,0.18); border: 1px solid rgba(251,191,36,0.45); color: #fbbf24; }
+.a207-day.off { background: rgba(15,23,42,0.5);    border: 1px solid rgba(148,163,184,0.08); color: #1e293b; }
+
+/* ── SECTION HEADERS ── */
+.sec-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: #fbbf24; margin-bottom: 0.3rem;
+}
+.sec-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.9rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.02em; color: #f8fafc; margin-bottom: 0.25rem;
+}
+.sec-sub { font-size: 0.88rem; color: #64748b; margin-bottom: 1.4rem; }
+
+/* ── FEATURE GRID ── */
+.feat-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0.9rem; margin-bottom: 1.8rem;
+}
+.feat-card {
+  background: rgba(15,23,42,0.65);
+  border: 1px solid rgba(148,163,184,0.1);
+  border-radius: 16px; padding: 1.1rem 1.2rem;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.feat-card:hover { border-color: rgba(251,191,36,0.28); transform: translateY(-3px); }
+.feat-icon  { font-size: 1.5rem; margin-bottom: 0.55rem; }
+.feat-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.92rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: #f8fafc; margin-bottom: 0.3rem;
+}
+.feat-body  { font-size: 0.8rem; color: #64748b; line-height: 1.55; }
+.feat-tier  {
+  display: inline-block; margin-top: 0.65rem;
+  padding: 0.13rem 0.55rem; border-radius: 999px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.63rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.tier-free    { background: rgba(148,163,184,0.1);  color: #94a3b8; border: 1px solid rgba(148,163,184,0.18); }
+.tier-paid    { background: rgba(96,165,250,0.1);   color: #60a5fa; border: 1px solid rgba(96,165,250,0.22); }
+.tier-coaches { background: rgba(251,191,36,0.1);   color: #fbbf24; border: 1px solid rgba(251,191,36,0.28); }
+
+/* ── PERSONA CARDS ── */
+.persona-card {
+  background: rgba(15,23,42,0.5);
+  border: 1px solid rgba(148,163,184,0.09);
+  border-radius: 13px; padding: 1rem 1.1rem; margin-bottom: 0.7rem;
+}
+.persona-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.82rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: #f8fafc; margin-bottom: 0.2rem;
+}
+.persona-body { font-size: 0.78rem; color: #64748b; line-height: 1.5; }
+
+/* ── BOTTOM CTA ── */
+.bottom-cta {
+  background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(59,130,246,0.18), transparent);
+  border: 1px solid rgba(148,163,184,0.12);
+  border-radius: 24px; padding: 3rem 2rem;
+  text-align: center; margin-top: 0.5rem;
+}
+.bottom-cta-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 2.6rem; font-weight: 900; text-transform: uppercase;
+  letter-spacing: 0.02em; color: #f8fafc; margin-bottom: 0.45rem;
+}
+.bottom-cta-sub { font-size: 0.9rem; color: #64748b; margin-bottom: 1.4rem; }
+.center { display: flex; justify-content: center; }
+</style>
+"""
+
+# ─────────────────────────────────────────────
+# BLOCK 1 — TICKER + HERO + RHYTHM + FEATURES
+# ─────────────────────────────────────────────
+
+ticker_items = [
+    "🏀 <strong>Boys Model</strong> &nbsp;·&nbsp; 965–191 &nbsp;·&nbsp; <strong>83.5% Accuracy</strong>",
+    "🏀 <strong>Girls Model</strong> &nbsp;·&nbsp; 974–184 &nbsp;·&nbsp; <strong>84.1% Accuracy</strong>",
+    "📊 <strong>2,100+ Games</strong> Tracked Statewide This Season",
+    "⚡ <strong>Updated Mon–Sat</strong> &nbsp;·&nbsp; Every Game. Every Score. Every Shift.",
+    "🏆 <strong>Trophy Room</strong> &nbsp;·&nbsp; 20 Live Trophies &nbsp;·&nbsp; Updated Every Night",
+    "🎯 <strong>Spread Accuracy</strong> &nbsp;·&nbsp; 13.2 pts MAE &nbsp;·&nbsp; 17.0 pts RMSE",
+    "☠️ <strong>Survivor</strong> &nbsp;·&nbsp; Pick One Team Per Week &nbsp;·&nbsp; Don't Repeat",
+    "🤖 <strong>Fan vs. The Model</strong> &nbsp;·&nbsp; Can You Outpick the AI?",
+]
+doubled_ticker = " &nbsp;&nbsp;&nbsp; ".join(ticker_items * 2)
+
+components.html(SHARED_CSS + f"""
+<!-- TICKER -->
+<div class="a207-ticker">
+  <div class="a207-ticker-inner">
+    <span class="a207-ticker-item">{doubled_ticker}</span>
   </div>
-  <div class="a207-hero-title">
-    The model for Maine<br>high school basketball.
+</div>
+
+<!-- HERO -->
+<div class="a207-hero">
+  <div class="a207-hero-bg"></div>
+  <div class="a207-hero-grid"></div>
+
+  <div class="a207-hero-content">
+    <div class="a207-eyebrow">
+      <span class="a207-eyebrow-dot"></span>
+      <span>2025–26 Season · Maine High School Hoops</span>
+    </div>
+    <div class="a207-headline">
+      Maine's Basketball Model.</em>
+    </div>
+    <div class="a207-sub">
+      Six days a week, every score, every shift in the rankings —
+      Analytics207 tracks all of Maine high school basketball so you
+      never miss a moment that matters.
+    </div>
+    <div class="a207-accuracy-strip">
+      <div class="a207-pill"><span class="num">83.5%</span> Boys Accuracy</div>
+      <div class="a207-pill"><span class="num">84.1%</span> Girls Accuracy</div>
+      <div class="a207-pill"><span class="num">2,100+</span> Games</div>
+    </div>
+    <div class="a207-cta-row">
+      <a href="/My_Account" target="_self" class="a207-btn-primary">Create free account →</a>
+      <a href="/My_Account" target="_self" class="a207-btn-ghost">View plans</a>
+    </div>
+    <div class="a207-trust">Free forever · No credit card required · Used by coaches and media across Maine</div>
   </div>
-  <div class="a207-hero-sub">
-    Season-long ratings, matchup projections, bracket simulations, fan games,
-    and team resume tools — built for coaches, media, and hardcore fans.
-  </div>
-  <div class="a207-hero-highlight">
-    <span class="a207-hero-highlight-badge">FREE</span>
-    <span>Fan Hub, Survivor, Stump The Model &amp; more — free account to play</span>
-  </div>
-  <div class="a207-hero-cta-row">
-    <a href="/My_Account" target="_self" style="text-decoration:none;">
-      <div class="a207-hero-cta-primary">
-        <span>Create free account</span> <span>→</span>
-      </div>
-    </a>
-    <div class="a207-hero-cta-secondary">
-      Free forever · No credit card required
+
+  <div class="a207-hero-panel">
+    <div class="a207-stat-card">
+      <div class="a207-stat-label">Season Record · Boys</div>
+      <div class="a207-stat-value">965<span style="color:#334155;font-size:1.1rem;">–191</span></div>
+      <div class="a207-stat-sub"><span class="accent">83.5%</span> prediction accuracy</div>
+    </div>
+    <div class="a207-stat-card">
+      <div class="a207-stat-label">Season Record · Girls</div>
+      <div class="a207-stat-value">974<span style="color:#334155;font-size:1.1rem;">–184</span></div>
+      <div class="a207-stat-sub"><span class="accent">84.1%</span> prediction accuracy</div>
+    </div>
+    <div class="a207-stat-card">
+      <div class="a207-stat-label">🏆 Trophy Room</div>
+      <div class="a207-stat-value gold" style="font-size:1.2rem;">Live Tonight</div>
+      <div class="a207-stat-sub">20 trophies · updated every night automatically</div>
     </div>
   </div>
-  <div class="a207-hero-social-proof">
-    Used by coaches, media, and hoops diehards across Maine all season long.
-  </div>
 </div>
-""", unsafe_allow_html=True)
 
-with col_right:
-    st.markdown("""
-<div class="feat-card-shell">
-  <div class="feat-card-header">
-    <span class="feat-card-title">📋 2025–26 Season Report Card</span>
-    <span class="feat-card-link">Model performance</span>
+<!-- RHYTHM STRIP -->
+<div class="a207-rhythm">
+  <div class="a207-rhythm-icon">📡</div>
+  <div class="a207-rhythm-text">
+    <div class="a207-rhythm-title">Updated Six Days a Week — All Season Long</div>
+    <div class="a207-rhythm-body">
+      Every game night, Analytics207 scrapes results, recalculates rankings, updates Heal Points,
+      reassigns trophies, and refreshes predictions — automatically. No manual updates. No delays.
+      Fresh data every morning.
+    </div>
   </div>
-  <div class="feat-card-body">
-    How the prediction engine performed across all boys and girls games this season.
-  </div>
-  <div style="font-size:11px;color:#e5e7eb;">
-    <ul style="padding-left:18px;margin:0;">
-      ><strong>965–191</strong> boys model record — <strong>83.5% accuracy</strong>.</li>
-      ><strong>974–184</strong> girls model record — <strong>84.1% accuracy</strong>.</li>
-      >Combined favorite record over <strong>2,100+ games</strong> statewide.</li>
-      >Average miss on the spread: <strong>13.2 pts MAE</strong>, <strong>17.0 pts RMSE</strong>.</li>
-    </ul>
-  </div>
-  <div class="feat-card-footer">
-    Full subscribers can explore every game and matchup behind these numbers.
+  <div class="a207-rhythm-days">
+    <div class="a207-day on">MON</div>
+    <div class="a207-day on">TUE</div>
+    <div class="a207-day on">WED</div>
+    <div class="a207-day on">THU</div>
+    <div class="a207-day on">FRI</div>
+    <div class="a207-day on">SAT</div>
+    <div class="a207-day off">SUN</div>
   </div>
 </div>
-""", unsafe_allow_html=True)
 
-    st.markdown("""
-<div style="height:12px;"></div>
-<div class="feat-card-shell">
-  <div class="feat-card-header">
-    <span class="feat-card-title">🏟️ Fan Games — Free to Play</span>
-    <span class="feat-card-link">Free account required</span>
+<!-- FEATURE GRID -->
+<div class="sec-label">What's Inside</div>
+<div class="sec-title">Everything Maine Basketball</div>
+<div class="sec-sub">From live Heal Points to bracket simulations — built for fans, media, and coaches.</div>
+
+<div class="feat-grid">
+  <div class="feat-card">
+    <div class="feat-icon">🤖</div>
+    <div class="feat-title">The Model</div>
+    <div class="feat-body">Projected scores, win probabilities, spreads, and confidence ratings for every matchup statewide.</div>
+    <span class="feat-tier tier-paid">Subscriber</span>
   </div>
-  <div class="feat-card-body">
-    Create a free account and compete with the community.
+  <div class="feat-card">
+    <div class="feat-icon">🏆</div>
+    <div class="feat-title">Trophy Room</div>
+    <div class="feat-body">20 live trophies across 20 metrics. Trophy holders change every night as results come in.</div>
+    <span class="feat-tier tier-paid">Subscriber</span>
   </div>
-  <div style="font-size:11px;color:#e5e7eb;">
-    <ul style="padding-left:18px;margin:0;">
-      >☠️ <strong>Survivor</strong> — pick one team per week, don't repeat.</li>
-      >🤖 <strong>Fan vs. The Model</strong> — can you outpick the AI?</li>
-      >🧠 <strong>Stump The Model</strong> — find the upsets it missed.</li>
-      >💎 <strong>Pick 5 Challenge</strong> — weekly 5-team roster picks.</li>
-    </ul>
+  <div class="feat-card">
+    <div class="feat-icon">💊</div>
+    <div class="feat-title">Heal Points</div>
+    <div class="feat-body">The official MPA ranking metric — tracked, visualized, and updated daily throughout the season.</div>
+    <span class="feat-tier tier-free">Free</span>
   </div>
-  <div class="feat-card-footer">
-    Free account needed to make picks and appear on leaderboards.
+  <div class="feat-card">
+    <div class="feat-icon">🏀</div>
+    <div class="feat-title">Team Center</div>
+    <div class="feat-body">Deep team dashboards — offense, defense, margins, strength of schedule, road records, and more.</div>
+    <span class="feat-tier tier-paid">Subscriber</span>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon">🏆</div>
+    <div class="feat-title">Bracketology</div>
+    <div class="feat-body">Auto-seeded brackets with live scores and model win chances for every tournament path.</div>
+    <span class="feat-tier tier-paid">Subscriber</span>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon">🔭</div>
+    <div class="feat-title">Scouting Report</div>
+    <div class="feat-body">Advanced matchup analytics — margin buckets, rest &amp; recovery, opponent tiers, late-season skew, and more.</div>
+    <span class="feat-tier tier-coaches">Coaches</span>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon">☠️</div>
+    <div class="feat-title">Survivor</div>
+    <div class="feat-body">Pick one team per week. Never repeat. Last fan standing wins bragging rights as Maine's best basketball mind.</div>
+    <span class="feat-tier tier-free">Free</span>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon">🤖</div>
+    <div class="feat-title">Fan vs. The Model</div>
+    <div class="feat-body">Can you outpick an analytics engine that's right 83% of the time? Compete weekly on the leaderboard.</div>
+    <span class="feat-tier tier-free">Free</span>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon">🚗</div>
+    <div class="feat-title">Road Trip</div>
+    <div class="feat-body">Track every mile traveled, longest trips, road records, and bus hours logged across the season.</div>
+    <span class="feat-tier tier-free">Free</span>
   </div>
 </div>
-""", unsafe_allow_html=True)
+""", height=1400, scrolling=False)
 
 # ─────────────────────────────────────────────
-# PLANS & PRICING — DOT MATRIX
+# BLOCK 2 — PRICING SECTION HEADER
 # ─────────────────────────────────────────────
 
-st.markdown("### Plans & Pricing")
-st.caption("Free account to play fan games · Upgrade anytime · No credit card required for free tier")
+components.html(SHARED_CSS + """
+<div class="sec-label">Pricing</div>
+<div class="sec-title">Plans &amp; Pricing</div>
+<div class="sec-sub">Start free. Upgrade when you're ready. No credit card required for the free tier.</div>
+""", height=100, scrolling=False)
+
+# ─────────────────────────────────────────────
+# BLOCK 3 — DOT MATRIX CHART (Plotly — stays as st)
+# ─────────────────────────────────────────────
 
 _features = [
-    ("🏟️ Fan Hub",               True,  True,  True,  True),
-    ("🤖 Fan vs. The Model",      True,  True,  True,  True),
-    ("☠️ Survivor",               True,  True,  True,  True),
-    ("🧠 Stump The Model",        True,  True,  True,  True),
-    ("💎 Pick 5 Challenge",       True,  True,  True,  True),
-    ("🏠 Home Dashboard",         True,  True,  True,  True),
-    ("📋 The Slate",              True,  True,  True,  True),
-    ("💊 Heal Points",            True,  True,  True,  True),
-    ("🏅 Milestones & Records",   True,  True,  True,  True),
-    ("📈 Insights & Trends",      True,  True,  True,  True),
-    ("🚗 Road Trip Planner",      True,  True,  True,  True),
-    ("⚡ Power Index Rankings",   False, True,  True,  True),
-    ("🤖 The Model - Predictions",False, True,  True,  True),
-    ("📊 The Aftermath",          False, True,  True,  True),
-    ("🏀 Team Center",            False, True,  True,  True),
-    ("🏆 Bracketology",           False, True,  True,  True),
-    ("📋 Report Card",            False, True,  True,  True),
-    ("🥇 Trophy Room",            False, True,  True,  True),
-    ("🗳️ Team of the Week",      False, True,  True,  True),
-    ("🔭 The Projector",          False, True,  True,  True),
-    ("📉 The Mover Board",        False, True,  True,  True),
-    ("⭐ All-State Analytics",    False, True,  True,  True),
-    ("📰 The Press Box",          False, True,  True,  True),
+    ("🏟️ Fan Hub",                True,  True,  True,  True),
+    ("🤖 Fan vs. The Model",       True,  True,  True,  True),
+    ("☠️ Survivor",                True,  True,  True,  True),
+    ("🧠 Stump The Model",         True,  True,  True,  True),
+    ("💎 Pick 5 Challenge",        True,  True,  True,  True),
+    ("📋 The Slate",               True,  True,  True,  True),
+    ("💊 Heal Points",             True,  True,  True,  True),
+    ("🏅 Milestones & Records",    True,  True,  True,  True),
+    ("📈 Insights & Trends",       True,  True,  True,  True),
+    ("🚗 Road Trip Planner",       True,  True,  True,  True),
+    ("⚡ Power Index Rankings",    False, True,  True,  True),
+    ("🤖 The Model – Predictions", False, True,  True,  True),
+    ("📊 The Aftermath",           False, True,  True,  True),
+    ("🏀 Team Center",             False, True,  True,  True),
+    ("🏆 Bracketology",            False, True,  True,  True),
+    ("📋 Report Card",             False, True,  True,  True),
+    ("🥇 Trophy Room",             False, True,  True,  True),
+    ("🗳️ Team of the Week",       False, True,  True,  True),
+    ("📉 The Mover Board",         False, True,  True,  True),
+    ("⭐ All-State Analytics",     False, True,  True,  True),
+    ("📰 The Press Box",           False, True,  True,  True),
+    ("🔭 Scouting Report",         False, False, False, False),
 ]
 
 feat_names = [f[0] for f in _features]
@@ -267,13 +534,11 @@ _plan_colors = [
 _plan_names = ["Free", "Monthly", "Season Pass", "Annual Pass"]
 
 dot_fig = go.Figure()
-
 for pi in range(4):
     xf, yf, xe, ye = [], [], [], []
     for fi, row in enumerate(data_rev):
         if row[pi]: xf.append(pi); yf.append(fi)
         else:       xe.append(pi); ye.append(fi)
-
     if xf:
         dot_fig.add_trace(go.Scatter(
             x=xf, y=yf, mode="markers",
@@ -287,7 +552,7 @@ for pi in range(4):
         dot_fig.add_trace(go.Scatter(
             x=xe, y=ye, mode="markers",
             marker=dict(size=13, color="rgba(15,23,42,0.9)",
-                        line=dict(width=1, color="rgba(148,163,184,0.10)")),
+                        line=dict(width=1, color="rgba(148,163,184,0.08)")),
             hovertemplate="<b>Not included</b><br>%{customdata}<extra></extra>",
             customdata=[feat_rev[i] for i in ye],
             showlegend=False,
@@ -296,7 +561,7 @@ for pi in range(4):
 dot_fig.update_layout(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(family="ui-sans-serif, system-ui, sans-serif", color="#cbd5e1", size=13),
+    font=dict(family="'Barlow Condensed', ui-sans-serif, sans-serif", color="#cbd5e1", size=13),
     xaxis=dict(
         tickvals=list(range(4)),
         ticktext=[
@@ -322,12 +587,11 @@ dot_fig.update_layout(
         font=dict(size=12), bgcolor="rgba(0,0,0,0)",
         itemsizing="constant",
     ),
-    margin=dict(l=175, r=20, t=80, b=50),
-    height=580,
+    margin=dict(l=185, r=20, t=80, b=50),
+    height=620,
     dragmode=False,
 )
 
-# ── Put chart on left, upgrade CTA card on right ──
 price_left, price_right = st.columns([1.6, 1.0], gap="large")
 
 with price_left:
@@ -337,202 +601,125 @@ with price_left:
     })
 
 with price_right:
-    st.markdown("""
-<div style="height:60px;"></div>
-<div style="
-  background:linear-gradient(135deg,rgba(99,102,241,0.10),rgba(245,158,11,0.06));
-  border:1px solid rgba(99,102,241,0.30); border-radius:18px;
-  padding:20px 18px; font-family:ui-sans-serif,system-ui,sans-serif;
-">
-  <div style="font-size:10px;font-weight:800;letter-spacing:.14em;
-              text-transform:uppercase;color:#f59e0b;margin-bottom:14px;">
-    🌟 Choose Your Plan
-  </div>
-
-  <!-- FREE -->
-  <a href="/My_Account" target="_self" style="text-decoration:none;">
-    <div style="
-      display:flex;align-items:center;justify-content:space-between;
-      padding:.45rem 1rem; border-radius:999px; margin-bottom:8px;
-      background:rgba(148,163,184,0.08); border:1px solid rgba(148,163,184,0.25);
-      color:#94a3b8; font-size:.82rem; font-weight:600;
-    ">
-      <span>Free Pass</span>
-      <span style="font-size:.75rem;opacity:.7;">$0 · always free</span>
-    </div>
+    components.html(SHARED_CSS + """
+<style>
+.plan-box {
+  background: rgba(15,23,42,0.85);
+  border: 1px solid rgba(148,163,184,0.13);
+  border-radius: 20px; padding: 20px 18px;
+  margin-top: 60px;
+}
+.plan-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.63rem; font-weight: 800;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: #fbbf24; margin-bottom: 14px;
+}
+.plan-btn {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.44rem 1rem; border-radius: 999px; margin-bottom: 8px;
+  text-decoration: none; font-size: 0.82rem; font-weight: 600;
+  font-family: 'Barlow', sans-serif;
+}
+.plan-btn.free    { background: rgba(148,163,184,0.08); border: 1px solid rgba(148,163,184,0.2);  color: #94a3b8; }
+.plan-btn.monthly { background: rgba(59,130,246,0.1);   border: 1px solid rgba(59,130,246,0.3);   color: #60a5fa; }
+.plan-btn.season  { background: rgba(251,191,36,0.1);   border: 1px solid rgba(251,191,36,0.32);  color: #fbbf24; }
+.plan-btn.annual  {
+  background: linear-gradient(135deg,#fb7185,#f97316); border: none;
+  color: #0f172a;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.88rem;
+  font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+  box-shadow: 0 4px 14px rgba(251,113,133,0.35); margin-bottom: 14px;
+}
+.plan-fine {
+  font-size: 10px; color: #475569; line-height: 1.9;
+  border-top: 1px solid rgba(255,255,255,0.06); padding-top: 11px;
+}
+</style>
+<div class="plan-box">
+  <div class="plan-label">🌟 Choose Your Plan</div>
+  <a href="/My_Account" target="_self" class="plan-btn free">
+    <span>Free Pass</span><span style="font-size:.74rem;opacity:.7;">$0 · always free</span>
   </a>
-
-  <!-- MONTHLY -->
-  <a href="/My_Account" target="_self" style="text-decoration:none;">
-    <div style="
-      display:flex;align-items:center;justify-content:space-between;
-      padding:.45rem 1rem; border-radius:999px; margin-bottom:8px;
-      background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.35);
-      color:#60a5fa; font-size:.82rem; font-weight:600;
-    ">
-      <span>Monthly Pass</span>
-      <span style="font-size:.75rem;opacity:.85;">$6.99/mo</span>
-    </div>
+  <a href="/My_Account" target="_self" class="plan-btn monthly">
+    <span>Monthly Pass</span><span style="font-size:.74rem;">$6.99/mo</span>
   </a>
-
-  <!-- SEASON PASS -->
-  <a href="/My_Account" target="_self" style="text-decoration:none;">
-    <div style="
-      display:flex;align-items:center;justify-content:space-between;
-      padding:.45rem 1rem; border-radius:999px; margin-bottom:8px;
-      background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.40);
-      color:#fbbf24; font-size:.82rem; font-weight:600;
-    ">
-      <span>🏆 Season Pass</span>
-      <span style="font-size:.75rem;opacity:.85;">$19.99 · 28% off</span>
-    </div>
+  <a href="/My_Account" target="_self" class="plan-btn season">
+    <span>🏆 Season Pass</span><span style="font-size:.74rem;">$19.99 · 28% off</span>
   </a>
-
-  <!-- ANNUAL PASS -->
-  <a href="/My_Account" target="_self" style="text-decoration:none;">
-    <div style="
-      display:flex;align-items:center;justify-content:space-between;
-      padding:.5rem 1rem; border-radius:999px; margin-bottom:14px;
-      background:linear-gradient(135deg,#fb7185,#f97316);
-      border:1px solid rgba(251,113,133,1);
-      color:#111827; font-size:.86rem; font-weight:800;
-    ">
-      <span>🌟 Annual Pass — Best Value</span>
-      <span style="font-size:.78rem;">$49.99 · 40% off</span>
-    </div>
+  <a href="/My_Account" target="_self" class="plan-btn annual">
+    <span>🌟 Annual — Best Value</span><span style="font-size:.76rem;">$49.99 · 40% off</span>
   </a>
-
-  <div style="
-    font-size:10.5px; color:#94a3b8; line-height:1.85;
-    border-top:1px solid rgba(255,255,255,0.07);
-    padding-top:12px;
-  ">
+  <div class="plan-fine">
     ✓ Every feature unlocked on any paid plan<br>
     ✓ No recurring billing on Season &amp; Annual<br>
     ✓ Early feature access on Annual<br>
     ✓ Free tier never requires a credit card
   </div>
 </div>
-""", unsafe_allow_html=True)
-
-
-# ─────────────────────────────────────────────
-# CAPABILITY EXAMPLES
-# ─────────────────────────────────────────────
-
-st.markdown("### What you unlock with a paid plan")
-
-bracket_b64  = img_to_b64("web/static/home/bracket.png")
-themodel_b64 = img_to_b64("web/static/home/themodel.png")
-strength_b64 = img_to_b64("web/static/home/strength.png")
-
-def feature_card_html(title: str, subtitle: str, img_b64: str, footer: str) -> str:
-    return f"""
-<div style="
-  background:#020617; border-radius:18px;
-  border:1px solid rgba(148,163,184,0.45); padding:10px;
-  box-shadow:0 18px 30px rgba(15,23,42,0.85);
-  font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;
-">
-  <div style="
-    border-radius:10px; border:1px solid rgba(148,163,184,0.55);
-    padding:6px 10px; display:flex; align-items:center;
-    justify-content:space-between; margin-bottom:8px;
-  ">
-    <span style="font-size:10px;font-weight:800;letter-spacing:.14em;
-                 text-transform:uppercase;color:#f59e0b;">{title}</span>
-    <span style="font-size:10px;color:rgba(148,163,184,0.7);">Example</span>
-  </div>
-  <div style="font-size:11px;color:#cbd5e1;margin-bottom:8px;">{subtitle}</div>
-  <div style="width:100%;height:200px;border-radius:10px;overflow:hidden;">
-    <img src="{img_b64}" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;" />
-  </div>
-  <div style="font-size:9px;color:rgba(148,163,184,0.6);
-              border-top:1px solid rgba(255,255,255,0.08);
-              padding-top:6px;margin-top:8px;">
-    {footer}
-  </div>
-</div>
-"""
-
-ex1, ex2, ex3 = st.columns(3, gap="large")
-
-with ex1:
-    st.markdown(feature_card_html(
-        title="🏆 BRACKET ENGINE",
-        subtitle="Auto-filled brackets with live scores, seeds, and model win chances.",
-        img_b64=bracket_b64,
-        footer="Subscribers see every round update in real time.",
-    ), unsafe_allow_html=True)
-
-with ex2:
-    st.markdown(feature_card_html(
-        title="📈 MATCHUP BREAKDOWN",
-        subtitle="Projected score, win chance, and driver bars for any matchup.",
-        img_b64=themodel_b64,
-        footer="Use it to prep, preview, or argue with friends.",
-    ), unsafe_allow_html=True)
-
-with ex3:
-    st.markdown(feature_card_html(
-        title="📊 TEAM RESUME",
-        subtitle="Strength & resume tools: quality wins, bad losses, and more.",
-        img_b64=strength_b64,
-        footer="Perfect for seeding debates and preview shows.",
-    ), unsafe_allow_html=True)
-
-_sp(1)
+""", height=380, scrolling=False)
 
 # ─────────────────────────────────────────────
-# WHO IT'S FOR
+# BLOCK 4 — WHO IT'S FOR + BOTTOM CTA
 # ─────────────────────────────────────────────
 
-st.markdown("### Who Analytics207 is built for")
+components.html(SHARED_CSS + """
+<div class="sec-label">Audience</div>
+<div class="sec-title">Built for Everyone in the 207</div>
+<div class="sec-sub">Whether you're a die-hard fan, a coach hunting an edge, or a parent tracking your kid's school.</div>
 
-left, right = st.columns(2, gap="large")
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.9rem;margin-bottom:2rem;">
 
-with left:
-    st.markdown("""
-- Casual fans who just want to know who's actually good.
-- Data nerds who refresh ratings like it's a hobby.
-- Bracket junkies plotting chaos before it happens.
-- Fans who want their voice heard through weekly voting.
-- Communities tracking school milestones and historic runs.
-- Competitors ready to test themselves in the Pick 5 challenge.
-""")
-
-with right:
-    st.markdown("""
-- See **true-strength rankings** for every team, not just win–loss.
-- Get **projected scores and win chances** for any matchup.
-- Explore **bracket paths** and "what-if" scenarios before the tourney.
-- Track **team resumes**: quality wins, bad losses, and more.
-- Participate in **fan voting** and see how public opinion compares to the model.
-- Follow **school milestones** and benchmark seasons against history.
-- Compete against others in the **Pick 5 Challenge** and climb the leaderboard.
-""")
-
-# ─────────────────────────────────────────────
-# BOTTOM CTA
-# ─────────────────────────────────────────────
-
-st.markdown("""
-<div style="text-align:center;margin-top:8px;margin-bottom:16px;">
-  <a href="/My_Account" target="_self" style="text-decoration:none;">
-    <div class="a207-hero-cta-primary" style="display:inline-flex;margin-top:4px;">
-      <span>Create your free account and get started</span> <span>→</span>
+  <div>
+    <div class="persona-card">
+      <div class="persona-title">🏀 The Die-Hard Fan</div>
+      <div class="persona-body">You refresh rankings like it's a hobby. You have opinions about every Class C North seed. Analytics207 was built for you.</div>
     </div>
-  </a>
-  <div style="font-size:12px;color:#475569;margin-top:8px;">
-    Free forever · No credit card required · Upgrade anytime
+    <div class="persona-card">
+      <div class="persona-title">👨‍👩‍👧 The Hoops Parent</div>
+      <div class="persona-body">Follow your kid's school all season. Track every game, every Heal Point update, every milestone. Free to sign up.</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="persona-card">
+      <div class="persona-title">🏆 The Bracket Junkie</div>
+      <div class="persona-body">You're plotting chaos before seedings drop. Our Bracketology engine runs simulations all season so you're always ready.</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-title">🎮 The Competitor</div>
+      <div class="persona-body">Survivor, Fan vs. The Model, Pick 5 — if there's a leaderboard, you want to be on it. All free with an account.</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="persona-card">
+      <div class="persona-title">📋 The Coach</div>
+      <div class="persona-body">See how your team stacks up statewide. Strength of schedule, opponent tier performance, Heal Point trajectory — your edge.</div>
+    </div>
+    <div class="persona-card">
+      <div class="persona-title">📰 Media &amp; Press</div>
+      <div class="persona-body">Power rankings, model predictions, rivalry data — everything you need to tell the story of Maine basketball all season long.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM CTA -->
+<div class="bottom-cta">
+  <div class="bottom-cta-title">Ready for next season?</div>
+  <div class="bottom-cta-sub">Free forever · No credit card required · The 207's home for Maine basketball analytics</div>
+  <div class="center">
+    <a href="/My_Account" target="_self" class="a207-btn-primary">Create your free account →</a>
   </div>
 </div>
-""", unsafe_allow_html=True)
+""", height=620, scrolling=False)
 
 # ─────────────────────────────────────────────
 # FOOTER
 # ─────────────────────────────────────────────
 
+_sp(1)
 if callable(render_footer):
     render_footer()
 else:
