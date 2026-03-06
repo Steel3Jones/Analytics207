@@ -1,6 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
-
 from sidebar_auth import render_sidebar_auth
 from auth import logout_button
 
@@ -14,395 +12,245 @@ st.set_page_config(
 render_sidebar_auth()
 logout_button()
 
-# Hide Streamlit chrome for clean full-screen experience
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
+
 #MainMenu { visibility: hidden; }
 footer    { visibility: hidden; }
 header    { visibility: hidden; }
-.block-container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
-[data-testid="stAppViewContainer"] { padding: 0 !important; }
-</style>
-""", unsafe_allow_html=True)
+.block-container { padding: 2rem 2rem 0 2rem !important; }
 
-components.html("""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #020617;
-    --gold: #fbbf24;
-    --basketball: #f97316;
-  }
-  html, body {
-    width: 100%; height: 100%;
-    background: var(--bg);
-    overflow: hidden;
-    font-family: 'Barlow', sans-serif;
-    color: #e2e8f0;
-  }
-  body::after {
+body, .stApp {
+    background: #020617 !important;
+}
+
+/* Grid background */
+.stApp::before {
     content: '';
     position: fixed; inset: 0;
     background-image:
-      linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
     background-size: 60px 60px;
     pointer-events: none; z-index: 0;
-  }
-  .ambient {
-    position: fixed; inset: 0;
-    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(251,191,36,0.06), transparent);
-    pointer-events: none; z-index: 0;
-    transition: background 0.6s ease;
-  }
-  .stage {
-    position: relative; z-index: 1;
-    width: 100vw; height: 100vh;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-  }
-  .header {
-    text-align: center;
-    margin-bottom: 2rem;
-    animation: fadeUp 0.7s ease both;
-  }
-  .eyebrow {
+}
+
+.wheel-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 85vh;
+    font-family: 'Barlow', sans-serif;
+}
+
+.wheel-eyebrow {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.68rem; letter-spacing: 0.25em;
-    text-transform: uppercase; color: var(--gold);
-    margin-bottom: 0.35rem;
-  }
-  .title {
+    font-size: 0.7rem; letter-spacing: 0.25em;
+    text-transform: uppercase; color: #fbbf24;
+    text-align: center; margin-bottom: 0.3rem;
+}
+.wheel-title {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 3rem; font-weight: 900;
+    font-size: 3.2rem; font-weight: 900;
     text-transform: uppercase; letter-spacing: 0.03em;
-    color: #f8fafc; line-height: 1;
-  }
-  .title span {
-    background: linear-gradient(135deg, var(--gold), #fb7185);
+    color: #f8fafc; line-height: 1; text-align: center;
+}
+.wheel-title span {
+    background: linear-gradient(135deg, #fbbf24, #fb7185);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-  }
-  .subtitle {
-    font-size: 0.85rem; color: #475569;
-    margin-top: 0.35rem; letter-spacing: 0.04em;
-  }
-  .wheel-wrap {
+}
+.wheel-sub {
+    font-size: 0.88rem; color: #475569;
+    margin-top: 0.3rem; text-align: center;
+    letter-spacing: 0.04em; margin-bottom: 2.5rem;
+}
+
+/* Sport cards grid */
+.sports-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 160px);
+    grid-template-rows: repeat(2, 160px);
+    gap: 1.2rem;
     position: relative;
-    width: 500px; height: 500px;
-    animation: fadeUp 0.7s 0.15s ease both;
-  }
-  .spokes {
-    position: absolute; inset: 0; pointer-events: none;
-  }
-  .spokes svg { width: 100%; height: 100%; }
-  .hub {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 115px; height: 115px;
+    margin-bottom: 2rem;
+}
+
+.sport-card {
+    width: 160px; height: 160px;
     border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.sport-card.live {
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(2,6,23,0.92));
+    border: 2px solid rgba(249,115,22,0.7);
+    box-shadow: 0 0 0 6px rgba(249,115,22,0.1), 0 0 30px rgba(249,115,22,0.2);
+    cursor: pointer;
+}
+.sport-card.coming {
+    background: rgba(15,23,42,0.7);
+    border: 1px solid rgba(148,163,184,0.1);
+    opacity: 0.4;
+}
+.sport-card.center-hub {
     background: radial-gradient(circle, rgba(251,191,36,0.12), rgba(2,6,23,0.97));
     border: 2px solid rgba(251,191,36,0.4);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    z-index: 10;
-    box-shadow: 0 0 0 8px rgba(251,191,36,0.05), 0 0 40px rgba(251,191,36,0.12);
-    transition: border-color 0.3s, box-shadow 0.3s;
-  }
-  .hub-eyebrow {
+    box-shadow: 0 0 0 8px rgba(251,191,36,0.05);
+    grid-column: 2; grid-row: 1 / 3;
+    align-self: center;
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    cursor: default;
+}
+
+.pulse-ring {
+    position: absolute; inset: -10px;
+    border-radius: 50%;
+    border: 2px solid rgba(249,115,22,0.3);
+    animation: pulse 2.5s ease-out infinite;
+    pointer-events: none;
+}
+.pulse-ring-2 { animation-delay: 0.9s; }
+@keyframes pulse {
+    0%   { transform: scale(1);   opacity: 0.5; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+.sport-icon { font-size: 2rem; margin-bottom: 0.3rem; }
+.sport-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.72rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: #f8fafc; text-align: center;
+}
+.sport-badge {
+    margin-top: 0.25rem;
+    padding: 0.1rem 0.5rem; border-radius: 999px;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 0.55rem; font-weight: 800;
-    letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold);
-  }
-  .hub-name {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.05rem; font-weight: 900;
-    color: #f8fafc; line-height: 1.1; text-align: center;
-  }
-  .sport-node {
-    position: absolute;
-    width: 108px; height: 108px;
-    border-radius: 50%;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    transform: translate(-50%, -50%);
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
-    text-decoration: none;
-  }
-  .sport-node.live {
-    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), rgba(2,6,23,0.92));
-    border: 2px solid rgba(249,115,22,0.6);
-    box-shadow: 0 0 0 4px rgba(249,115,22,0.12), 0 0 28px rgba(249,115,22,0.18);
-    cursor: pointer;
-  }
-  .sport-node.live:hover {
-    transform: translate(-50%, -50%) scale(1.18);
-    box-shadow: 0 0 0 8px rgba(249,115,22,0.18), 0 0 50px rgba(249,115,22,0.38);
-  }
-  .sport-node.coming {
-    background: rgba(15,23,42,0.75);
-    border: 1px solid rgba(148,163,184,0.1);
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
-  .pulse-ring {
-    position: absolute; inset: -8px;
-    border-radius: 50%;
-    border: 2px solid rgba(249,115,22,0.35);
-    animation: pulse-expand 2.5s ease-out infinite;
-    pointer-events: none;
-  }
-  .pulse-ring:nth-child(2) { animation-delay: 0.9s; }
-  @keyframes pulse-expand {
-    0%   { transform: scale(1);   opacity: 0.5; }
-    100% { transform: scale(1.6); opacity: 0;   }
-  }
-  .sport-icon { font-size: 1.9rem; line-height: 1; margin-bottom: 0.25rem; }
-  .sport-name {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.68rem; font-weight: 800;
-    text-transform: uppercase; letter-spacing: 0.1em;
-    color: #f8fafc; text-align: center; line-height: 1.2;
-  }
-  .sport-badge {
-    margin-top: 0.25rem;
-    padding: 0.08rem 0.45rem;
-    border-radius: 999px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.52rem; font-weight: 800;
     letter-spacing: 0.1em; text-transform: uppercase;
-  }
-  .badge-live {
-    background: rgba(249,115,22,0.18);
+}
+.badge-live {
+    background: rgba(249,115,22,0.2);
     border: 1px solid rgba(249,115,22,0.5);
     color: #f97316;
-  }
-  .badge-soon {
+}
+.badge-soon {
     background: rgba(148,163,184,0.07);
-    border: 1px solid rgba(148,163,184,0.18);
+    border: 1px solid rgba(148,163,184,0.15);
     color: #475569;
-  }
-  .info-panel {
-    margin-top: 1.6rem;
-    height: 52px;
-    text-align: center;
-    animation: fadeUp 0.7s 0.3s ease both;
-  }
-  .info-name {
+}
+.hub-label {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.5rem; font-weight: 900;
-    text-transform: uppercase; letter-spacing: 0.05em;
-    color: #f8fafc; transition: color 0.3s;
-  }
-  .info-desc { font-size: 0.78rem; color: #475569; }
-  .enter-btn {
+    font-size: 0.55rem; font-weight: 800;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: #fbbf24; text-align: center;
+}
+.hub-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.3rem; font-weight: 900;
+    color: #f8fafc; text-align: center;
+}
+
+/* Enter button */
+.enter-wrap { text-align: center; }
+.enter-link {
     display: inline-flex; align-items: center; gap: 0.5rem;
-    margin-top: 1.1rem;
-    padding: 0.65rem 1.8rem; border-radius: 999px;
+    padding: 0.7rem 2rem; border-radius: 999px;
     background: linear-gradient(135deg, #f97316, #fb7185);
     color: #0f172a; text-decoration: none;
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.95rem; font-weight: 800;
+    font-size: 1rem; font-weight: 800;
     letter-spacing: 0.08em; text-transform: uppercase;
-    box-shadow: 0 4px 18px rgba(249,115,22,0.38);
-    animation: fadeUp 0.7s 0.4s ease both;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .enter-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(249,115,22,0.52);
-  }
-  .enter-btn.hidden { opacity: 0; pointer-events: none; }
-  .foot {
-    position: fixed; bottom: 1.2rem; left: 50%; transform: translateX(-50%);
+    box-shadow: 0 4px 20px rgba(249,115,22,0.4);
+}
+
+.foot-note {
+    margin-top: 1.5rem;
     font-size: 0.65rem; color: #1e293b;
     letter-spacing: 0.1em; text-transform: uppercase;
-    white-space: nowrap; z-index: 2;
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+    text-align: center;
+}
 </style>
-</head>
-<body>
+""", unsafe_allow_html=True)
 
-<div class="ambient" id="ambient"></div>
-
-<div class="stage">
-
-  <div class="header">
-    <div class="eyebrow">Maine High School Athletics</div>
-    <div class="title">Analytics<span>207</span></div>
-    <div class="subtitle">Choose your sport to get started</div>
-  </div>
-
-  <div class="wheel-wrap">
-    <div class="spokes">
-      <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
-        <line x1="250" y1="250" x2="250" y2="60"  stroke="rgba(249,115,22,0.35)"  stroke-width="1.5" stroke-dasharray="4 5"/>
-        <line x1="250" y1="250" x2="440" y2="148" stroke="rgba(34,197,94,0.15)"   stroke-width="1"   stroke-dasharray="4 5"/>
-        <line x1="250" y1="250" x2="440" y2="352" stroke="rgba(59,130,246,0.15)"  stroke-width="1"   stroke-dasharray="4 5"/>
-        <line x1="250" y1="250" x2="60"  y2="352" stroke="rgba(167,139,250,0.15)" stroke-width="1"   stroke-dasharray="4 5"/>
-        <line x1="250" y1="250" x2="60"  y2="148" stroke="rgba(251,113,133,0.15)" stroke-width="1"   stroke-dasharray="4 5"/>
-      </svg>
-    </div>
-
-    <div class="hub" id="hub">
-      <div class="hub-eyebrow">Analytics</div>
-      <div class="hub-name">207</div>
-    </div>
-
-    <!-- BASKETBALL — top, LIVE -->
-    <a class="sport-node live"
-       id="node-basketball"
-       style="top:60px; left:250px;"
-       data-name="Basketball"
-       data-desc="Power rankings, predictions, trophy room &amp; more — live now"
-       data-color="#f97316"
-       data-live="true"
-       data-path="/00_Basketball">
-      <div class="pulse-ring"></div>
-      <div class="pulse-ring"></div>
-      <div class="sport-icon">🏀</div>
-      <div class="sport-name">Basketball</div>
-      <div class="sport-badge badge-live">● Live</div>
-    
-
-    <!-- FOOTBALL — top right -->
-    <div class="sport-node coming"
-         style="top:148px; left:440px;"
-         data-name="Football"
-         data-desc="Rankings, standings &amp; predictions — coming fall 2025"
-         data-color="#22c55e">
-      <div class="sport-icon">🏈</div>
-      <div class="sport-name">Football</div>
-      <div class="sport-badge badge-soon">Coming Soon</div>
-    </div>
-
-    <!-- SOCCER — bottom right -->
-    <div class="sport-node coming"
-         style="top:352px; left:440px;"
-         data-name="Soccer"
-         data-desc="Standings, predictions &amp; analytics — coming fall 2025"
-         data-color="#3b82f6">
-      <div class="sport-icon">⚽</div>
-      <div class="sport-name">Soccer</div>
-      <div class="sport-badge badge-soon">Coming Soon</div>
-    </div>
-
-    <!-- HOCKEY — bottom left -->
-    <div class="sport-node coming"
-         style="top:352px; left:60px;"
-         data-name="Hockey"
-         data-desc="Full season analytics — coming winter 2026"
-         data-color="#a78bfa">
-      <div class="sport-icon">🏒</div>
-      <div class="sport-name">Hockey</div>
-      <div class="sport-badge badge-soon">Coming Soon</div>
-    </div>
-
-    <!-- CROSS COUNTRY — top left -->
-    <div class="sport-node coming"
-         style="top:148px; left:60px;"
-         data-name="Cross Country"
-         data-desc="Race results &amp; performance tracking — coming fall 2025"
-         data-color="#fb7185">
-      <div class="sport-icon">🏃</div>
-      <div class="sport-name">Cross Country</div>
-      <div class="sport-badge badge-soon">Coming Soon</div>
-    </div>
-
-  </div>
-
-  <div class="info-panel">
-    <div class="info-name" id="infoName">Select a sport</div>
-    <div class="info-desc"  id="infoDesc">Hover over any sport to learn more</div>
-  </div>
-
-  <div class="enter-btn" id="enterBtn" style="cursor:pointer;">
-    Enter Basketball →
-  
-
+# ── HEADER ──
+st.markdown("""
+<div class="wheel-page">
+  <div class="wheel-eyebrow">Maine High School Athletics</div>
+  <div class="wheel-title">Analytics<span>207</span></div>
+  <div class="wheel-sub">Choose your sport to get started</div>
 </div>
+""", unsafe_allow_html=True)
 
-<div class="foot">Analytics207.com · Maine High School Athletics</div>
+# ── SPORT SELECTOR — 3 columns ──
+col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1], gap="large")
 
-<script>
-  const nodes    = document.querySelectorAll('.sport-node');
-  const infoName = document.getElementById('infoName');
-  const infoDesc = document.getElementById('infoDesc');
-  const enterBtn = document.getElementById('enterBtn');
-  const ambient  = document.getElementById('ambient');
-  const hub      = document.getElementById('hub');
+with col1:
+    st.markdown("""
+<div style="display:flex;flex-direction:column;gap:1.2rem;align-items:center;margin-top:80px;">
+  <div class="sport-card coming">
+    <div class="sport-icon">🏃</div>
+    <div class="sport-name">Cross Country</div>
+    <div class="sport-badge badge-soon">Coming Soon</div>
+  </div>
+  <div class="sport-card coming">
+    <div class="sport-icon">🏒</div>
+    <div class="sport-name">Hockey</div>
+    <div class="sport-badge badge-soon">Coming Soon</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
-  // Build base URL from current page
-  const base = 'https://analytics207.com';
+with col3:
+    st.markdown("""
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">
+  <div class="sport-card center-hub">
+    <div class="hub-label">Analytics</div>
+    <div class="hub-name">207</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
-  function navigate(url) {
-    window.parent.location.href = url;
-  }
+with col5:
+    st.markdown("""
+<div style="display:flex;flex-direction:column;gap:1.2rem;align-items:center;margin-top:80px;">
+  <div class="sport-card coming">
+    <div class="sport-icon">🏈</div>
+    <div class="sport-name">Football</div>
+    <div class="sport-badge badge-soon">Coming Soon</div>
+  </div>
+  <div class="sport-card coming">
+    <div class="sport-icon">⚽</div>
+    <div class="sport-name">Soccer</div>
+    <div class="sport-badge badge-soon">Coming Soon</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
-  document.getElementById('node-basketball').addEventListener('click', function(e) {
-    e.preventDefault();
-    navigate(base + '/00_Basketball');
-  });
+# ── BASKETBALL — center top using native Streamlit button ──
+_, center, _ = st.columns([2, 1, 2])
+with center:
+    st.markdown("""
+<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:0.5rem;">
+  <div class="sport-card live" style="margin-bottom:1rem;">
+    <div class="pulse-ring"></div>
+    <div class="pulse-ring pulse-ring-2"></div>
+    <div class="sport-icon">🏀</div>
+    <div class="sport-name">Basketball</div>
+    <div class="sport-badge badge-live">● Live</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+    if st.button("Enter Basketball →", type="primary", use_container_width=True):
+        st.switch_page("pages/00_Basketball.py")
 
-  enterBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    navigate(enterBtn.dataset.href || base + '/00_Basketball');
-  });
-
-  nodes.forEach(node => {
-    node.addEventListener('mouseenter', () => {
-      const name  = node.dataset.name;
-      const desc  = node.dataset.desc;
-      const color = node.dataset.color || '#fbbf24';
-      const live  = node.dataset.live === 'true';
-      const path  = node.dataset.path;
-
-      infoName.textContent = name;
-      infoName.style.color = color;
-      infoDesc.textContent = desc;
-
-      ambient.style.background =
-        `radial-gradient(ellipse 60% 60% at 50% 50%, ${color}12, transparent)`;
-      hub.style.borderColor = color + '90';
-      hub.style.boxShadow   =
-        `0 0 0 8px ${color}08, 0 0 40px ${color}22`;
-
-      if (live && path) {
-        enterBtn.classList.remove('hidden');
-        enterBtn.textContent = `Enter ${name} \u2192`;
-        enterBtn.dataset.href = base + path;
-      } else {
-        enterBtn.classList.add('hidden');
-      }
-    });
-
-    node.addEventListener('mouseleave', () => {
-      infoName.textContent = 'Select a sport';
-      infoName.style.color = '#f8fafc';
-      infoDesc.textContent = 'Hover over any sport to learn more';
-      ambient.style.background =
-        'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(251,191,36,0.06), transparent)';
-      hub.style.borderColor = 'rgba(251,191,36,0.4)';
-      hub.style.boxShadow   =
-        '0 0 0 8px rgba(251,191,36,0.05), 0 0 40px rgba(251,191,36,0.12)';
-      enterBtn.classList.remove('hidden');
-      enterBtn.textContent = 'Enter Basketball \u2192';
-      enterBtn.dataset.href = base + '/00_Basketball';
-    });
-  });
-</script>
-</body>
-</html>
-""", height=820, scrolling=False)
+st.markdown("""
+<div class="foot-note">Analytics207.com · Maine High School Athletics</div>
+""", unsafe_allow_html=True)
