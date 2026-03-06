@@ -14,7 +14,7 @@ st.set_page_config(
 render_sidebar_auth()
 logout_button()
 
-# Hide Streamlit default chrome for a clean full-screen experience
+# Hide Streamlit chrome for clean full-screen experience
 st.markdown("""
 <style>
 #MainMenu { visibility: hidden; }
@@ -34,13 +34,11 @@ components.html("""
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
     --bg: #020617;
     --gold: #fbbf24;
     --basketball: #f97316;
   }
-
   html, body {
     width: 100%; height: 100%;
     background: var(--bg);
@@ -48,8 +46,6 @@ components.html("""
     font-family: 'Barlow', sans-serif;
     color: #e2e8f0;
   }
-
-  /* GRID */
   body::after {
     content: '';
     position: fixed; inset: 0;
@@ -59,24 +55,18 @@ components.html("""
     background-size: 60px 60px;
     pointer-events: none; z-index: 0;
   }
-
-  /* AMBIENT GLOW */
   .ambient {
     position: fixed; inset: 0;
     background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(251,191,36,0.06), transparent);
     pointer-events: none; z-index: 0;
     transition: background 0.6s ease;
   }
-
-  /* STAGE */
   .stage {
     position: relative; z-index: 1;
     width: 100vw; height: 100vh;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
   }
-
-  /* HEADER */
   .header {
     text-align: center;
     margin-bottom: 2rem;
@@ -104,21 +94,15 @@ components.html("""
     font-size: 0.85rem; color: #475569;
     margin-top: 0.35rem; letter-spacing: 0.04em;
   }
-
-  /* WHEEL */
   .wheel-wrap {
     position: relative;
     width: 500px; height: 500px;
     animation: fadeUp 0.7s 0.15s ease both;
   }
-
-  /* SPOKES */
   .spokes {
     position: absolute; inset: 0; pointer-events: none;
   }
   .spokes svg { width: 100%; height: 100%; }
-
-  /* HUB */
   .hub {
     position: absolute;
     top: 50%; left: 50%;
@@ -143,8 +127,6 @@ components.html("""
     font-size: 1.05rem; font-weight: 900;
     color: #f8fafc; line-height: 1.1; text-align: center;
   }
-
-  /* SPORT NODES */
   .sport-node {
     position: absolute;
     width: 108px; height: 108px;
@@ -171,8 +153,6 @@ components.html("""
     cursor: not-allowed;
     opacity: 0.45;
   }
-
-  /* PULSE RINGS */
   .pulse-ring {
     position: absolute; inset: -8px;
     border-radius: 50%;
@@ -185,7 +165,6 @@ components.html("""
     0%   { transform: scale(1);   opacity: 0.5; }
     100% { transform: scale(1.6); opacity: 0;   }
   }
-
   .sport-icon { font-size: 1.9rem; line-height: 1; margin-bottom: 0.25rem; }
   .sport-name {
     font-family: 'Barlow Condensed', sans-serif;
@@ -211,8 +190,6 @@ components.html("""
     border: 1px solid rgba(148,163,184,0.18);
     color: #475569;
   }
-
-  /* INFO PANEL */
   .info-panel {
     margin-top: 1.6rem;
     height: 52px;
@@ -226,8 +203,6 @@ components.html("""
     color: #f8fafc; transition: color 0.3s;
   }
   .info-desc { font-size: 0.78rem; color: #475569; }
-
-  /* ENTER BUTTON */
   .enter-btn {
     display: inline-flex; align-items: center; gap: 0.5rem;
     margin-top: 1.1rem;
@@ -246,15 +221,12 @@ components.html("""
     box-shadow: 0 8px 28px rgba(249,115,22,0.52);
   }
   .enter-btn.hidden { opacity: 0; pointer-events: none; }
-
-  /* FOOTER NOTE */
   .foot {
     position: fixed; bottom: 1.2rem; left: 50%; transform: translateX(-50%);
     font-size: 0.65rem; color: #1e293b;
     letter-spacing: 0.1em; text-transform: uppercase;
     white-space: nowrap; z-index: 2;
   }
-
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(18px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -274,19 +246,16 @@ components.html("""
   </div>
 
   <div class="wheel-wrap">
-
-    <!-- SPOKES -->
     <div class="spokes">
       <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
-        <line x1="250" y1="250" x2="250" y2="60"  stroke="rgba(249,115,22,0.35)" stroke-width="1.5" stroke-dasharray="4 5"/>
-        <line x1="250" y1="250" x2="440" y2="148" stroke="rgba(34,197,94,0.15)"  stroke-width="1"   stroke-dasharray="4 5"/>
-        <line x1="250" y1="250" x2="440" y2="352" stroke="rgba(59,130,246,0.15)" stroke-width="1"   stroke-dasharray="4 5"/>
-        <line x1="250" y1="250" x2="60"  y2="352" stroke="rgba(167,139,250,0.15)" stroke-width="1"  stroke-dasharray="4 5"/>
-        <line x1="250" y1="250" x2="60"  y2="148" stroke="rgba(251,113,133,0.15)" stroke-width="1"  stroke-dasharray="4 5"/>
+        <line x1="250" y1="250" x2="250" y2="60"  stroke="rgba(249,115,22,0.35)"  stroke-width="1.5" stroke-dasharray="4 5"/>
+        <line x1="250" y1="250" x2="440" y2="148" stroke="rgba(34,197,94,0.15)"   stroke-width="1"   stroke-dasharray="4 5"/>
+        <line x1="250" y1="250" x2="440" y2="352" stroke="rgba(59,130,246,0.15)"  stroke-width="1"   stroke-dasharray="4 5"/>
+        <line x1="250" y1="250" x2="60"  y2="352" stroke="rgba(167,139,250,0.15)" stroke-width="1"   stroke-dasharray="4 5"/>
+        <line x1="250" y1="250" x2="60"  y2="148" stroke="rgba(251,113,133,0.15)" stroke-width="1"   stroke-dasharray="4 5"/>
       </svg>
     </div>
 
-    <!-- HUB -->
     <div class="hub" id="hub">
       <div class="hub-eyebrow">Analytics</div>
       <div class="hub-name">207</div>
@@ -294,13 +263,13 @@ components.html("""
 
     <!-- BASKETBALL — top, LIVE -->
     <a class="sport-node live"
-       href="http://localhost:8501/Home"
        id="node-basketball"
        style="top:60px; left:250px;"
        data-name="Basketball"
        data-desc="Power rankings, predictions, trophy room &amp; more — live now"
        data-color="#f97316"
-       data-live="true">
+       data-live="true"
+       data-path="/00_Basketball">
       <div class="pulse-ring"></div>
       <div class="pulse-ring"></div>
       <div class="sport-icon">🏀</div>
@@ -354,14 +323,12 @@ components.html("""
 
   </div>
 
-  <!-- INFO -->
   <div class="info-panel">
     <div class="info-name" id="infoName">Select a sport</div>
-    <div class="info-desc" id="infoDesc">Hover over any sport to learn more</div>
+    <div class="info-desc"  id="infoDesc">Hover over any sport to learn more</div>
   </div>
 
-  <!-- ENTER -->
-  <a href="http://localhost:8501/Home" class="enter-btn" id="enterBtn">
+  <a class="enter-btn" id="enterBtn" href="#">
     Enter Basketball →
   </a>
 
@@ -377,13 +344,10 @@ components.html("""
   const ambient  = document.getElementById('ambient');
   const hub      = document.getElementById('hub');
 
-  // Detect if we're on production or local
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const base    = isLocal ? 'http://localhost:8501' : 'https://analytics207.com';
-
-  // Update basketball link dynamically
-  document.getElementById('node-basketball').href = base + '/Home';
-  enterBtn.href = base + '/Home';
+  // Build base URL from current page
+  const base = window.location.origin;
+  enterBtn.href = base + '/00_Basketball';
+  document.getElementById('node-basketball').href = base + '/00_Basketball';
 
   nodes.forEach(node => {
     node.addEventListener('mouseenter', () => {
@@ -391,6 +355,7 @@ components.html("""
       const desc  = node.dataset.desc;
       const color = node.dataset.color || '#fbbf24';
       const live  = node.dataset.live === 'true';
+      const path  = node.dataset.path;
 
       infoName.textContent = name;
       infoName.style.color = color;
@@ -402,27 +367,27 @@ components.html("""
       hub.style.boxShadow   =
         `0 0 0 8px ${color}08, 0 0 40px ${color}22`;
 
-      if (live) {
+      if (live && path) {
         enterBtn.classList.remove('hidden');
-        enterBtn.textContent = `Enter ${name} →`;
-        enterBtn.href = base + '/Home';
+        enterBtn.textContent = `Enter ${name} \u2192`;
+        enterBtn.href = base + path;
       } else {
         enterBtn.classList.add('hidden');
       }
     });
 
     node.addEventListener('mouseleave', () => {
-      infoName.textContent   = 'Select a sport';
-      infoName.style.color   = '#f8fafc';
-      infoDesc.textContent   = 'Hover over any sport to learn more';
+      infoName.textContent = 'Select a sport';
+      infoName.style.color = '#f8fafc';
+      infoDesc.textContent = 'Hover over any sport to learn more';
       ambient.style.background =
         'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(251,191,36,0.06), transparent)';
-      hub.style.borderColor  = 'rgba(251,191,36,0.4)';
-      hub.style.boxShadow    =
+      hub.style.borderColor = 'rgba(251,191,36,0.4)';
+      hub.style.boxShadow   =
         '0 0 0 8px rgba(251,191,36,0.05), 0 0 40px rgba(251,191,36,0.12)';
       enterBtn.classList.remove('hidden');
-      enterBtn.textContent   = 'Enter Basketball →';
-      enterBtn.href          = base + '/Home';
+      enterBtn.textContent = 'Enter Basketball \u2192';
+      enterBtn.href = base + '/00_Basketball';
     });
   });
 </script>
