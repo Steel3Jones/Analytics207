@@ -39,4 +39,5 @@ tzdata==2025.3
 urllib3==2.6.3
 watchdog==6.0.0
 stripe==11.4.1
+anthropic>=0.84.0
 
