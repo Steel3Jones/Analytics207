@@ -263,7 +263,7 @@ components.html("""
 
     <!-- BASKETBALL — top, LIVE -->
     <a class="sport-node live"
-       id="node-basketball"
+       id="node-basketball" target="_parent"
        style="top:60px; left:250px;"
        data-name="Basketball"
        data-desc="Power rankings, predictions, trophy room &amp; more — live now"
@@ -328,7 +328,7 @@ components.html("""
     <div class="info-desc"  id="infoDesc">Hover over any sport to learn more</div>
   </div>
 
-  <a class="enter-btn" id="enterBtn" href="#">
+  <a class="enter-btn" id="enterBtn" href="#" target="_parent">
     Enter Basketball →
   </a>
 
@@ -346,7 +346,7 @@ components.html("""
 
   // Build base URL from current page
   const base = 'https://analytics207.com';
-  enterBtn.href = base + '/00_Basketball';
+  enterBtn.target = "_parent"; enterBtn.href = base + '/00_Basketball';
   document.getElementById('node-basketball').href = base + '/00_Basketball';
 
   nodes.forEach(node => {
@@ -370,7 +370,7 @@ components.html("""
       if (live && path) {
         enterBtn.classList.remove('hidden');
         enterBtn.textContent = `Enter ${name} \u2192`;
-        enterBtn.href = base + path;
+        enterBtn.target = "_parent"; enterBtn.href = base + path;
       } else {
         enterBtn.classList.add('hidden');
       }
@@ -387,7 +387,7 @@ components.html("""
         '0 0 0 8px rgba(251,191,36,0.05), 0 0 40px rgba(251,191,36,0.12)';
       enterBtn.classList.remove('hidden');
       enterBtn.textContent = 'Enter Basketball \u2192';
-      enterBtn.href = base + '/00_Basketball';
+      enterBtn.target = "_parent"; enterBtn.href = base + '/00_Basketball';
     });
   });
 </script>
