@@ -345,7 +345,7 @@ components.html("""
   const hub      = document.getElementById('hub');
 
   // Build base URL from current page
-  const base = window.location.origin;
+  const base = 'https://analytics207.com';
   enterBtn.href = base + '/00_Basketball';
   document.getElementById('node-basketball').href = base + '/00_Basketball';
 
