@@ -275,7 +275,7 @@ components.html("""
       <div class="sport-icon">🏀</div>
       <div class="sport-name">Basketball</div>
       <div class="sport-badge badge-live">● Live</div>
-    </a>
+    
 
     <!-- FOOTBALL — top right -->
     <div class="sport-node coming"
@@ -328,9 +328,9 @@ components.html("""
     <div class="info-desc"  id="infoDesc">Hover over any sport to learn more</div>
   </div>
 
-  <a class="enter-btn" id="enterBtn" href="#">
+  <div class="enter-btn" id="enterBtn" style="cursor:pointer;">
     Enter Basketball →
-  </a>
+  
 
 </div>
 
