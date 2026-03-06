@@ -15,8 +15,8 @@ from sidebar_auth import render_sidebar_auth
 render_sidebar_auth()
 
 st.set_page_config(
-    page_title="🧠 Stump The Model | Analytics207",
-    page_icon="🧠",
+    page_title="🥊 Stump The Model | Analytics207",
+    page_icon="🥊",
     layout="wide",
 )
 apply_global_layout_tweaks()

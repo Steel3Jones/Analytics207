@@ -118,81 +118,159 @@ def is_qualified(rank_n: float, gender_label: str, cls: str, reg: str) -> int:
 # ══════════════════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
+/* ── Base palette ─────────────────────────────────────────────────── */
+/* bg-deep: #060c1a  bg-card: #0d1526  bg-lift: #111e35             */
+/* border:  rgba(96,165,250,0.18)  border-bright: rgba(96,165,250,0.40) */
+/* text-primary: #f1f5f9  text-muted: #94a3b8  text-dim: #475569     */
+/* accent-blue: #60a5fa  accent-green: #4ade80  accent-gold: #fbbf24  */
+/* accent-purple: #c084fc  accent-orange: #fb923c                     */
+
 .hero-box {
-    background: linear-gradient(135deg,#0f172a,#1e293b);
-    border: 1px solid #334155; border-radius:14px;
-    padding: 22px 26px 18px;
+    background: radial-gradient(circle at top left, #142040, #060c1a);
+    border: 1px solid rgba(96,165,250,0.35);
+    border-radius: 16px;
+    padding: 22px 26px 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.60);
 }
-.hero-school { font-size:2.2rem; font-weight:800; color:#f8fafc; margin-bottom:10px; }
-.hero-phase  { background:#0f766e; color:#99f6e4; border-radius:6px;
-    padding:3px 10px; font-size:0.75rem; font-weight:600; display:inline-block; }
-.badge-boys  { background:#1d4ed8; color:#ffffff; border-radius:8px;
-    padding:6px 18px; font-size:0.95rem; font-weight:800; display:inline-block;
-    letter-spacing:0.04em; text-transform:uppercase; }
-.badge-girls { background:#9333ea; color:#ffffff; border-radius:8px;
-    padding:6px 18px; font-size:0.95rem; font-weight:800; display:inline-block;
-    letter-spacing:0.04em; text-transform:uppercase; }
-.badge-qualified { background:#14532d; color:#86efac; border-radius:6px;
-    padding:2px 10px; font-size:0.74rem; font-weight:700; display:inline-block; margin-left:6px; }
-.badge-bubble { background:#1c1917; color:#a8a29e; border-radius:6px;
-    padding:2px 10px; font-size:0.74rem; font-weight:700; display:inline-block; margin-left:6px; }
+.hero-school {
+    font-size: 2.0rem; font-weight: 900; color: #f8fafc;
+    margin-bottom: 10px; letter-spacing: -0.01em;
+}
+.hero-phase {
+    background: rgba(20,184,166,0.18); color: #5eead4;
+    border: 1px solid rgba(20,184,166,0.35);
+    border-radius: 999px; padding: 3px 12px;
+    font-size: 0.72rem; font-weight: 700; display: inline-block;
+    letter-spacing: 0.06em; text-transform: uppercase;
+}
+.badge-boys  {
+    background: rgba(59,130,246,0.20); color: #93c5fd;
+    border: 1px solid rgba(59,130,246,0.45);
+    border-radius: 999px; padding: 4px 16px;
+    font-size: 0.78rem; font-weight: 800; display: inline-block;
+    letter-spacing: 0.08em; text-transform: uppercase;
+}
+.badge-girls {
+    background: rgba(168,85,247,0.20); color: #d8b4fe;
+    border: 1px solid rgba(168,85,247,0.45);
+    border-radius: 999px; padding: 4px 16px;
+    font-size: 0.78rem; font-weight: 800; display: inline-block;
+    letter-spacing: 0.08em; text-transform: uppercase;
+}
+.badge-qualified {
+    background: rgba(34,197,94,0.15); color: #4ade80;
+    border: 1px solid rgba(34,197,94,0.40);
+    border-radius: 999px; padding: 2px 10px;
+    font-size: 0.70rem; font-weight: 800; display: inline-block; margin-left: 6px;
+    letter-spacing: 0.06em;
+}
+.badge-bubble {
+    background: rgba(148,163,184,0.10); color: #94a3b8;
+    border: 1px solid rgba(148,163,184,0.25);
+    border-radius: 999px; padding: 2px 10px;
+    font-size: 0.70rem; font-weight: 700; display: inline-block; margin-left: 6px;
+}
 
-.card { background:#1e293b; border:1px solid #334155; border-radius:10px;
-    padding:18px 20px; margin-bottom:6px; }
-.lbl  { font-size:0.68rem; color:#64748b; text-transform:uppercase;
-    letter-spacing:.06em; margin-bottom:2px; }
-.val  { font-size:1.5rem; font-weight:700; color:#f1f5f9; line-height:1.15; }
-.sub  { font-size:0.78rem; color:#64748b; margin-top:2px; }
-.sm   { font-size:1.0rem; font-weight:700; color:#f1f5f9; }
+.card {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.18);
+    border-radius: 14px; padding: 18px 20px; margin-bottom: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+}
+.lbl {
+    font-size: 0.66rem; color: #64748b; text-transform: uppercase;
+    letter-spacing: .08em; margin-bottom: 3px;
+}
+.val  { font-size: 1.5rem; font-weight: 800; color: #f1f5f9; line-height: 1.15; }
+.sub  { font-size: 0.78rem; color: #64748b; margin-top: 2px; }
+.sm   { font-size: 0.95rem; font-weight: 700; color: #e2e8f0; }
 
-.stat-row   { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px; }
-.stat-block { min-width:72px; }
+.stat-row   { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 12px; }
+.stat-block { min-width: 72px; }
 
-.divider { border:none; border-top:1px solid #1e293b; margin:10px 0; }
+.divider { border: none; border-top: 1px solid rgba(96,165,250,0.10); margin: 12px 0; }
 
-.badge-hot  { background:#7f1d1d; color:#fca5a5; border-radius:6px;
-    padding:2px 8px; font-size:0.74rem; font-weight:700; }
-.badge-cold { background:#1e3a5f; color:#93c5fd; border-radius:6px;
-    padding:2px 8px; font-size:0.74rem; font-weight:700; }
-.badge-even { background:#1e2a1e; color:#86efac; border-radius:6px;
-    padding:2px 8px; font-size:0.74rem; font-weight:700; }
+.badge-hot  {
+    background: rgba(239,68,68,0.15); color: #fca5a5;
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 999px; padding: 2px 10px; font-size: 0.70rem; font-weight: 800;
+}
+.badge-cold {
+    background: rgba(96,165,250,0.15); color: #93c5fd;
+    border: 1px solid rgba(96,165,250,0.35);
+    border-radius: 999px; padding: 2px 10px; font-size: 0.70rem; font-weight: 800;
+}
+.badge-even {
+    background: rgba(148,163,184,0.12); color: #cbd5e1;
+    border: 1px solid rgba(148,163,184,0.25);
+    border-radius: 999px; padding: 2px 10px; font-size: 0.70rem; font-weight: 800;
+}
 
-.section-head { font-size:1.0rem; font-weight:700; color:#38bdf8;
-    border-bottom:1px solid #334155; padding-bottom:6px;
-    margin:22px 0 12px; letter-spacing:.04em; text-transform:uppercase; }
+.section-head {
+    font-size: 0.72rem; font-weight: 900; color: #60a5fa;
+    text-transform: uppercase; letter-spacing: .12em;
+    padding: 8px 14px; margin: 28px 0 14px;
+    background: rgba(96,165,250,0.08);
+    border: 1px solid rgba(96,165,250,0.20);
+    border-radius: 8px; display: inline-block;
+}
 
-.gender-div-boys  { border-left:4px solid #3b82f6; padding-left:12px;
-    margin:16px 0 8px; font-size:1.0rem; font-weight:700; color:#93c5fd; }
-.gender-div-girls { border-left:4px solid #d946ef; padding-left:12px;
-    margin:16px 0 8px; font-size:1.0rem; font-weight:700; color:#f0abfc; }
+.gender-div-boys  {
+    border-left: 3px solid #3b82f6; padding-left: 12px;
+    margin: 14px 0 8px; font-size: 0.80rem; font-weight: 800;
+    color: #93c5fd; text-transform: uppercase; letter-spacing: 0.08em;
+}
+.gender-div-girls {
+    border-left: 3px solid #a855f7; padding-left: 12px;
+    margin: 14px 0 8px; font-size: 0.80rem; font-weight: 800;
+    color: #d8b4fe; text-transform: uppercase; letter-spacing: 0.08em;
+}
 
-.game-row { display:flex; align-items:center; gap:8px; padding:7px 12px;
-    border-radius:8px; margin-bottom:4px; background:#1e293b;
-    border:1px solid #2d3748; }
-.game-row-w { border-left:4px solid #22c55e; }
-.game-row-l { border-left:4px solid #ef4444; }
-.game-opp   { flex:1; font-size:0.88rem; color:#cbd5e1; font-weight:600; }
-.game-score { font-size:0.88rem; color:#f1f5f9; min-width:56px; text-align:right; }
-.game-margin{ font-size:0.76rem; color:#94a3b8; min-width:42px; text-align:right; }
+.game-row {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    border-radius: 10px; margin-bottom: 5px;
+    background: rgba(15,30,56,0.60);
+    border: 1px solid rgba(96,165,250,0.10);
+}
+.game-row-w { border-left: 3px solid #22c55e; }
+.game-row-l { border-left: 3px solid #ef4444; }
+.game-opp   { flex: 1; font-size: 0.86rem; color: #cbd5e1; font-weight: 600; }
+.game-score { font-size: 0.86rem; color: #f1f5f9; font-weight: 700; min-width: 56px; text-align: right; }
+.game-margin{ font-size: 0.74rem; color: #94a3b8; min-width: 42px; text-align: right; }
 
-.upcoming-row { display:flex; align-items:center; gap:8px; padding:7px 12px;
-    border-radius:8px; margin-bottom:4px; background:#0f172a;
-    border:1px solid #334155; }
-.upcoming-opp  { flex:1; font-size:0.88rem; color:#cbd5e1; font-weight:600; }
-.upcoming-date { font-size:0.74rem; color:#64748b; min-width:52px; }
+.upcoming-row {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    border-radius: 10px; margin-bottom: 5px;
+    background: rgba(6,12,26,0.80);
+    border: 1px solid rgba(96,165,250,0.15);
+}
+.upcoming-opp  { flex: 1; font-size: 0.86rem; color: #cbd5e1; font-weight: 600; }
+.upcoming-date { font-size: 0.72rem; color: #60a5fa; font-weight: 700; min-width: 52px; }
 
-.tourn-card { background:#0c1a0c; border:1px solid #166534; border-radius:10px;
-    padding:18px 22px; margin-bottom:8px; }
+.tourn-card {
+    background: radial-gradient(circle at top left, #0a1f12, #060c1a);
+    border: 1px solid rgba(74,222,128,0.28);
+    border-radius: 14px; padding: 18px 22px; margin-bottom: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.50);
+}
 
-.ms-row { background:#1a2035; border:1px solid #2d3748; border-radius:8px;
-    padding:10px 14px; margin-bottom:6px; }
-.ms-status-verified  { color:#22c55e; font-weight:700; font-size:0.76rem; }
-.ms-status-contested { color:#eab308; font-weight:700; font-size:0.76rem; }
-.ms-status-pending   { color:#94a3b8; font-weight:700; font-size:0.76rem; }
-.ms-text { font-size:0.88rem; color:#e2e8f0; margin-top:3px; }
+.ms-row {
+    background: rgba(15,30,56,0.50); border: 1px solid rgba(96,165,250,0.14);
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 6px;
+}
+.ms-status-verified  { color: #4ade80; font-weight: 800; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.06em; }
+.ms-status-contested { color: #fbbf24; font-weight: 800; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.06em; }
+.ms-status-pending   { color: #94a3b8; font-weight: 700; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.06em; }
+.ms-text { font-size: 0.88rem; color: #e2e8f0; margin-top: 4px; line-height: 1.4; }
 
-.roadtrip-stub { background:#161625; border:2px dashed #334155; border-radius:10px;
-    padding:22px; text-align:center; color:#475569; font-size:0.88rem; }
+.roadtrip-stub {
+    background: rgba(6,12,26,0.60); border: 1px dashed rgba(96,165,250,0.20);
+    border-radius: 12px; padding: 22px; text-align: center;
+    color: #475569; font-size: 0.88rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -1060,6 +1138,8 @@ else:
 
     travel_df = load_travel()
 
+    AVG_BUS_SPEED = 45.0
+
     def travel_block(team_key: str, gender_label: str):
         if travel_df.empty or not team_key:
             st.markdown(f"*No travel data for {gender_label}.*")
@@ -1070,14 +1150,42 @@ else:
             st.markdown(f"*No away games found for {gender_label}.*")
             return
 
-        total_miles = away_games["MilesRoundTrip"].sum()
-        total_hours = away_games["BusHours"].sum()
-        avg_miles   = away_games["MilesRoundTrip"].mean()
-        longest     = away_games["MilesOneWay"].max()
-        trips       = len(away_games)
+        # Ensure numeric distance columns
+        away_games["MilesRoundTrip"] = pd.to_numeric(away_games["MilesRoundTrip"], errors="coerce")
+        if "MilesOneWay" in away_games.columns:
+            away_games["MilesOneWay"] = pd.to_numeric(away_games["MilesOneWay"], errors="coerce")
 
-        played = away_games[away_games["Played"].fillna(False)]
-        road_w = (played["WinnerTeam"] == played["Away"]).sum()
+        # Recompute BusHours from miles (more reliable than stored values)
+        away_games["BusHours"] = away_games["MilesRoundTrip"] / AVG_BUS_SPEED
+
+        # Rows with actual distance data (for mileage stats only)
+        with_miles = away_games[away_games["MilesRoundTrip"].notna()].copy()
+
+        def _fmi(v, spec=",.0f", unit=" mi"):
+            try:
+                f = float(v)
+                return ("—" if np.isnan(f) else f"{f:{spec}}{unit}")
+            except: return "—"
+
+        def _fhr(v):
+            try:
+                f = float(v)
+                return ("—" if np.isnan(f) else f"{f:,.1f} hrs")
+            except: return "—"
+
+        # All played away games (for road record and recent trips)
+        played = away_games[away_games["Played"].fillna(False).astype(bool)].copy()
+
+        total_miles = with_miles["MilesRoundTrip"].sum(skipna=True) if not with_miles.empty else np.nan
+        total_hours = with_miles["BusHours"].sum(skipna=True) if not with_miles.empty else np.nan
+        avg_miles   = with_miles["MilesRoundTrip"].mean(skipna=True) if not with_miles.empty else np.nan
+        longest     = with_miles["MilesOneWay"].max(skipna=True) if ("MilesOneWay" in with_miles.columns and not with_miles.empty) else np.nan
+
+        # Road record using stripped string comparison (matches Road_Trip.py)
+        if not played.empty and "WinnerTeam" in played.columns and "Away" in played.columns:
+            road_w = int((played["WinnerTeam"].astype(str).str.strip() == played["Away"].astype(str).str.strip()).sum())
+        else:
+            road_w = 0
         road_l = len(played) - road_w
 
         st.markdown(f"""
@@ -1086,45 +1194,56 @@ else:
   <div class="stat-row" style="margin-top:8px;">
     <div class="stat-block">
       <div class="lbl">Season Miles</div>
-      <div class="sm">{total_miles:,.0f} mi</div>
+      <div class="sm">{_fmi(total_miles)}</div>
     </div>
     <div class="stat-block">
       <div class="lbl">Bus Hours</div>
-      <div class="sm">{total_hours:,.1f} hrs</div>
+      <div class="sm">{_fhr(total_hours)}</div>
     </div>
     <div class="stat-block">
-      <div class="lbl">Avg/Trip</div>
-      <div class="sm">{avg_miles:,.0f} mi</div>
+      <div class="lbl">Avg / Trip</div>
+      <div class="sm">{_fmi(avg_miles)}</div>
     </div>
     <div class="stat-block">
       <div class="lbl">Longest Trip</div>
-      <div class="sm">{longest:,.0f} mi</div>
+      <div class="sm">{_fmi(longest)}</div>
     </div>
     <div class="stat-block">
       <div class="lbl">Road Record</div>
-      <div class="sm">{road_w}-{road_l}</div>
+      <div class="sm">{road_w}–{road_l}</div>
     </div>
   </div>
   <div style="margin-top:12px;">
     <div class="lbl">Last 5 Road Trips</div>
 """, unsafe_allow_html=True)
 
-        recent = played.sort_values("Date", ascending=False).head(5)
+        recent = played.sort_values("Date", ascending=False).head(5) if not played.empty else played
         for _, row in recent.iterrows():
-            opp      = row.get("Home", "Opponent")
-            miles    = row["MilesRoundTrip"]
-            result   = "W" if row["WinnerTeam"] == row["Away"] else "L"
-            margin   = row.get("AwayScore", 0) - row.get("HomeScore", 0)
-            date_str = pd.to_datetime(row["Date"]).strftime("%b %d")
+            opp    = row.get("Home", "Opponent") or "Opponent"
+            miles  = pd.to_numeric(row.get("MilesRoundTrip", np.nan), errors="coerce")
+            # Use AwayWin boolean if present, else fall back to string comparison with strip
+            if "AwayWin" in row and pd.notna(row["AwayWin"]):
+                result = "W" if bool(row["AwayWin"]) else "L"
+            else:
+                result = "W" if str(row.get("WinnerTeam","")).strip() == str(row.get("Away","")).strip() else "L"
+            away_s = pd.to_numeric(row.get("AwayScore", np.nan), errors="coerce")
+            home_s = pd.to_numeric(row.get("HomeScore", np.nan), errors="coerce")
+            margin = (away_s - home_s) if (pd.notna(away_s) and pd.notna(home_s)) else np.nan
+            try:
+                date_str = pd.to_datetime(row["Date"]).strftime("%b %d")
+            except Exception:
+                date_str = "—"
             color    = "#22c55e" if result == "W" else "#ef4444"
+            miles_s  = _fmi(miles)
+            margin_s = f"{margin:+.0f}" if pd.notna(margin) else "—"
 
             st.markdown(f"""
 <div style="display:flex;gap:8px;padding:6px 0;font-size:0.82rem;border-bottom:1px solid #1e293b;">
   <div style="min-width:48px;color:#64748b;">{date_str}</div>
   <div style="flex:1;color:#cbd5e1;">{opp}</div>
-  <div style="min-width:60px;text-align:right;color:#94a3b8;">{miles:.0f} mi</div>
+  <div style="min-width:60px;text-align:right;color:#94a3b8;">{miles_s}</div>
   <div style="min-width:28px;text-align:center;color:{color};font-weight:700;">{result}</div>
-  <div style="min-width:36px;text-align:right;color:{color};">{margin:+.0f}</div>
+  <div style="min-width:36px;text-align:right;color:{color};">{margin_s}</div>
 </div>
 """, unsafe_allow_html=True)
 

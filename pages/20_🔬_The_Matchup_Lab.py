@@ -165,8 +165,8 @@ def build_predictions_walkforward(
 # ---------- PAGE CONFIG ----------
 
 st.set_page_config(
-    page_title="🧠 The Model – Analytics207.com",
-    page_icon="🧠",
+    page_title="🔬 The Matchup Lab – Analytics207.com",
+    page_icon="🔬",
     layout="wide",
 )
 
@@ -175,9 +175,9 @@ login_gate(required=False)
 logout_button()
 render_logo()
 render_page_header(
-    title="🧠 THE MODEL",
-    definition="Model (n.): A calibrated predictive engine built to forecast game outcomes statewide.",
-    subtitle="Matchup forecasts, projected scores, and win probabilities — powered by our analytics engine.",
+    title="🔬 THE MATCHUP LAB",
+    definition="Matchup Lab (n.): A coach-grade analytics workspace built to dissect, compare, and forecast game outcomes.",
+    subtitle="Coach-grade matchup intelligence — scouting reports, schedule analysis, and calibrated game forecasts.",
 )
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -192,11 +192,12 @@ body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-sy
             padding:32px 28px;text-align:center;">
   <div style="font-size:2.5rem;margin-bottom:10px;">🔒</div>
   <div style="font-size:1.1rem;font-weight:800;color:#fbbf24;margin-bottom:6px;">
-    THE MODEL — Subscribers Only
+    THE MATCHUP LAB — Premium Subscribers Only
   </div>
   <div style="font-size:0.85rem;color:#94a3b8;max-width:460px;margin:0 auto;">
-    Subscribe to unlock matchup predictions, projected scores, win probabilities,
-    head-to-head history, and recent form — for every game on the schedule.
+    Subscribe to unlock coach-grade matchup intelligence: calibrated game forecasts,
+    full scouting reports, strength of schedule deep-dives, form &amp; momentum analysis,
+    and the complete metrics breakdown — the tools serious coaches rely on.
   </div>
 </div>
 """, height=200, scrolling=False)
@@ -560,433 +561,7 @@ else:
     conf_text = "LOW CONFIDENCE";    conf_cls = "pill pill-blue"
 
 
-# ---------- DRIVER BAR VALUES ----------
-
-pir_home = _safe_float(h_row.get("PIR"),        np.nan)
-pir_away = _safe_float(a_row.get("PIR"),        np.nan)
-net_home = _safe_float(h_row.get("MarginPG"),   np.nan)
-net_away = _safe_float(a_row.get("MarginPG"),   np.nan)
-l5_home  = _safe_float(h_row.get("L5MarginPG"), np.nan)
-l5_away  = _safe_float(a_row.get("L5MarginPG"), np.nan)
-
-pir_edge_ha = (pir_home - pir_away) if (np.isfinite(pir_home) and np.isfinite(pir_away)) else 0.0
-net_edge_ha = (net_home - net_away) if (np.isfinite(net_home) and np.isfinite(net_away)) else 0.0
-l5_edge_ha  = (l5_home  - l5_away)  if (np.isfinite(l5_home)  and np.isfinite(l5_away))  else 0.0
-
-
-def barsplit(edge, base=50.0, scale=1.0, cap=18.0):
-    if edge is None or (isinstance(edge, float) and np.isnan(edge)): return 50.0
-    try:    shift = float(edge) * float(scale)
-    except: return 50.0
-    shift = max(-cap, min(cap, shift))
-    return float(base + shift)
-
-
-pir_p_left = barsplit(pir_edge_ha, scale=1.5, cap=18)
-net_p_left = barsplit(net_edge_ha, scale=2.0, cap=18)
-l5_p_left  = barsplit(l5_edge_ha,  scale=2.0, cap=18)
-
-def fmt_d(x, places=1):
-    try:
-        v = float(x)
-        return "—" if np.isnan(v) else f"{v:.{places}f}"
-    except: return "—"
-
-pir_left_lbl  = f"{home_team} {fmt_d(pir_home)}"
-pir_right_lbl = f"{fmt_d(pir_away)} {away_team}"
-net_left_lbl  = f"{home_team} {fmt_d(net_home)}"
-net_right_lbl = f"{fmt_d(net_away)} {away_team}"
-l5_left_lbl   = f"{home_team} {fmt_d(l5_home)}"
-l5_right_lbl  = f"{fmt_d(l5_away)} {away_team}"
-
-# Team records
-h_wins_n   = int(_safe_float(h_row.get("Wins",   0), 0) or 0)
-h_losses_n = int(_safe_float(h_row.get("Losses", 0), 0) or 0)
-a_wins_n   = int(_safe_float(a_row.get("Wins",   0), 0) or 0)
-a_losses_n = int(_safe_float(a_row.get("Losses", 0), 0) or 0)
-h_record   = f"{h_wins_n}–{h_losses_n}"
-a_record   = f"{a_wins_n}–{a_losses_n}"
-
-source_chip = "<span style='display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:9px;font-weight:800;letter-spacing:0.1em;background:#020617;border:1px solid #374151;color:#e5e7eb;margin-left:6px;'>LIVE</span>"
-
-
-# ---------- HERO HTML ----------
-
-hero_html = f"""
-<style>
-  body {{
-    margin:0; background:transparent;
-    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-    color:#e5e7eb;
-  }}
-  .card {{
-    background:radial-gradient(circle at top left,#142040,#060c1a);
-    border:1px solid rgba(96,165,250,0.55); border-radius:22px;
-    padding:24px; box-shadow:0 28px 60px rgba(15,23,42,0.95);
-  }}
-  .pill {{ display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;
-           font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;
-           background:#020617;border:1px solid rgba(55,65,81,0.9);white-space:nowrap; }}
-  .pill-green {{ color:#22c55e; border-color:#22c55e; }}
-  .pill-gold  {{ color:#facc15; border-color:#facc15; }}
-  .pill-blue  {{ color:#60a5fa; border-color:#60a5fa; }}
-  .splitbar {{
-    --pLeft:50; --leftColor:#22c55e; --rightColor:#f97316;
-    position:relative; border-radius:999px; overflow:hidden;
-    border:1px solid transparent; box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);
-    background:
-      linear-gradient(#0000,#0000) padding-box,
-      linear-gradient(90deg,
-        var(--leftColor) 0%, var(--leftColor) calc(var(--pLeft)*1%),
-        var(--rightColor) calc(var(--pLeft)*1%), var(--rightColor) 100%) border-box;
-  }}
-  .splitbar::after {{
-    content:""; position:absolute; left:50%; top:2px; bottom:2px; width:2px;
-    background:rgba(255,255,255,.60); box-shadow:0 0 8px rgba(255,255,255,.35);
-    pointer-events:none; z-index:30;
-  }}
-  .splitbar .lbl {{
-    position:absolute; top:50%; transform:translateY(-50%);
-    font-weight:950; color:rgba(255,255,255,.95);
-    text-shadow:0 1px 2px rgba(0,0,0,.55); white-space:nowrap; z-index:20;
-    padding:1px 6px; border-radius:999px;
-    background:rgba(2,6,23,.22); backdrop-filter:blur(1px);
-  }}
-  .splitbar .lbl.left  {{ left:10px; }}
-  .splitbar .lbl.right {{ right:10px; }}
-  .splitbar-lg {{ height:36px; }} .splitbar-md {{ height:20px; }}
-  .splitbar-lg .lbl {{ font-size:13px; }} .splitbar-md .lbl {{ font-size:10px; }}
-  .minibar-wrap {{ width:min(560px,100%); margin:6px auto 0; display:grid; gap:8px; }}
-  .minibar-cap  {{ font-size:12px; color:#9ca3af; text-align:center; margin-top:-2px; }}
-  .stat-grid {{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:20px; }}
-  .stat-box {{ background:rgba(15,23,42,0.65); border:1px solid rgba(148,163,184,0.14);
-               border-radius:14px; padding:14px; text-align:center; }}
-  .stat-label {{ font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:#9ca3af; }}
-  .stat-val {{ font-size:22px; font-weight:950; margin-top:4px; }}
-  .stat-sub {{ font-size:11px; color:#9ca3af; margin-top:2px; }}
-</style>
-
-<div class="card">
-  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
-    <div>
-      <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.13em; color:#9ca3af;">
-        🧠 THE MODEL {source_chip}
-      </div>
-      <div style="margin-top:6px; font-size:22px; font-weight:950; color:#ffffff; line-height:1.1;">
-        {away_team} at {home_team}
-      </div>
-      <div style="margin-top:5px; font-size:13px; color:#9ca3af;">
-        <span style="color:#f97316; font-weight:800;">{a_record}</span>
-        &nbsp;<span style="color:#6b7280;">away</span>
-        &nbsp;&nbsp;&middot;&nbsp;&nbsp;
-        <span style="color:#22c55e; font-weight:800;">{h_record}</span>
-        &nbsp;<span style="color:#6b7280;">home</span>
-      </div>
-      <div style="margin-top:4px; font-size:11px; color:#6b7280;">
-        Calibrated game forecast &nbsp;·&nbsp; updated nightly
-      </div>
-    </div>
-    <div style="text-align:right; flex-shrink:0;">
-      <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.13em; color:#9ca3af;">
-        Confidence
-      </div>
-      <div style="margin-top:6px;">
-        <span class="{conf_cls}">{conf_text}</span>
-      </div>
-      <div style="margin-top:4px; font-size:12px; color:#9ca3af;">
-        Edge {margin_edge:+.1f} pts
-      </div>
-    </div>
-  </div>
-
-  <div style="margin-top:22px; text-align:center;">
-    <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:#9ca3af; margin-bottom:8px;">
-      Projected Final Score
-    </div>
-    <div style="font-size:34px; font-weight:950; color:#ffffff; letter-spacing:-0.02em;">
-      {home_team}&nbsp;<span style="color:#22c55e">{score_h}</span>
-      &nbsp;&ndash;&nbsp;
-      <span style="color:#f97316">{score_a}</span>&nbsp;{away_team}
-    </div>
-    <div style="margin-top:6px; font-size:13px;">
-      <span style="color:#22c55e; font-weight:800;">{h_record}</span>
-      <span style="color:#6b7280;">&nbsp;home&nbsp;&nbsp;&middot;&nbsp;&nbsp;</span>
-      <span style="color:#f97316; font-weight:800;">{a_record}</span>
-      <span style="color:#6b7280;">&nbsp;away</span>
-    </div>
-    <div style="margin-top:6px; font-size:13px; color:#9ca3af;">
-      {fav_team} favored by {abs(spread):.1f} &nbsp;&middot;&nbsp; O/U {total:.0f}
-    </div>
-  </div>
-
-  <div style="margin-top:18px; display:flex; justify-content:center;">
-    <div class="splitbar splitbar-lg"
-         style="width:min(760px,100%); --pLeft:{home_win_pct:.0f}; --leftColor:#22c55e; --rightColor:#f97316;">
-      <div class="lbl left">{home_team} {home_win_pct:.0f}%</div>
-      <div class="lbl right">{away_win_pct:.0f}% {away_team}</div>
-    </div>
-  </div>
-
-  <div class="stat-grid">
-    <div class="stat-box">
-      <div class="stat-label">Win Probability</div>
-      <div class="stat-val" style="color:#22c55e">{fav_win_pct:.0f}%</div>
-      <div class="stat-sub">{fav_team}</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-label">Model Edge</div>
-      <div class="stat-val" style="color:#facc15">{abs(margin_edge):.1f}</div>
-      <div class="stat-sub">predicted margin</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-label">O / U Total</div>
-      <div class="stat-val" style="color:#c7d2fe">{total:.0f}</div>
-      <div class="stat-sub">combined pts</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-label">PIR Edge</div>
-      <div class="stat-val" style="color:{'#22c55e' if pir_edge_ha >= 0 else '#f97316'}">{pir_edge_ha:+.1f}</div>
-      <div class="stat-sub">{'home' if pir_edge_ha >= 0 else 'away'} adv</div>
-    </div>
-  </div>
-
-  <div style="margin-top:22px;">
-    <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:#9ca3af; text-align:center; margin-bottom:12px;">
-      Key Driver Bars &mdash; bigger side = advantage
-    </div>
-    <div class="minibar-wrap">
-      <div class="splitbar splitbar-md"
-           style="--pLeft:{pir_p_left:.0f}; --leftColor:#22c55e; --rightColor:#f97316;">
-        <div class="lbl left">{pir_left_lbl}</div>
-        <div class="lbl right">{pir_right_lbl}</div>
-      </div>
-      <div class="minibar-cap">PIR RATING EDGE {pir_edge_ha:+.1f}</div>
-
-      <div class="splitbar splitbar-md"
-           style="--pLeft:{net_p_left:.0f}; --leftColor:#22c55e; --rightColor:#f97316;">
-        <div class="lbl left">{net_left_lbl}</div>
-        <div class="lbl right">{net_right_lbl}</div>
-      </div>
-      <div class="minibar-cap">NET MARGIN EDGE {net_edge_ha:+.1f}</div>
-
-      <div class="splitbar splitbar-md"
-           style="--pLeft:{l5_p_left:.0f}; --leftColor:#22c55e; --rightColor:#f97316;">
-        <div class="lbl left">{l5_left_lbl}</div>
-        <div class="lbl right">{l5_right_lbl}</div>
-      </div>
-      <div class="minibar-cap">LAST 5 FORM EDGE {l5_edge_ha:+.1f}</div>
-    </div>
-  </div>
-</div>
-"""
-
-# ---------- UPSELL HTML ----------
-
-upsell_html = """
-<!doctype html><html><head><meta charset="utf-8"/></head>
-<body style="margin:0;background:transparent;
-             font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
-<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
-            border:1px solid rgba(251,191,36,0.35);border-radius:16px;
-            padding:20px 24px;text-align:center;">
-  <div style="font-size:18px;margin-bottom:8px;">🔬</div>
-  <div style="font-size:14px;font-weight:900;color:#fbbf24;margin-bottom:6px;letter-spacing:0.04em;">
-    Want to go deeper?
-  </div>
-  <div style="font-size:12px;color:#94a3b8;max-width:420px;margin:0 auto;line-height:1.6;">
-    <strong style="color:#e5e7eb;">The Matchup Lab</strong> unlocks the full scouting report,
-    strength of schedule breakdown, form &amp; momentum analysis, opponent tier charts,
-    and coaching-level insights — for fans, parents, and coaches who want the full picture.
-  </div>
-  <div style="margin-top:14px;font-size:11px;color:#6b7280;">
-    Upgrade your subscription to access The Matchup Lab
-  </div>
-</div>
-</body></html>
-"""
-
-# ---------- TABS ----------
-
-home_key = str(h_row.get("TeamKey", "")).strip()
-away_key = str(a_row.get("TeamKey", "")).strip()
-
-tab_forecast, tab_h2h, tab_form = st.tabs([
-    "🧠 Forecast",
-    "🔄 Head-to-Head",
-    "📅 Recent Form",
-])
-
-
-# ── TAB 1: FORECAST ──────────────────────────────────────────────────
-
-with tab_forecast:
-    components.html(hero_html, height=640, scrolling=False)
-    st.markdown("")
-    components.html(upsell_html, height=195, scrolling=False)
-
-
-# ── TAB 2: HEAD-TO-HEAD ──────────────────────────────────────────────
-
-with tab_h2h:
-    st.write("")
-    h2h_df = head_to_head_games(games_df, home_key, away_key)
-
-    if h2h_df.empty:
-        st.info(f"No head-to-head games found between {home_team} and {away_team} this season.")
-    else:
-        h_wins = 0
-        a_wins_count = 0
-        game_cards_html = ""
-
-        for _, g in h2h_df.iterrows():
-            hs  = pd.to_numeric(g.get("HomeScore", np.nan), errors="coerce")
-            as_ = pd.to_numeric(g.get("AwayScore",  np.nan), errors="coerce")
-            home_name = str(g.get("Home", ""))
-            away_name = str(g.get("Away", ""))
-            date_str  = str(g.get("Date", ""))[:10]
-
-            if pd.notna(hs) and pd.notna(as_):
-                home_won = hs > as_
-                winner   = home_name if home_won else away_name
-                w_score  = int(max(hs, as_))
-                l_score  = int(min(hs, as_))
-
-                if winner == home_team:
-                    h_wins += 1
-                    w_color, l_color = "#22c55e", "#f97316"
-                    w_name, l_name   = home_team, away_team
-                else:
-                    a_wins_count += 1
-                    w_color, l_color = "#f97316", "#22c55e"
-                    w_name, l_name   = away_team, home_team
-
-                game_cards_html += f"""
-<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;
-            border-radius:14px;margin-bottom:6px;
-            background:rgba(15,23,42,0.40);border:1px solid rgba(148,163,184,0.14);
-            font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
-  <span style="color:#9ca3af;font-size:11px;min-width:80px;">{date_str}</span>
-  <span style="color:{w_color};font-size:13px;font-weight:900;flex:1;">&#10003; {w_name}</span>
-  <span style="color:#facc15;font-size:14px;font-weight:950;">{w_score}&ndash;{l_score}</span>
-  <span style="color:{l_color};font-size:13px;flex:1;text-align:right;">{l_name}</span>
-</div>"""
-
-        tally_html = f"""
-<div style="display:flex;gap:16px;margin-top:16px;
-            font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
-  <div style="flex:1;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.30);
-              border-radius:14px;padding:16px;text-align:center;">
-    <div style="font-size:42px;font-weight:950;color:#22c55e;">{h_wins}</div>
-    <div style="font-size:12px;color:#e5e7eb;font-weight:800;margin-top:4px;">{home_team}</div>
-    <div style="font-size:11px;color:#9ca3af;margin-top:2px;">season series wins</div>
-  </div>
-  <div style="flex:1;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.30);
-              border-radius:14px;padding:16px;text-align:center;">
-    <div style="font-size:42px;font-weight:950;color:#f97316;">{a_wins_count}</div>
-    <div style="font-size:12px;color:#e5e7eb;font-weight:800;margin-top:4px;">{away_team}</div>
-    <div style="font-size:11px;color:#9ca3af;margin-top:2px;">season series wins</div>
-  </div>
-</div>"""
-
-        full_h2h_html = f"""
-<!doctype html><html><head><meta charset="utf-8"/></head>
-<body style="margin:0;background:transparent;color:#e5e7eb;
-             font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
-<div style="background:radial-gradient(circle at top left,#142040,#060c1a);
-            border:1px solid rgba(96,165,250,0.25);border-radius:22px;
-            padding:22px 24px;box-shadow:0 18px 45px rgba(0,0,0,0.85);">
-  <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.13em;color:#9ca3af;">
-    Season Series
-  </div>
-  <div style="margin-top:6px;font-size:20px;font-weight:950;color:#ffffff;">
-    {home_team} vs {away_team}
-  </div>
-  <div style="margin-top:4px;font-size:12px;color:#9ca3af;">
-    All matchups this season &middot; most recent first
-  </div>
-  <div style="margin-top:16px;">{game_cards_html}</div>
-  {tally_html}
-</div>
-</body></html>"""
-
-        h2h_height = min(140 + len(h2h_df) * 52 + 120, 640)
-        components.html(full_h2h_html, height=h2h_height, scrolling=True)
-
-    st.markdown("")
-    components.html(upsell_html, height=195, scrolling=False)
-
-
-# ── TAB 3: RECENT FORM ────────────────────────────────────────────────
-
-with tab_form:
-    st.write("")
-    col_home_form, col_away_form = st.columns(2)
-
-    for col, team_name, team_key, accent in [
-        (col_home_form, home_team, home_key, "#22c55e"),
-        (col_away_form, away_team, away_key, "#f97316"),
-    ]:
-        with col:
-            recent = recent_form_games(games_df, team_key, n=5)
-            game_rows_html = ""
-
-            if recent.empty:
-                game_rows_html = '<div style="color:#9ca3af;font-size:13px;padding:12px;">No recent games found.</div>'
-            else:
-                for _, g in recent.iterrows():
-                    hs      = pd.to_numeric(g.get("HomeScore", np.nan), errors="coerce")
-                    as_     = pd.to_numeric(g.get("AwayScore",  np.nan), errors="coerce")
-                    g_home  = str(g.get("Home", ""))
-                    g_away  = str(g.get("Away", ""))
-                    date    = str(g.get("Date", ""))[:10]
-                    is_home = (str(g.get("HomeKey", "")) == team_key)
-                    opp     = g_away if is_home else g_home
-
-                    if pd.notna(hs) and pd.notna(as_):
-                        tm_score  = int(hs) if is_home else int(as_)
-                        op_score  = int(as_) if is_home else int(hs)
-                        won       = tm_score > op_score
-                        res_label = "W" if won else "L"
-                        res_color = "#22c55e" if won else "#ef4444"
-                        res_bg    = "rgba(34,197,94,0.08)" if won else "rgba(239,68,68,0.08)"
-                        venue     = "Home" if is_home else "Away"
-
-                        game_rows_html += f"""
-<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;
-            border-radius:12px;margin-bottom:5px;
-            background:{res_bg};border:1px solid {res_color}22;
-            font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
-  <span style="background:{res_color};color:#0f172a;font-size:11px;font-weight:900;
-               padding:2px 8px;border-radius:999px;text-align:center;">{res_label}</span>
-  <span style="color:#e5e7eb;font-size:12px;font-weight:800;flex:1;">vs {opp}</span>
-  <span style="color:#facc15;font-size:13px;font-weight:950;">{tm_score}&ndash;{op_score}</span>
-  <span style="color:#9ca3af;font-size:10px;">{venue} &middot; {date}</span>
-</div>"""
-
-            form_card_html = f"""
-<!doctype html><html><head><meta charset="utf-8"/></head>
-<body style="margin:0;background:transparent;color:#e5e7eb;
-             font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
-<div style="background:radial-gradient(circle at top left,#142040,#060c1a);
-            border:1px solid rgba(148,163,184,0.18);border-radius:22px;
-            padding:20px 22px;box-shadow:0 18px 45px rgba(0,0,0,0.85);">
-  <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.13em;color:#9ca3af;">
-    Last 5 Games
-  </div>
-  <div style="margin-top:6px;font-size:18px;font-weight:950;color:{accent};">
-    {team_name}
-  </div>
-  <div style="margin-top:12px;">{game_rows_html}</div>
-</div>
-</body></html>"""
-
-            components.html(form_card_html, height=320, scrolling=False)
-
-    st.markdown("")
-    components.html(upsell_html, height=195, scrolling=False)
-
-
-render_footer()
+# ---------- METRIC CONFIG ----------
 
 metrics_core = [
     ("RATING",    "PIR",    True,  1, "Power Index Rating (PIR scale)."),
@@ -1191,6 +766,14 @@ l5_right_lbl  = f"{fmt_driver(l5_away, 1)} {away_team}"
 
 source_chip = f"<span class='pill pill-gray' style='margin-left:6px'>LIVE</span>"
 
+# Team records for hero display
+h_wins_n  = int(_safe_float(h_row.get("Wins",   0), 0) or 0)
+h_losses_n = int(_safe_float(h_row.get("Losses", 0), 0) or 0)
+a_wins_n  = int(_safe_float(a_row.get("Wins",   0), 0) or 0)
+a_losses_n = int(_safe_float(a_row.get("Losses", 0), 0) or 0)
+h_record  = f"{h_wins_n}–{h_losses_n}"
+a_record  = f"{a_wins_n}–{a_losses_n}"
+
 
 # ---------- HERO HTML (Forecast Card) ----------
 
@@ -1260,7 +843,13 @@ hero_html = f"""
       <div style="margin-top:6px; font-size:22px; font-weight:950; color:#ffffff; line-height:1.1;">
         {away_team} at {home_team}
       </div>
-      <div style="margin-top:6px; font-size:12px; color:#9ca3af;">
+      <div style="margin-top:5px; font-size:13px; color:#9ca3af;">
+        <span style="color:#f97316; font-weight:800;">{a_record}</span>
+        &nbsp;<span style="color:#6b7280;">away</span>&nbsp;&nbsp;&middot;&nbsp;&nbsp;
+        <span style="color:#22c55e; font-weight:800;">{h_record}</span>
+        &nbsp;<span style="color:#6b7280;">home</span>
+      </div>
+      <div style="margin-top:4px; font-size:11px; color:#6b7280;">
         Calibrated model forecast &nbsp;·&nbsp; coach-grade matchup intelligence
       </div>
     </div>
@@ -1286,7 +875,13 @@ hero_html = f"""
       &nbsp;&ndash;&nbsp;
       <span style="color:#f97316">{score_a}</span>&nbsp;{away_team}
     </div>
-    <div style="margin-top:8px; font-size:13px; color:#9ca3af;">
+    <div style="margin-top:6px; font-size:13px;">
+      <span style="color:#22c55e; font-weight:800;">{h_record}</span>
+      <span style="color:#6b7280;">&nbsp;home&nbsp;&nbsp;&middot;&nbsp;&nbsp;</span>
+      <span style="color:#f97316; font-weight:800;">{a_record}</span>
+      <span style="color:#6b7280;">&nbsp;away</span>
+    </div>
+    <div style="margin-top:6px; font-size:13px; color:#9ca3af;">
       {fav_team} favored by {abs(spread):.1f} &nbsp;&middot;&nbsp; O/U {total:.0f}
     </div>
   </div>
