@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 
 from layout import (
     apply_global_layout_tweaks,
@@ -58,7 +57,7 @@ WEEKLY_WINNERS_FILE  = DATA_DIR / "pick5"       / "pick5_weekly_winners_v50.parq
 CLASS_ORDER = ["A", "B", "C", "D", "S"]
 CLASS_COLOR = {"A": "#f43f5e", "B": "#f97316", "C": "#facc15", "D": "#4ade80", "S": "#60a5fa"}
 CLASS_LABEL = {"A": "Class A", "B": "Class B", "C": "Class C", "D": "Class D", "S": "Class S"}
-GENDER_ICON = {"Boys": "♂️", "Girls": "♀️"}
+GENDER_ICON = {"Boys": "♂", "Girls": "♀"}
 TOP_N_GAMES = 6
 
 HIDDEN = ["_gid", "_team", "_upset", "_pts", "_fav", "_fav_pct", "_played", "_final"]
@@ -288,6 +287,236 @@ def filter_cls_games(week_games: pd.DataFrame, cls: str) -> pd.DataFrame:
 
 
 # ─────────────────────────────────────────────
+# VISUAL HELPERS
+# ─────────────────────────────────────────────
+def _inject_p5_css() -> None:
+    st.markdown("""<style>
+/* ── Control banner ─────────────────────────────────────────────────── */
+.p5-control-bar {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.18);
+    border-radius: 14px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 0 0 18px;
+}
+.p5-week-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(96,165,250,0.10);
+    border: 1px solid rgba(96,165,250,0.30);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #93c5fd;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+/* ── Point value cards ───────────────────────────────────────────────── */
+.p5-pts-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 0 0 20px;
+}
+.p5-pts-card {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.07);
+    transition: border-color 0.2s;
+}
+.p5-pts-num {
+    font-size: 2.2rem;
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+}
+.p5-pts-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #e2e8f0;
+    margin-top: 6px;
+}
+.p5-pts-desc {
+    font-size: 0.66rem;
+    color: #94a3b8;
+    margin-top: 3px;
+}
+
+/* ── Section pill header ─────────────────────────────────────────────── */
+.p5-section-head {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(96,165,250,0.35);
+    background: rgba(96,165,250,0.07);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: #93c5fd;
+    margin: 4px 0 14px;
+}
+
+/* ── Class pick header ───────────────────────────────────────────────── */
+.p5-class-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 22px 0 8px;
+    border-left-width: 4px;
+    border-left-style: solid;
+    background: rgba(255,255,255,0.02);
+}
+.p5-class-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.p5-class-name {
+    font-size: 1.0rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.p5-class-meta {
+    font-size: 0.72rem;
+    color: rgba(148,163,184,0.55);
+    margin-left: 2px;
+}
+.p5-pick-badge {
+    margin-left: auto;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.10);
+    white-space: nowrap;
+}
+
+/* ── Summary picks table ─────────────────────────────────────────────── */
+.p5-summary-wrap {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.18);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 8px 0 16px;
+}
+
+/* ── Leaderboard card ────────────────────────────────────────────────── */
+.p5-lb-card {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.15);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 8px 0 16px;
+}
+.p5-lb-row {
+    display: flex;
+    align-items: center;
+    padding: 11px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    gap: 14px;
+}
+.p5-lb-row:last-child { border-bottom: none; }
+.p5-lb-rank {
+    font-size: 1.0rem;
+    font-weight: 900;
+    min-width: 32px;
+    text-align: center;
+}
+.p5-lb-name {
+    flex: 1;
+    font-size: 0.90rem;
+    font-weight: 700;
+    color: #f1f5f9;
+}
+.p5-lb-sub {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 400;
+}
+.p5-lb-pts {
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: #fde68a;
+}
+
+/* ── Sign-in banner ──────────────────────────────────────────────────── */
+.p5-signin-banner {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.30);
+    border-radius: 14px;
+    padding: 22px 28px;
+    text-align: center;
+    margin: 0 0 18px;
+}
+
+/* ── Data editor dark override ───────────────────────────────────────── */
+[data-testid="stDataEditor"] > div {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(96,165,250,0.15) !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+def _p5_section(icon: str, label: str) -> None:
+    st.markdown(f'<div class="p5-section-head">{icon} {label}</div>', unsafe_allow_html=True)
+
+
+def _lb_html(lb: pd.DataFrame, name_col: str, pts_col: str, sub_col: str, sub_label: str) -> str:
+    rows_html = ""
+    for i, row in lb.iterrows():
+        rank = i + 1
+        if rank == 1:
+            rank_html = '<span style="font-size:1.3rem;">🥇</span>'
+        elif rank == 2:
+            rank_html = '<span style="font-size:1.3rem;">🥈</span>'
+        elif rank == 3:
+            rank_html = '<span style="font-size:1.3rem;">🥉</span>'
+        else:
+            rank_html = f'<span style="color:#64748b;font-size:0.85rem;">#{rank}</span>'
+
+        row_bg = ""
+        if rank == 1:
+            row_bg = "background:rgba(234,179,8,0.06);"
+        elif rank == 2:
+            row_bg = "background:rgba(148,163,184,0.04);"
+        elif rank == 3:
+            row_bg = "background:rgba(180,130,80,0.04);"
+
+        sub_val = int(row[sub_col])
+        rows_html += (
+            f'<div class="p5-lb-row" style="{row_bg}">'
+            f'<div class="p5-lb-rank">{rank_html}</div>'
+            f'<div class="p5-lb-name">{row[name_col]}'
+            f'<span class="p5-lb-sub"> &nbsp;·&nbsp; {sub_val} {sub_label}</span></div>'
+            f'<div class="p5-lb-pts">+{int(row[pts_col])} pts</div>'
+            f'</div>'
+        )
+    return f'<div class="p5-lb-card">{rows_html}</div>'
+
+
+_inject_p5_css()
+
+# ─────────────────────────────────────────────
 # LOAD + CONTROLS
 # ─────────────────────────────────────────────
 games_df = load_games()
@@ -310,54 +539,62 @@ if _signed_in:
         or getattr(_user, "email", "").split("@")[0]
     )
 
-ctrl1, ctrl2, ctrl3 = st.columns([2, 1, 1])
-with ctrl1:
-    if _signed_in:
-        st.markdown(f"**Playing as:** {manager_name}")
-    else:
-        components.html("""
-<style>* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: #f1f5f9; }</style>
-<div style="background:linear-gradient(135deg,#0f172a,#1a1a2e);
-            border:1px solid rgba(96,165,250,0.3);border-radius:14px;
-            padding:20px 24px;text-align:center;">
-  <div style="font-size:1.5rem;margin-bottom:6px;">🔑</div>
-  <div style="font-size:0.95rem;font-weight:700;color:#93c5fd;margin-bottom:4px;">Sign in to make your picks</div>
-  <div style="font-size:0.78rem;color:#94a3b8;">Free account required to participate. Leaderboard visible to everyone.</div>
-</div>
-""", height=120, scrolling=False)
-with ctrl2:
-    slate_mode = st.selectbox("Gender slate", ["Boys", "Girls", "Both"], index=0)
-with ctrl3:
-    with st.expander("⚙️ Options"):
+# ── Controls row ────────────────────────────────────────────────────────
+ctrl_l, ctrl_r = st.columns([3, 2])
+with ctrl_l:
+    slate_mode = st.selectbox("Gender slate", ["Boys", "Girls", "Both"], index=0, label_visibility="collapsed")
+with ctrl_r:
+    with st.expander("⚙️ Week & options"):
         anchor = st.date_input("Week anchor", value=today.date(), key="p5_anchor")
         w_start, w_end = week_bounds(anchor)
         week_id        = f"{w_start.strftime('%Y-%m-%d')}_to_{w_end.strftime('%Y-%m-%d')}"
         wlabel         = fmt_week(anchor)
-        dev_mode = st.toggle("🛠 Dev mode (include played games)", value=False)
+        dev_mode = st.toggle("Dev mode (include played games)", value=False)
 
-st.caption(f"📅 **{wlabel}**")
+# Week banner
+signed_in_str = (
+    f'<span style="color:#4ade80;font-weight:800;">Playing as {manager_name}</span> &nbsp;·&nbsp; '
+    if _signed_in else ""
+)
+slate_icon = {"Boys": "♂", "Girls": "♀", "Both": "⚥"}.get(slate_mode, "")
+st.markdown(
+    f'<div class="p5-week-badge" style="display:inline-flex;margin-bottom:14px;">'
+    f'📅 &nbsp; {wlabel} &nbsp;·&nbsp; {slate_icon} {slate_mode}'
+    f'{"&nbsp;·&nbsp; " + signed_in_str if _signed_in else ""}'
+    f'</div>',
+    unsafe_allow_html=True,
+)
+
 if dev_mode:
-    st.warning("🛠 Dev mode — showing all games including played.", icon="⚠️")
+    st.warning("Dev mode — showing all games including played.", icon="⚠️")
 
-with st.expander("📐 How point values work", expanded=False):
-    c1, c2, c3, c4 = st.columns(4)
-    for col, (pts, label, desc, color) in zip(
-        [c1, c2, c3, c4],
-        [(1,"Favorite","Any odds","#6b7280"),
-         (2,"+2 pts","60–69% fav","#facc15"),
-         (3,"+3 pts","70–79% fav","#f97316"),
-         (4,"+4 pts","80%+ fav","#f43f5e")],
-    ):
-        col.markdown(
-            f'<div style="text-align:center;padding:10px;border-radius:10px;'
-            f'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);">'
-            f'<div style="font-size:1.8rem;font-weight:900;color:{color};line-height:1;">+{pts}</div>'
-            f'<div style="font-size:0.78rem;font-weight:800;color:#e2e8f0;margin-top:4px;">{label}</div>'
-            f'<div style="font-size:0.68rem;color:rgba(148,163,184,0.6);">{desc}</div></div>',
-            unsafe_allow_html=True,
-        )
-    st.caption("Pick the underdog to earn bonus pts. One pick per class. 5 picks total. Max 20 pts/week.")
+# ── Always-visible point value cards ────────────────────────────────────
+st.markdown(
+    '<div class="p5-pts-row">'
+    '<div class="p5-pts-card" style="border-color:rgba(107,114,128,0.3);">'
+    '<div class="p5-pts-num" style="color:#94a3b8;">+1</div>'
+    '<div class="p5-pts-title">Favorite</div>'
+    '<div class="p5-pts-desc">Any confidence</div>'
+    '</div>'
+    '<div class="p5-pts-card" style="border-color:rgba(250,204,21,0.25);">'
+    '<div class="p5-pts-num" style="color:#facc15;">+2</div>'
+    '<div class="p5-pts-title">Slight Upset</div>'
+    '<div class="p5-pts-desc">60–69% favorite</div>'
+    '</div>'
+    '<div class="p5-pts-card" style="border-color:rgba(249,115,22,0.25);">'
+    '<div class="p5-pts-num" style="color:#f97316;">+3</div>'
+    '<div class="p5-pts-title">Upset</div>'
+    '<div class="p5-pts-desc">70–79% favorite</div>'
+    '</div>'
+    '<div class="p5-pts-card" style="border-color:rgba(244,63,94,0.30);">'
+    '<div class="p5-pts-num" style="color:#f43f5e;">+4</div>'
+    '<div class="p5-pts-title">Huge Upset</div>'
+    '<div class="p5-pts-desc">80%+ favorite</div>'
+    '</div>'
+    '</div>',
+    unsafe_allow_html=True,
+)
+st.caption("One pick per class · 5 classes · max 20 pts/week. Pick the underdog to earn bonus pts.")
 
 st.divider()
 
@@ -365,13 +602,21 @@ st.divider()
 # SIGN-IN GATE
 # ─────────────────────────────────────────────
 if not _signed_in:
-    st.markdown("### 🎯 Pick Slate")
-    st.info("🔑 **Sign in with a free account** to make your picks. Browse the leaderboard below!")
-    st.divider()
+    st.markdown(
+        '<div class="p5-signin-banner">'
+        '<div style="font-size:2rem;margin-bottom:8px;">🔑</div>'
+        '<div style="font-size:1.0rem;font-weight:800;color:#93c5fd;margin-bottom:6px;">Sign in to make your picks</div>'
+        '<div style="font-size:0.82rem;color:#94a3b8;max-width:400px;margin:0 auto;">'
+        'Free account required to participate. Leaderboard visible to everyone.'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
-    st.markdown("### 🏆 Leaderboard")
+    _p5_section("🏆", "Leaderboard")
     tab_week, tab_season = st.tabs(["This Week", "Season"])
     rosters = load_rosters()
+
     with tab_week:
         if rosters.empty or "WeekID" not in rosters.columns:
             st.info("No picks submitted yet.")
@@ -388,13 +633,8 @@ if not _signed_in:
                     .sort_values("TotalPts", ascending=False)
                     .reset_index(drop=True)
                 )
-                for i, row in lb.iterrows():
-                    rank = i + 1
-                    icon = "🥇" if rank==1 else ("🥈" if rank==2 else ("🥉" if rank==3 else f"#{rank}"))
-                    c1, c2, c3 = st.columns([1, 6, 2])
-                    c1.markdown(f"**{icon}**")
-                    c2.markdown(f"**{row['Manager']}** · {int(row['Picks'])} picks")
-                    c3.markdown(f'<div style="text-align:right;color:#fde68a;font-weight:900;">+{int(row["TotalPts"])} pts</div>', unsafe_allow_html=True)
+                st.markdown(_lb_html(lb, "Manager", "TotalPts", "Picks", "picks"), unsafe_allow_html=True)
+
     with tab_season:
         src = rosters if not rosters.empty else pd.DataFrame()
         if not src.empty and "ActualPts" in src.columns:
@@ -406,15 +646,10 @@ if not _signed_in:
                 .sort_values("TotalPts", ascending=False)
                 .reset_index(drop=True)
             )
-            for i, row in season_lb.iterrows():
-                rank = i + 1
-                icon = "🥇" if rank==1 else ("🥈" if rank==2 else ("🥉" if rank==3 else f"#{rank}"))
-                c1, c2, c3 = st.columns([1, 6, 2])
-                c1.markdown(f"**{icon}**")
-                c2.markdown(f"**{row['Manager']}** · {int(row['Weeks'])} week(s)")
-                c3.markdown(f'<div style="text-align:right;color:#fde68a;font-weight:900;">+{int(row["TotalPts"])} pts</div>', unsafe_allow_html=True)
+            st.markdown(_lb_html(season_lb, "Manager", "TotalPts", "Weeks", "week(s)"), unsafe_allow_html=True)
         else:
             st.info("Season standings available once weekly results are scored.")
+
     render_footer()
     st.stop()
 
@@ -441,11 +676,11 @@ show_gender_col = (slate_mode == "Both")
 # ─────────────────────────────────────────────
 # PICK SLATE
 # ─────────────────────────────────────────────
-st.markdown("### 🎯 Make Your Picks")
+_p5_section("🎯", "Make Your Picks")
 st.caption(
     "Check the row for the **team you want to pick**. "
     "One pick per class — **5 picks total**. "
-    + ("♂️/♀️ column shows which gender slate the game is from." if show_gender_col else "")
+    + ("♂/♀ column shows gender slate." if show_gender_col else "")
 )
 
 picks: dict[str, dict | None] = {}
@@ -456,24 +691,29 @@ for cls in CLASS_ORDER:
     current   = st.session_state.get(ss_key)
     cls_games = filter_cls_games(week_games, cls)
 
-    n_games    = len(cls_games)
-    pick_badge = ""
+    n_games = len(cls_games)
+
     if current:
-        tc        = {4:"#f43f5e",3:"#f97316",2:"#facc15",1:"#94a3b8"}.get(current["pts"],"#94a3b8")
+        tc        = {4: "#f43f5e", 3: "#f97316", 2: "#facc15", 1: "#94a3b8"}.get(current["pts"], "#94a3b8")
         g_icon    = GENDER_ICON.get(current.get("gender", ""), "")
-        pick_badge = (
-            f' &nbsp;·&nbsp; <span style="color:{tc};font-weight:900;">'
-            f'✓ {g_icon} {current["team"]} +{current["pts"]} pts</span>'
+        badge_html = (
+            f'<div class="p5-pick-badge" style="color:{tc};border-color:{tc}33;">'
+            f'✓ {g_icon} {current["team"]} &nbsp;+{current["pts"]} pts</div>'
+        )
+    else:
+        badge_html = (
+            '<div class="p5-pick-badge" style="color:rgba(148,163,184,0.4);">'
+            'no pick yet</div>'
         )
 
     st.markdown(
-        f'<div style="display:flex;align-items:center;gap:10px;'
-        f'border-bottom:2px solid {cls_hex}33;padding:6px 0 10px;margin:28px 0 8px;">'
-        f'<div style="width:10px;height:10px;border-radius:50%;background:{cls_hex};"></div>'
-        f'<span style="font-size:1rem;font-weight:900;color:{cls_hex};'
-        f'letter-spacing:0.06em;text-transform:uppercase;">{CLASS_LABEL[cls]}</span>'
-        f'<span style="font-size:0.72rem;color:rgba(148,163,184,0.5);">'
-        f'{n_games} game{"s" if n_games!=1 else ""}{pick_badge}</span>'
+        f'<div class="p5-class-header" style="border-left-color:{cls_hex};">'
+        f'<div class="p5-class-dot" style="background:{cls_hex};"></div>'
+        f'<div>'
+        f'  <div class="p5-class-name" style="color:{cls_hex};">{CLASS_LABEL[cls]}</div>'
+        f'  <div class="p5-class-meta">{n_games} game{"s" if n_games != 1 else ""} available</div>'
+        f'</div>'
+        f'{badge_html}'
         f'</div>',
         unsafe_allow_html=True,
     )
@@ -526,7 +766,7 @@ for cls in CLASS_ORDER:
             checked_rows = new_rows.iloc[[0]] if not new_rows.empty else checked_rows.iloc[[0]]
         else:
             checked_rows = checked_rows.iloc[[0]]
-        st.toast(f"⚠️ One pick per class — kept: {checked_rows.iloc[0]['Pick']}", icon="⚠️")
+        st.toast(f"One pick per class — kept: {checked_rows.iloc[0]['Pick']}", icon="⚠️")
 
     if not checked_rows.empty:
         row        = checked_rows.iloc[0]
@@ -560,66 +800,73 @@ st.divider()
 # ─────────────────────────────────────────────
 # SUMMARY TABLE
 # ─────────────────────────────────────────────
-st.markdown("### 📋 Your Picks This Week")
+picks_made = sum(1 for p in picks.values() if p)
+_p5_section("📋", f"Your Picks This Week — {picks_made}/5")
 
 total_pts  = 0
 all_picked = True
 rows_html  = []
+
+th_style = (
+    "text-align:left;color:#60a5fa;font-size:0.65rem;letter-spacing:0.10em;"
+    "text-transform:uppercase;padding:10px 14px;font-weight:700;"
+    "background:rgba(9,14,28,0.9);border-bottom:2px solid rgba(96,165,250,0.20);"
+)
 
 for cls in CLASS_ORDER:
     p       = picks.get(cls)
     cls_hex = CLASS_COLOR[cls]
     if p:
         total_pts += p["pts"]
-        tier_color = {4:"#f43f5e",3:"#f97316",2:"#facc15",1:"#94a3b8"}.get(p["pts"],"#94a3b8")
+        tier_color = {4: "#f43f5e", 3: "#f97316", 2: "#facc15", 1: "#94a3b8"}.get(p["pts"], "#94a3b8")
         fav_pct    = p.get("fav_pct", 50.0)
         dog_pct    = 100.0 - fav_pct
         is_upset   = p.get("upset", False)
         g_icon     = GENDER_ICON.get(p.get("gender", ""), "")
         conf_str   = (
-            f"{dog_pct:.0f}% dog → +{p['pts']} pts" if is_upset
-            else f"{fav_pct:.0f}% conf · +1 pt"
+            f"{dog_pct:.0f}% dog — +{p['pts']} pts" if is_upset
+            else f"{fav_pct:.0f}% confidence — +1 pt"
         )
         rows_html.append(
-            f'<tr>'
-            f'<td style="color:{cls_hex};font-weight:900;padding:8px 12px;">{CLASS_LABEL[cls]}</td>'
-            f'<td style="color:#e2e8f0;font-weight:800;padding:8px 12px;">{g_icon} {p["team"]}</td>'
-            f'<td style="color:rgba(148,163,184,0.7);font-size:0.82rem;padding:8px 12px;">{p.get("matchup","—")}</td>'
-            f'<td style="color:rgba(148,163,184,0.6);font-size:0.80rem;padding:8px 12px;">{conf_str}</td>'
-            f'<td style="color:{tier_color};font-weight:900;text-align:right;padding:8px 12px;">+{p["pts"]}</td>'
+            f'<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">'
+            f'<td style="color:{cls_hex};font-weight:900;padding:10px 14px;font-size:0.88rem;">{CLASS_LABEL[cls]}</td>'
+            f'<td style="color:#f1f5f9;font-weight:800;padding:10px 14px;">{g_icon} {p["team"]}</td>'
+            f'<td style="color:#94a3b8;font-size:0.82rem;padding:10px 14px;">{p.get("matchup", "—")}</td>'
+            f'<td style="color:#94a3b8;font-size:0.80rem;padding:10px 14px;">{conf_str}</td>'
+            f'<td style="color:{tier_color};font-weight:900;text-align:right;padding:10px 14px;font-size:1.0rem;">+{p["pts"]}</td>'
             f'</tr>'
         )
     else:
         all_picked = False
         rows_html.append(
-            f'<tr style="opacity:0.35;">'
-            f'<td style="color:{cls_hex};font-weight:900;padding:8px 12px;">{CLASS_LABEL[cls]}</td>'
-            f'<td style="color:rgba(148,163,184,0.4);font-style:italic;padding:8px 12px" colspan="3">No pick yet</td>'
-            f'<td style="text-align:right;padding:8px 12px;color:rgba(148,163,184,0.3);">—</td>'
+            f'<tr style="border-bottom:1px solid rgba(255,255,255,0.04);opacity:0.35;">'
+            f'<td style="color:{cls_hex};font-weight:900;padding:10px 14px;font-size:0.88rem;">{CLASS_LABEL[cls]}</td>'
+            f'<td style="color:rgba(148,163,184,0.4);font-style:italic;padding:10px 14px;" colspan="3">No pick yet</td>'
+            f'<td style="text-align:right;padding:10px 14px;color:rgba(148,163,184,0.3);">—</td>'
             f'</tr>'
         )
 
+total_row = ""
 if total_pts:
-    rows_html.append(
-        f'<tr style="border-top:1px solid rgba(245,158,11,0.3);">'
-        f'<td colspan="4" style="color:#f1f5f9;font-weight:900;padding:10px 12px;font-size:0.95rem;">TOTAL</td>'
-        f'<td style="color:#fde68a;font-weight:900;font-size:1.1rem;text-align:right;padding:10px 12px;">+{total_pts}</td>'
+    total_row = (
+        f'<tr style="border-top:2px solid rgba(245,158,11,0.30);background:rgba(245,158,11,0.04);">'
+        f'<td colspan="4" style="color:#f1f5f9;font-weight:900;padding:12px 14px;font-size:0.92rem;letter-spacing:0.05em;">TOTAL</td>'
+        f'<td style="color:#fde68a;font-weight:900;font-size:1.2rem;text-align:right;padding:12px 14px;">+{total_pts}</td>'
         f'</tr>'
     )
 
 st.markdown(
-    f'<table style="width:100%;border-collapse:collapse;background:rgba(8,15,30,0.6);'
-    f'border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden;'
-    f'font-family:ui-sans-serif,system-ui,sans-serif;">'
-    f'<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.08);">'
-    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Class</th>'
-    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Pick</th>'
-    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Matchup</th>'
-    f'<th style="text-align:left;color:rgba(148,163,184,0.6);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Confidence</th>'
-    f'<th style="text-align:right;color:rgba(148,163,184,0.6);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;font-weight:700;">Pts</th>'
+    f'<div class="p5-summary-wrap">'
+    f'<table style="width:100%;border-collapse:collapse;font-family:ui-sans-serif,system-ui,sans-serif;">'
+    f'<thead><tr>'
+    f'<th style="{th_style}">Class</th>'
+    f'<th style="{th_style}">Pick</th>'
+    f'<th style="{th_style}">Matchup</th>'
+    f'<th style="{th_style}">Confidence</th>'
+    f'<th style="{th_style};text-align:right;">Pts</th>'
     f'</tr></thead>'
-    f'<tbody>{"".join(rows_html)}</tbody>'
-    f'</table>',
+    f'<tbody>{"".join(rows_html)}{total_row}</tbody>'
+    f'</table></div>',
     unsafe_allow_html=True,
 )
 
@@ -630,10 +877,10 @@ st.write("")
 # ─────────────────────────────────────────────
 if not all_picked:
     missing = [f"Class {c}" for c in CLASS_ORDER if not picks.get(c)]
-    st.warning(f"Still need: {', '.join(missing)}")
+    st.warning(f"Still need picks for: {', '.join(missing)}")
 else:
     if dev_mode:
-        st.warning("🛠 Dev mode — submitting with played games included.", icon="⚠️")
+        st.warning("Dev mode — submitting with played games included.", icon="⚠️")
     if st.button("💾 Lock In My Picks", type="primary"):
         for cls in CLASS_ORDER:
             p = picks.get(cls)
@@ -653,7 +900,7 @@ else:
                     "MaxPts":    float(p["pts"]),
                     "ActualPts": None,
                     "Result":    None,
-                    "LockedAt":  datetime.utcnow().isoformat(timespec="seconds"),
+                    "LockedAt":  datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 })
         st.success(f"✅ **{manager_name}** — picks locked! Max this week: **+{total_pts} pts**.")
         st.balloons()
@@ -663,7 +910,7 @@ st.divider()
 # ─────────────────────────────────────────────
 # LEADERBOARD
 # ─────────────────────────────────────────────
-st.markdown("### 🏆 Leaderboard")
+_p5_section("🏆", "Leaderboard")
 tab_week, tab_season = st.tabs(["This Week", "Season"])
 rosters = load_rosters()
 
@@ -683,13 +930,7 @@ with tab_week:
                 .sort_values("TotalPts", ascending=False)
                 .reset_index(drop=True)
             )
-            for i, row in lb.iterrows():
-                rank = i + 1
-                icon = "🥇" if rank==1 else ("🥈" if rank==2 else ("🥉" if rank==3 else f"#{rank}"))
-                c1, c2, c3 = st.columns([1, 6, 2])
-                c1.markdown(f"**{icon}**")
-                c2.markdown(f"**{row['Manager']}** · {int(row['Picks'])} picks")
-                c3.markdown(f'<div style="text-align:right;color:#fde68a;font-weight:900;">+{int(row["TotalPts"])} pts</div>', unsafe_allow_html=True)
+            st.markdown(_lb_html(lb, "Manager", "TotalPts", "Picks", "picks"), unsafe_allow_html=True)
 
 with tab_season:
     src = rosters if not rosters.empty else pd.DataFrame()
@@ -702,13 +943,7 @@ with tab_season:
             .sort_values("TotalPts", ascending=False)
             .reset_index(drop=True)
         )
-        for i, row in season_lb.iterrows():
-            rank = i + 1
-            icon = "🥇" if rank==1 else ("🥈" if rank==2 else ("🥉" if rank==3 else f"#{rank}"))
-            c1, c2, c3 = st.columns([1, 6, 2])
-            c1.markdown(f"**{icon}**")
-            c2.markdown(f"**{row['Manager']}** · {int(row['Weeks'])} week(s)")
-            c3.markdown(f'<div style="text-align:right;color:#fde68a;font-weight:900;">+{int(row["TotalPts"])} pts</div>', unsafe_allow_html=True)
+        st.markdown(_lb_html(season_lb, "Manager", "TotalPts", "Weeks", "week(s)"), unsafe_allow_html=True)
     else:
         st.info("Season standings available once weekly results are scored.")
 

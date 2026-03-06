@@ -7,14 +7,13 @@ from typing import Callable, Optional
 
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 import layout as L
 from auth import login_gate, logout_button
 
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="🏟️ The Pressbox | ANALYTICS207",
     page_icon="🏟️",
@@ -47,7 +46,7 @@ def _sp(n: int = 1) -> None:
 if apply_layout: apply_layout()
 login_gate(required=False)
 logout_button()
-if render_logo:  render_logo()
+if render_logo: render_logo()
 if render_header:
     render_header(
         title="🏟️ The Pressbox",
@@ -90,55 +89,210 @@ def save_contact(name: str, email: str, reason: str, message: str) -> None:
     }, ["Timestamp", "Name", "Email", "Reason", "Message"])
 
 # ─────────────────────────────────────────────
+# CSS
+# ─────────────────────────────────────────────
+
+def _inject_pb_css() -> None:
+    st.markdown("""<style>
+/* ── Hero cards ──────────────────────────────────────────────────────── */
+.pb-hero-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 6px 0 22px;
+}
+.pb-hero-card {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border-radius: 14px;
+    padding: 18px 20px 16px;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-top-width: 3px;
+}
+.pb-hero-icon {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+.pb-hero-title {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #f1f5f9;
+    margin-bottom: 6px;
+}
+.pb-hero-desc {
+    font-size: 0.76rem;
+    color: #94a3b8;
+    line-height: 1.6;
+}
+
+/* ── Section pill ─────────────────────────────────────────────────────── */
+.pb-section-head {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(96,165,250,0.35);
+    background: rgba(96,165,250,0.07);
+    font-size: 0.73rem;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: #93c5fd;
+    margin: 6px 0 14px;
+}
+
+/* ── Info card (right column) ─────────────────────────────────────────── */
+.pb-info-card {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.15);
+    border-left-width: 4px;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+}
+.pb-info-card-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+.pb-info-item {
+    font-size: 0.82rem;
+    color: #e2e8f0;
+    padding: 3px 0;
+    line-height: 1.55;
+}
+.pb-info-item::before {
+    content: "›  ";
+    color: #60a5fa;
+    font-weight: 700;
+}
+
+/* ── Step flow ────────────────────────────────────────────────────────── */
+.pb-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+.pb-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(96,165,250,0.05);
+    border: 1px solid rgba(96,165,250,0.12);
+    border-radius: 10px;
+}
+.pb-step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(96,165,250,0.20);
+    color: #60a5fa;
+    font-size: 0.72rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.pb-step-text {
+    font-size: 0.82rem;
+    color: #e2e8f0;
+    line-height: 1.5;
+}
+
+/* ── Email CTA ────────────────────────────────────────────────────────── */
+.pb-email-cta {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(74,222,128,0.25);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.pb-email-icon { font-size: 1.3rem; }
+.pb-email-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 2px;
+}
+.pb-email-addr {
+    font-size: 0.90rem;
+    font-weight: 800;
+    color: #4ade80;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+def _pb_section(icon: str, label: str, color: str = "#93c5fd",
+                border: str = "rgba(96,165,250,0.35)", bg: str = "rgba(96,165,250,0.07)") -> None:
+    st.markdown(
+        f'<div class="pb-section-head" style="color:{color};border-color:{border};background:{bg};">'
+        f'{icon} {label}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _info_card(title: str, items: list[str], border_color: str, title_color: str) -> str:
+    items_html = "".join(f'<div class="pb-info-item">{item}</div>' for item in items)
+    return (
+        f'<div class="pb-info-card" style="border-left-color:{border_color};">'
+        f'<div class="pb-info-card-title" style="color:{title_color};">{title}</div>'
+        f'{items_html}'
+        f'</div>'
+    )
+
+
+def _steps_html(steps: list[str]) -> str:
+    inner = "".join(
+        f'<div class="pb-step">'
+        f'<div class="pb-step-num">{i+1}</div>'
+        f'<div class="pb-step-text">{s}</div>'
+        f'</div>'
+        for i, s in enumerate(steps)
+    )
+    return f'<div class="pb-steps">{inner}</div>'
+
+
+_inject_pb_css()
+
+# ─────────────────────────────────────────────
 # HERO CARDS
 # ─────────────────────────────────────────────
 
-def render_pressbox_hero() -> None:
-    cards = [
-        ("🔧", "Data Corrections",
-         "Spot a wrong score, missing result, or misclassified team? Tell us and we'll fix it.",
-         "#f59e0b"),
-        ("✍️", "Content & Stories",
-         "We're looking for data-driven game articles, film breakdowns, and game photography.",
-         "#3b82f6"),
-        ("🤝", "Partner With Us",
-         "Sponsorships, school partnerships, and custom analytics builds. Let's talk.",
-         "#10b981"),
-        ("📡", "Work Together",
-         "Media outlets, coaches, and programs — we build tools that help you tell better stories.",
-         "#8b5cf6"),
-    ]
-    card_html = ""
-    for icon, title, desc, color in cards:
-        card_html += f"""
-        <div style="
-            flex:1; min-width:190px;
-            background:#0d1626;
-            border:1px solid rgba(255,255,255,0.09);
-            border-top:3px solid {color};
-            border-radius:14px;
-            padding:18px 20px 16px;
-        ">
-            <div style="font-size:22px;margin-bottom:8px;">{icon}</div>
-            <div style="font-size:13px;font-weight:800;color:#f1f5f9;margin-bottom:6px;">{title}</div>
-            <div style="font-size:11px;color:rgba(203,213,225,0.7);line-height:1.55;">{desc}</div>
-        </div>"""
+hero_cards = [
+    ("🔧", "Data Corrections",
+     "Spot a wrong score, missing result, or misclassified team? Tell us and we'll fix it.",
+     "#f59e0b"),
+    ("✍️", "Content & Stories",
+     "We're looking for data-driven game articles, film breakdowns, and game photography.",
+     "#3b82f6"),
+    ("🤝", "Partner With Us",
+     "Sponsorships, school partnerships, and custom analytics builds. Let's talk.",
+     "#10b981"),
+    ("📡", "Work Together",
+     "Media outlets, coaches, and programs — we build tools that help you tell better stories.",
+     "#8b5cf6"),
+]
 
-    html = f"""<!doctype html><html><head><meta charset="utf-8"/></head>
-<body style="margin:0;background:transparent;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;">
-  <div style="display:flex;gap:14px;flex-wrap:wrap;padding:4px 0 8px;">
-    {card_html}
-  </div>
-</body></html>"""
-    components.html(html, height=150, scrolling=False)
-
-# ─────────────────────────────────────────────
-# PAGE
-# ─────────────────────────────────────────────
-
-st.write("")
-render_pressbox_hero()
-st.write("")
+cards_html = "".join(
+    f'<div class="pb-hero-card" style="border-top-color:{color};">'
+    f'<div class="pb-hero-icon">{icon}</div>'
+    f'<div class="pb-hero-title">{title}</div>'
+    f'<div class="pb-hero-desc">{desc}</div>'
+    f'</div>'
+    for icon, title, desc, color in hero_cards
+)
+st.markdown(f'<div class="pb-hero-grid">{cards_html}</div>', unsafe_allow_html=True)
 
 tab_correction, tab_content, tab_partner = st.tabs([
     "🔧 Data Correction",
@@ -155,12 +309,12 @@ with tab_correction:
     col_form, col_info = st.columns([0.55, 0.45], gap="large")
 
     with col_form:
-        st.markdown("### 🔧 Report a Data Error")
+        _pb_section("🔧", "Report a Data Error", "#fbbf24", "rgba(245,158,11,0.40)", "rgba(245,158,11,0.07)")
+
         st.caption(
             "Wrong score, missing game, misclassified team, bad record — "
             "anything that looks off. We review every submission."
         )
-        st.write("")
 
         with st.form("correction_form", clear_on_submit=True):
             name_c    = st.text_input("Your name (optional)")
@@ -192,30 +346,37 @@ with tab_correction:
                 st.success("✅ Correction submitted — thank you. We review daily.")
 
     with col_info:
-        st.markdown("### How Corrections Work")
         st.write("")
-        st.markdown("""
-**What we can fix:**
-- Game scores and results
-- Team classification (Class / Region)
-- Missing games from the schedule
-- Team name spelling / duplicates
-- Stat anomalies (PPG, margin, NetEff)
+        _pb_section("📋", "How It Works", "#fbbf24", "rgba(245,158,11,0.35)", "rgba(245,158,11,0.06)")
 
+        st.markdown(
+            _steps_html([
+                "Submit the form with as much detail as possible — date, opponent, what's wrong, what's correct.",
+                "Submission lands in our review queue, verified against MPA source data.",
+                "Fix is applied in the next nightly build.",
+                "Data refreshes automatically across all pages within 24 hours.",
+            ]),
+            unsafe_allow_html=True,
+        )
 
-**What happens after you submit:**
-1. Submission lands in our review queue
-2. We verify against source data (MPA, live stats)
-3. Fix is applied in the next nightly build
-4. Data refreshes automatically across all pages
+        st.write("")
+        st.markdown(
+            _info_card("What We Can Fix", [
+                "Game scores and results",
+                "Team classification (Class / Region)",
+                "Missing games from the schedule",
+                "Team name spelling / duplicates",
+                "Stat anomalies (PPG, margin, NetEff)",
+            ], "#f59e0b", "#fbbf24"),
+            unsafe_allow_html=True,
+        )
 
-
-**Turnaround:** Most corrections go live within 24 hours.
-
-
-**Source of truth:** We use MPA official results as the primary source.
-If something conflicts, official MPA data wins.
-        """)
+        st.markdown(
+            '<div style="font-size:0.78rem;color:#94a3b8;margin-top:6px;padding:0 4px;">'
+            '📌 MPA official results are the source of truth. If something conflicts, official data wins.'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
 # ─────────────────────────────────────────────
 # TAB 2 — CONTENT & STORIES
@@ -226,12 +387,12 @@ with tab_content:
     col_form, col_info = st.columns([0.55, 0.45], gap="large")
 
     with col_form:
-        st.markdown("### ✍️ Pitch a Story or Submit Content")
+        _pb_section("✍️", "Pitch a Story or Submit Content", "#93c5fd", "rgba(96,165,250,0.40)", "rgba(96,165,250,0.07)")
+
         st.caption(
             "We're actively looking for contributors — writers, photographers, "
             "and analysts who want to cover Maine high school basketball."
         )
-        st.write("")
 
         with st.form("content_form", clear_on_submit=True):
             name_w    = st.text_input("Your name")
@@ -262,33 +423,44 @@ with tab_content:
                 st.success("✅ Pitch received — we'll be in touch within a few days.")
 
     with col_info:
-        st.markdown("### What We're Looking For")
         st.write("")
-        st.markdown("""
-**Written content:**
-- Recaps with data context (not just box scores)
-- Class-specific season previews
-- Bracket analysis and tournament breakdowns
-- Opinion pieces backed by numbers
+        _pb_section("🔍", "What We're Looking For", "#93c5fd", "rgba(96,165,250,0.40)", "rgba(96,165,250,0.07)")
 
+        st.markdown(
+            _info_card("Written Content", [
+                "Recaps with data context (not just box scores)",
+                "Class-specific season previews",
+                "Bracket analysis and tournament breakdowns",
+                "Opinion pieces backed by numbers",
+            ], "#3b82f6", "#60a5fa"),
+            unsafe_allow_html=True,
+        )
 
-**Photography:**
-- Game action from gyms across Maine
-- Student sections, atmosphere shots
-- High resolution preferred (JPG/PNG)
-- Rights must be yours to share
+        st.markdown(
+            _info_card("Photography", [
+                "Game action from gyms across Maine",
+                "Student sections and atmosphere shots",
+                "High resolution preferred (JPG/PNG)",
+                "Rights must be yours to share",
+            ], "#8b5cf6", "#a78bfa"),
+            unsafe_allow_html=True,
+        )
 
+        st.markdown(
+            _info_card("Analytics Contributions", [
+                "Novel metrics or model ideas",
+                "Opponent breakdown templates",
+                "Anything that helps coaches or fans understand the game better",
+            ], "#10b981", "#34d399"),
+            unsafe_allow_html=True,
+        )
 
-**Analytics contributions:**
-- Novel metrics or model ideas
-- Opponent breakdown templates
-- Anything that helps coaches or fans
-  understand the game better
-
-
-All contributors are credited. Reach out —
-we want to build something worth reading.
-        """)
+        st.markdown(
+            '<div style="font-size:0.78rem;color:#94a3b8;margin-top:6px;padding:0 4px;">'
+            '✅ All contributors are credited. We want to build something worth reading.'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
 # ─────────────────────────────────────────────
 # TAB 3 — PARTNER / WORK WITH US
@@ -299,12 +471,12 @@ with tab_partner:
     col_form, col_info = st.columns([0.55, 0.45], gap="large")
 
     with col_form:
-        st.markdown("### 🤝 Let's Work Together")
+        _pb_section("🤝", "Let's Work Together", "#4ade80", "rgba(74,222,128,0.35)", "rgba(74,222,128,0.06)")
+
         st.caption(
             "Sponsorships, school partnerships, custom builds, media integrations — "
             "tell us what you're thinking."
         )
-        st.write("")
 
         with st.form("partner_form", clear_on_submit=True):
             name_p    = st.text_input("Your name")
@@ -336,41 +508,55 @@ with tab_partner:
                 st.success("✅ Message received — we'll follow up within 48 hours.")
 
     with col_info:
-        st.markdown("### What We Offer")
         st.write("")
-        st.markdown("""
-**For schools & programs:**
-- Full-season custom dashboards
-- Opponent scouting breakdowns
-- Model-driven prep packages
-- End-of-season analytics reports
+        _pb_section("💼", "What We Offer", "#4ade80", "rgba(74,222,128,0.35)", "rgba(74,222,128,0.06)")
 
+        st.markdown(
+            _info_card("Schools & Programs", [
+                "Full-season custom dashboards",
+                "Opponent scouting breakdowns",
+                "Model-driven prep packages",
+                "End-of-season analytics reports",
+            ], "#10b981", "#34d399"),
+            unsafe_allow_html=True,
+        )
 
-**For media & journalists:**
-- Data feeds and stat exports
-- Embeddable rankings and tables
-- Story angles backed by the model
+        st.markdown(
+            _info_card("Media & Journalists", [
+                "Data feeds and stat exports",
+                "Embeddable rankings and tables",
+                "Story angles backed by the model",
+            ], "#3b82f6", "#60a5fa"),
+            unsafe_allow_html=True,
+        )
 
+        st.markdown(
+            _info_card("Sponsors & Businesses", [
+                "Branded placement on rankings pages",
+                "Weekly email sponsorship",
+                "Custom integrations with your brand",
+            ], "#f59e0b", "#fbbf24"),
+            unsafe_allow_html=True,
+        )
 
-**For sponsors & businesses:**
-- Branded placement on rankings pages
-- Weekly email sponsorship
-- Custom integrations with your brand
+        st.markdown(
+            _info_card("Coaches & ADs", [
+                "Program-specific analytics tools",
+                "Recruit evaluation frameworks",
+                "Schedule strength and performance context",
+            ], "#8b5cf6", "#a78bfa"),
+            unsafe_allow_html=True,
+        )
 
-
-**For coaches & ADs:**
-- Program-specific analytics tools
-- Recruit evaluation frameworks
-- Schedule strength and performance context
-
-
----
-📧 Prefer email?
-        """)
-        st.link_button(
-            "analytics207@mainesports.com",
-            "mailto:analytics207@mainesports.com",
-            use_container_width=True,
+        st.markdown(
+            '<div class="pb-email-cta">'
+            '<div class="pb-email-icon">📧</div>'
+            '<div>'
+            '<div class="pb-email-label">Prefer email?</div>'
+            '<div class="pb-email-addr">analytics207@mainesports.com</div>'
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True,
         )
 
 _sp(2)

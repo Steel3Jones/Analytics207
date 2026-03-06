@@ -9,8 +9,6 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
-
 
 from layout import (
     apply_global_layout_tweaks,
@@ -38,34 +36,154 @@ SHOW_LOCKS = True
 
 
 def _inject_schedule_css() -> None:
-    st.markdown(
-        """
-        <style>
-        .schedule-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
-        .schedule-table th,
-        .schedule-table td {
-            white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
-            text-align: center; vertical-align: middle;
-        }
-        .pill-base {
-            display: inline-flex; align-items: center; justify-content: center;
-            padding: 0.05rem 0.45rem; border-radius: 999px;
-            font-size: 0.72rem; line-height: 1; font-weight: 700; min-width: 3.0rem;
-        }
-        .lock-pill {
-            background: rgba(245,158,11,0.12);
-            border: 1px solid rgba(245,158,11,0.65);
-            color: #fbbf24;
-            min-width: 7rem;
-            font-size: 0.65rem;
-            letter-spacing: .04em;
-        }
-        .value-pill { background: rgba(148,163,184,0.10); border: 1px solid rgba(148,163,184,0.35); color: #e5e7eb; }
-        th .header-lock { margin-right: 0.25rem; font-size: 0.9rem; vertical-align: middle; color: #f59e0b; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown("""
+<style>
+/* ── SECTION PILL HEADS ── */
+.sl-section-head {
+    display: inline-block;
+    background: rgba(96,165,250,0.10);
+    border: 1px solid rgba(96,165,250,0.22);
+    border-radius: 999px;
+    padding: 0.20rem 0.85rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #93c5fd;
+    margin-bottom: 0.6rem;
+    margin-top: 1.2rem;
+}
+
+/* ── HERO STAT ROW ── */
+.sl-hero {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+}
+.sl-hero-stat {
+    flex: 1;
+    min-width: 110px;
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.16);
+    border-radius: 12px;
+    padding: 0.85rem 0.9rem;
+    text-align: center;
+}
+.sl-hero-val {
+    font-size: 1.75rem;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+.sl-hero-lbl {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: #64748b;
+    margin-top: 3px;
+}
+
+/* ── MARQUEE CARDS ── */
+.sl-marquee-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+}
+.sl-marquee-card {
+    flex: 1;
+    min-width: 220px;
+    background: radial-gradient(circle at top left, #1c1400, #080f1e);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+}
+.sl-marquee-tag {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #f59e0b;
+    margin-bottom: 6px;
+}
+.sl-marquee-matchup {
+    font-size: 1.0rem;
+    font-weight: 800;
+    color: #fef3c7;
+    margin-bottom: 4px;
+}
+.sl-marquee-meta {
+    font-size: 0.76rem;
+    color: #78716c;
+    margin-bottom: 8px;
+}
+.sl-marquee-fav {
+    font-size: 0.78rem;
+    color: #94a3b8;
+}
+
+/* ── SCHEDULE TABLE CARD ── */
+.sl-table-wrap {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.18);
+    border-radius: 14px;
+    padding: 0.85rem 0.85rem 0.5rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+.sl-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 580px;
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+.sl-table th {
+    padding: 0.28rem 0.55rem;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: #60a5fa;
+    background: rgba(9,14,28,0.9);
+    border-bottom: 2px solid rgba(96,165,250,0.30);
+    text-align: left;
+    white-space: nowrap;
+    font-weight: 700;
+}
+.sl-table td {
+    padding: 0.30rem 0.55rem;
+    font-size: 0.82rem;
+    color: #e2e8f0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    white-space: nowrap;
+}
+.sl-table tr:hover td { background: rgba(96,165,250,0.04); }
+.sl-table .td-center { text-align: center; }
+.sl-table .td-muted  { color: #64748b; font-size: 0.78rem; }
+.sl-table .td-winner { color: #4ade80; font-weight: 700; }
+.sl-table .td-date   { color: #94a3b8; font-size: 0.78rem; }
+
+/* ── PILL BADGES ── */
+.pill-base {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0.05rem 0.45rem; border-radius: 999px;
+    font-size: 0.72rem; line-height: 1; font-weight: 700; min-width: 3.0rem;
+}
+.lock-pill {
+    background: rgba(245,158,11,0.12);
+    border: 1px solid rgba(245,158,11,0.65);
+    color: #fbbf24;
+    min-width: 7rem;
+    font-size: 0.65rem;
+    letter-spacing: .04em;
+}
+.value-pill { background: rgba(148,163,184,0.10); border: 1px solid rgba(148,163,184,0.35); color: #e5e7eb; }
+</style>
+""", unsafe_allow_html=True)
+
+
+def _section_header(icon: str, label: str) -> None:
+    st.markdown(f'<div class="sl-section-head">{icon} {label}</div>', unsafe_allow_html=True)
 
 
 
@@ -231,12 +349,10 @@ def render_stat_cards(df_all: pd.DataFrame, df_filtered: pd.DataFrame) -> None:
     n_final = int(played.sum())
     n_upcoming = int((~played).sum())
 
-
     pred_margin = pd.to_numeric(df_filtered.get("PredMargin"), errors="coerce")
     home_scores = pd.to_numeric(df_filtered.get("HomeScore"), errors="coerce")
     away_scores = pd.to_numeric(df_filtered.get("AwayScore"), errors="coerce")
     actual_margin = home_scores - away_scores
-
 
     finals_mask = played & pred_margin.notna() & actual_margin.notna()
     if finals_mask.sum() > 0:
@@ -248,7 +364,6 @@ def render_stat_cards(df_all: pd.DataFrame, df_filtered: pd.DataFrame) -> None:
     else:
         accuracy = "—"
 
-
     phwp = pd.to_numeric(df_filtered.get("PredHomeWinProb"), errors="coerce")
     fav_prob = np.where(
         np.isfinite(phwp.to_numpy(dtype=float)),
@@ -256,122 +371,100 @@ def render_stat_cards(df_all: pd.DataFrame, df_filtered: pd.DataFrame) -> None:
     valid_conf = fav_prob[~np.isnan(fav_prob)]
     avg_conf = f"{valid_conf.mean() * 100:.0f}%" if len(valid_conf) > 0 else "—"
 
-
     cards = [
-        ("🗓️", "Games in View", str(total),       "#60a5fa"),
-        ("⏳", "Upcoming",      str(n_upcoming),   "#34d399"),
-        ("✅", "Final",         str(n_final),      "#60a5fa"),
-        ("🎯", "Model Accuracy", accuracy,         "#60a5fa"),
-        ("📊", "Avg Confidence", avg_conf,        "#60a5fa"),
+        ("Games", str(total),      "#60a5fa"),
+        ("Upcoming", str(n_upcoming), "#34d399"),
+        ("Final",    str(n_final),    "#60a5fa"),
+        ("Accuracy", accuracy,        "#a78bfa"),
+        ("Avg Conf", avg_conf,        "#f59e0b"),
     ]
 
-
-    card_html = ""
-    for icon, label, value, color in cards:
-        card_html += f"""
-        <div style="
-            background: #0d1626;
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 14px;
-            padding: 18px 20px 14px;
-            flex: 1;
-            min-width: 140px;
-        ">
-            <div style="font-size:11px; font-weight:700; color:rgba(148,163,184,0.7);
-                        letter-spacing:.12em; text-transform:uppercase; margin-bottom:6px;">
-                {icon} {label}
-            </div>
-            <div style="font-size:28px; font-weight:900; color:{color}; letter-spacing:-.02em;">
-                {value}
-            </div>
-        </div>"""
-
-
-    html = f"""
-<!doctype html><html><head><meta charset="utf-8"/></head>
-<body style="margin:0; background:transparent; font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;">
-  <div style="display:flex; gap:12px; flex-wrap:wrap; padding:4px 0 16px;">
-    {card_html}
-  </div>
-</body></html>"""
-
-
-    components.html(html, height=110, scrolling=False)
+    inner = "".join(
+        f'<div class="sl-hero-stat">'
+        f'<div class="sl-hero-val" style="color:{col};">{val}</div>'
+        f'<div class="sl-hero-lbl">{lbl}</div>'
+        f'</div>'
+        for lbl, val, col in cards
+    )
+    st.markdown(f'<div class="sl-hero">{inner}</div>', unsafe_allow_html=True)
 
 
 
-def render_marquee_matchups(df_filtered: pd.DataFrame) -> None:
-    phwp = pd.to_numeric(df_filtered.get("PredHomeWinProb"), errors="coerce")
-    pred_margin = pd.to_numeric(df_filtered.get("PredMargin"), errors="coerce")
+def render_marquee_matchups(df_all: pd.DataFrame, gender: str) -> None:
+    today = dt.date.today()
+    season_over = False
+
+    pool = pd.DataFrame()
+    if "Date" in df_all.columns and "Played" in df_all.columns:
+        upcoming = df_all[
+            (df_all["Played"].fillna(True) == False) &
+            (df_all["Date"] >= today) &
+            (df_all["Gender"] == gender)
+        ].copy()
+        if upcoming.empty:
+            # Season over — fall back to most recent played games
+            season_over = True
+            pool = df_all[
+                (df_all["Played"].fillna(False) == True) &
+                (df_all["Gender"] == gender)
+            ].copy()
+            if "Date" in pool.columns:
+                last_date = pool["Date"].max()
+                pool = pool[pool["Date"] == last_date]
+        else:
+            pool = upcoming
+
+    if pool.empty:
+        return
+
+    phwp = pd.to_numeric(pool.get("PredHomeWinProb"), errors="coerce")
+    pred_margin = pd.to_numeric(pool.get("PredMargin"), errors="coerce")
     fav_prob_series = phwp.combine(1.0 - phwp, np.fmax)
 
-
-    candidates = df_filtered.copy()
+    candidates = pool.copy()
     candidates["_conf"] = fav_prob_series
     candidates = candidates.dropna(subset=["_conf", "PredMargin"])
     candidates = candidates[candidates["_conf"] > 0]
     top3 = candidates.nlargest(3, "_conf")
 
-
     if top3.empty:
         return
 
+    if season_over:
+        _section_header("🏆", "Season Highlights")
+    else:
+        _section_header("🔥", "Marquee Matchups")
 
     cards_html = ""
     for _, row in top3.iterrows():
-        home = str(row.get("Home", "TBD"))
-        away = str(row.get("Away", "TBD"))
-        date = str(row.get("Date", ""))
-        pm = float(row.get("PredMargin", 0))
-        conf = float(row.get("_conf", 0.5)) * 100
-        fav = home if pm > 0 else away
+        home  = str(row.get("Home", "TBD"))
+        away  = str(row.get("Away", "TBD"))
+        d     = row.get("Date")
+        date_s = d.strftime("%a %b %d").replace(" 0", " ") if pd.notna(d) and hasattr(d, "strftime") else str(d)
+        pm    = float(row.get("PredMargin", 0))
+        conf  = float(row.get("_conf", 0.5)) * 100
+        fav   = home if pm > 0 else away
         spread = f"{abs(pm):.1f}"
+        conf_col = "#4ade80" if conf >= 80 else ("#f59e0b" if conf >= 70 else "#94a3b8")
 
+        tag_label = "🏆 Season Highlight" if season_over else "🔥 Marquee Matchup"
+        cards_html += (
+            f'<div class="sl-marquee-card">'
+            f'<div class="sl-marquee-tag">{tag_label}</div>'
+            f'<div class="sl-marquee-matchup">{away} @ {home}</div>'
+            f'<div class="sl-marquee-meta">{date_s} &nbsp;·&nbsp; Spread: -{spread} &nbsp;·&nbsp; '
+            f'<span style="color:{conf_col};font-weight:700;">{conf:.0f}% confidence</span></div>'
+            f'<div class="sl-marquee-fav">Favorite: <strong style="color:#fde68a;">{fav}</strong></div>'
+            f'</div>'
+        )
 
-        cards_html += f"""
-        <div style="
-            background: #0d1626;
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 14px;
-            padding: 16px 18px;
-            flex: 1;
-            min-width: 220px;
-        ">
-            <div style="font-size:11px;font-weight:800;color:rgba(245,158,11,0.85);
-                        letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">
-                🔥 Marquee Matchup
-            </div>
-            <div style="font-size:15px;font-weight:800;color:#f1f5f9;margin-bottom:4px;">
-                {away} @ {home}
-            </div>
-            <div style="font-size:11px;color:rgba(203,213,225,0.6);margin-bottom:10px;">
-                {date} &nbsp;·&nbsp; Spread: -{spread} &nbsp;·&nbsp; {conf:.0f}% confidence
-            </div>
-            <div style="font-size:12px;color:rgba(148,163,184,0.7);">
-                Favorite: <span style="color:#fde68a;font-weight:700;">{fav}</span>
-            </div>
-        </div>"""
-
-
-    html = f"""
-<!doctype html><html><head><meta charset="utf-8"/></head>
-<body style="margin:0; background:transparent; font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;">
-  <div style="font-size:16px;font-weight:900;color:#f1f5f9;margin-bottom:12px;padding-top:4px;">
-    🔥 Marquee Matchups
-  </div>
-  <div style="display:flex; gap:12px; flex-wrap:wrap; padding-bottom:8px;">
-    {cards_html}
-  </div>
-</body></html>"""
-
-
-    components.html(html, height=175, scrolling=False)
+    st.markdown(f'<div class="sl-marquee-grid">{cards_html}</div>', unsafe_allow_html=True)
 
 
 
 def _format_locked_value(kind: str, unlock_date: dt.date | None = None) -> str:
     if unlock_date:
-        date_str = unlock_date.strftime("🔒 Unlocks %a %b %-d")
+        date_str = ("🔒 Unlocks " + unlock_date.strftime("%a %b %d").replace(" 0", " "))
     else:
         date_str = "🔒 Subscribe to Unlock"
     return f"<div class='pill-base lock-pill'>{date_str}</div>"
@@ -500,27 +593,64 @@ def add_display_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def render_schedule_table(display_df: pd.DataFrame) -> None:
-    st.markdown("### Schedule")
-    st.caption("Filter by Team, switch Status between Upcoming/Final, and use date range for deeper digging.")
+    _section_header("📋", "Schedule")
 
-    df2 = display_df.copy()
+    locked = SHOW_LOCKS and (not is_subscribed())
+    spread_hdr  = "🔒 Spread"     if locked else "Spread"
+    conf_hdr    = "🔒 Confidence" if locked else "Confidence"
 
-    if SHOW_LOCKS and (not is_subscribed()):
-        rename_map = {
-            "Spread": "<span class='header-lock'>🔒</span>Spread",
-            "Confidence": "<span class='header-lock'>🔒</span>Confidence",
-        }
-    else:
-        rename_map = {"Spread": "Spread", "Confidence": "Confidence"}
+    cols = ["Date", "Away", "Home", "Favorite", spread_hdr, conf_hdr, "Final score", "Winner", "Model"]
+    df2  = display_df.rename(columns={"Spread": spread_hdr, "Confidence": conf_hdr})
 
-    df2 = df2.rename(columns=rename_map)
-    html = df2.to_html(escape=False, index=False, classes="schedule-table")
-    html = html.replace("<th>", "<th style=\"padding:0.25rem 0.55rem; font-size:0.8rem;\">")
-    html = html.replace("<td>", "<td style=\"padding:0.25rem 0.55rem; font-size:0.8rem;\">")
+    # Build thead
+    th_s = "padding:0.28rem 0.55rem;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.10em;color:#60a5fa;background:rgba(9,14,28,0.9);border-bottom:2px solid rgba(96,165,250,0.30);white-space:nowrap;font-weight:700;"
+    thead = "".join(f'<th style="{th_s}">{c}</th>' for c in cols if c in df2.columns)
+
+    # Build tbody
+    rows_html = ""
+    for _, row in df2.iterrows():
+        row_style = "border-bottom:1px solid rgba(255,255,255,0.04);"
+        td = lambda val, extra="": f'<td style="padding:0.30rem 0.55rem;font-size:0.82rem;color:#e2e8f0;{extra}">{val}</td>'
+
+        date_val    = row.get("Date", "")
+        away_val    = row.get("Away", "")
+        home_val    = row.get("Home", "")
+        fav_val     = row.get("Favorite", "")
+        spread_val  = row.get(spread_hdr, "")
+        conf_val    = row.get(conf_hdr, "")
+        score_val   = row.get("Final score", "")
+        winner_val  = row.get("Winner", "")
+        model_val   = row.get("Model", "")
+
+        cells = (
+            td(date_val,   "color:#94a3b8;font-size:0.78rem;")
+            + td(away_val)
+            + td(home_val)
+            + td(f'<span style="color:#fde68a;font-weight:600;">{fav_val}</span>' if fav_val else "")
+            + td(spread_val,  "text-align:center;")
+            + td(conf_val,    "text-align:center;")
+            + td(score_val,   "color:#94a3b8;font-size:0.80rem;text-align:center;")
+            + td(f'<span style="color:#4ade80;font-weight:700;">{winner_val}</span>' if winner_val else "",
+                 "text-align:center;")
+            + td(model_val,   "text-align:center;font-size:0.90rem;")
+        )
+        rows_html += f'<tr style="{row_style}">{cells}</tr>'
+
+    html = (
+        f'<div class="sl-table-wrap">'
+        f'<table class="sl-table" style="width:100%;border-collapse:collapse;min-width:580px;">'
+        f'<thead><tr>{thead}</tr></thead>'
+        f'<tbody>{rows_html}</tbody>'
+        f'</table></div>'
+    )
     st.markdown(html, unsafe_allow_html=True)
 
-    if SHOW_LOCKS and (not is_subscribed()):
-        st.info("🔒 Spread + Confidence are subscriber-only. Sign up to unlock!")
+    if locked:
+        st.markdown(
+            '<div style="font-size:0.80rem;color:#78716c;margin-top:0.4rem;">'
+            '🔒 Spread &amp; Confidence unlock with a subscription.</div>',
+            unsafe_allow_html=True,
+        )
 
 
 def main() -> None:
@@ -542,12 +672,23 @@ def main() -> None:
     df_all = load_schedule_data()
     df_filtered = apply_schedule_filters(df_all.copy())
 
-    if is_subscribed():
-        render_marquee_matchups(df_filtered)
-    else:
-        st.info("🔒 Marquee Matchups are available for subscribers only.")
-
+    _section_header("📊", "At a Glance")
     render_stat_cards(df_all, df_filtered)
+
+    gender = st.session_state.get("gender", "Boys")
+    if is_subscribed():
+        render_marquee_matchups(df_all, gender)
+    else:
+        _section_header("🔥", "Marquee Matchups")
+        st.markdown(
+            '<div style="background:radial-gradient(circle at top left,#1c1400,#080f1e);'
+            'border:1px solid rgba(245,158,11,0.20);border-radius:14px;'
+            'padding:1.1rem 1.3rem;color:#78716c;font-size:0.88rem;">'
+            '🔒 Top confidence games coming up — subscriber only.</div>',
+            unsafe_allow_html=True,
+        )
+
+    _section_header("🎛️", "Filters")
     render_schedules_filters()
 
     display_df = add_display_columns(df_filtered)

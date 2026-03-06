@@ -19,10 +19,10 @@ from auth import login_gate, logout_button, is_subscribed
 # ----------------------------
 # PAGE CONFIG
 # ----------------------------
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="🚀 The Report Card – Analytics207.com",
     page_icon="🚀",
@@ -284,86 +284,258 @@ ti_games  = baselines["ti_games"]
 rec_hit   = baselines["rec_hit"]
 rec_games = baselines["rec_games"]
 
-# ----------------------------
-# INTRO + GREEN PILLS
-# ----------------------------
-st.markdown("### 📚 How to read this page")
-st.markdown(
-    """
-    This is the **report card** for the prediction model:
-    - **Accuracy** – how often the favorite actually wins.
-    - **Margin error** – how close the projected margin is to the final score.
-    - **Calibration** – when the model says 70%, does it win about 7 out of 10?
-    """
-)
-st.info(
-    "All numbers below use *completed* regular-season games. "
-    "Playoffs, scrimmage & exhibitions are not included."
-)
+# ══════════════════════════════════════════════════════════════════════════
+#  VISUAL HELPERS
+# ══════════════════════════════════════════════════════════════════════════
 
-overall_text  = f"{overall_pct:.1f}%" if np.isfinite(overall_pct) else "—"
-upset_count   = max(0, total_games - correct_games)
-upset_text    = f"{upset_rate:.1f}%" if np.isfinite(upset_rate) else "—"
-mae_text      = f"{mae:.2f}" if np.isfinite(mae) else "—"
-within5_text  = f"{within5:.1f}%" if np.isfinite(within5) else "—"
+def _inject_rc_css() -> None:
+    st.markdown("""<style>
+/* ── Section pill header ─────────────────────────────────────────── */
+.rc-section-head {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(96,165,250,0.35);
+    background: rgba(96,165,250,0.07);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: #93c5fd;
+    margin: 18px 0 12px;
+}
 
-hero_html = f"""
-<div style="
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin:10px 0 24px;
-  font-family:system-ui,-apple-system,Segoe UI,sans-serif;
-">
-  <div style="
-      padding:6px 12px;
-      border-radius:999px;
-      background:#022c22;
-      border:1px solid #16a34a33;
-      color:#bbf7d0;
-      font-size:12px;
-      font-weight:600;
-  ">
-    Overall accuracy: <span style="color:#4ade80;font-weight:700;">{overall_text}</span>
+/* ── Hero banner ─────────────────────────────────────────────────── */
+.rc-hero-banner {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.20);
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    align-items: center;
+    margin: 0 0 20px;
+}
+.rc-hero-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px;
+}
+.rc-hero-val {
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+.rc-hero-lbl {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-top: 5px;
+    text-align: center;
+}
+.rc-hero-divider {
+    width: 1px;
+    height: 52px;
+    background: rgba(255,255,255,0.08);
+}
+
+/* ── Stat grid cards ─────────────────────────────────────────────── */
+.rc-stat-grid {
+    display: grid;
+    gap: 10px;
+    margin: 8px 0 16px;
+}
+.rc-stat-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.rc-stat-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.rc-stat-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.rc-stat-card {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.18);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.rc-stat-card .rc-sc-lbl {
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+.rc-stat-card .rc-sc-val {
+    font-size: 1.55rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+.rc-stat-card .rc-sc-sub {
+    font-size: 0.76rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* ── Dark table ──────────────────────────────────────────────────── */
+.rc-table-wrap {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.15);
+    border-radius: 12px;
+    overflow-x: auto;
+    margin: 6px 0 16px;
+}
+
+/* ── Callout box ─────────────────────────────────────────────────── */
+.rc-callout {
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 8px 0 14px;
+    font-size: 0.83rem;
+    line-height: 1.55;
+}
+.rc-callout-amber {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.28);
+    color: #fde68a;
+}
+.rc-callout-blue {
+    background: rgba(96,165,250,0.07);
+    border: 1px solid rgba(96,165,250,0.25);
+    color: #bfdbfe;
+}
+.rc-callout-green {
+    background: rgba(74,222,128,0.07);
+    border: 1px solid rgba(74,222,128,0.25);
+    color: #bbf7d0;
+}
+
+/* ── Spotlight game cards ────────────────────────────────────────── */
+.rc-spotlight {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 1px solid rgba(96,165,250,0.18);
+    margin: 6px 0 10px;
+    min-height: 110px;
+}
+.rc-spotlight-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 8px;
+}
+.rc-spotlight-game {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 6px;
+}
+.rc-spotlight-detail {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    line-height: 1.6;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+def _rc_section(icon: str, label: str) -> None:
+    st.markdown(f'<div class="rc-section-head">{icon} {label}</div>', unsafe_allow_html=True)
+
+
+def _rc_stat_card(label: str, value: str, sub: str = "", color: str = "#60a5fa") -> str:
+    sub_html = f'<div class="rc-sc-sub">{sub}</div>' if sub else ""
+    return (
+        f'<div class="rc-stat-card">'
+        f'<div class="rc-sc-lbl">{label}</div>'
+        f'<div class="rc-sc-val" style="color:{color};">{value}</div>'
+        f'{sub_html}'
+        f'</div>'
+    )
+
+
+def _rc_df_html(df: pd.DataFrame, max_rows: int = 30) -> str:
+    th_s = (
+        "padding:0.28rem 0.6rem;font-size:0.65rem;text-transform:uppercase;"
+        "letter-spacing:0.10em;color:#60a5fa;background:rgba(9,14,28,0.9);"
+        "border-bottom:2px solid rgba(96,165,250,0.20);white-space:nowrap;"
+        "font-weight:700;text-align:left;"
+    )
+    td_s = (
+        "padding:0.30rem 0.6rem;font-size:0.82rem;color:#e2e8f0;"
+        "border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap;"
+    )
+    thead = "".join(f'<th style="{th_s}">{c}</th>' for c in df.columns)
+    rows = ""
+    for _, row in df.head(max_rows).iterrows():
+        cells = "".join(f'<td style="{td_s}">{v}</td>' for v in row.values)
+        rows += f'<tr>{cells}</tr>'
+    return (
+        f'<div class="rc-table-wrap">'
+        f'<table style="width:100%;border-collapse:collapse;min-width:360px;">'
+        f'<thead><tr>{thead}</tr></thead><tbody>{rows}</tbody></table></div>'
+    )
+
+
+_inject_rc_css()
+
+# ══════════════════════════════════════════════════════════════════════════
+#  HERO BANNER
+# ══════════════════════════════════════════════════════════════════════════
+overall_text = f"{overall_pct:.1f}%" if np.isfinite(overall_pct) else "—"
+upset_count  = max(0, total_games - correct_games)
+upset_text   = f"{upset_rate:.1f}%" if np.isfinite(upset_rate) else "—"
+mae_text     = f"{mae:.2f}" if np.isfinite(mae) else "—"
+within5_text = f"{within5:.1f}%" if np.isfinite(within5) else "—"
+
+st.markdown(f"""
+<div class="rc-hero-banner">
+  <div class="rc-hero-stat">
+    <div class="rc-hero-val" style="color:#4ade80;">{overall_text}</div>
+    <div class="rc-hero-lbl">Overall Accuracy</div>
   </div>
-  <div style="
-      padding:6px 12px;
-      border-radius:999px;
-      background:#022c22;
-      border:1px solid #16a34a33;
-      color:#bbf7d0;
-      font-size:12px;
-      font-weight:600;
-  ">
-    Upsets so far: <span style="color:#facc15;font-weight:700;">{upset_count}</span> games ({upset_text})
+  <div class="rc-hero-divider"></div>
+  <div class="rc-hero-stat">
+    <div class="rc-hero-val" style="color:#60a5fa;">{mae_text}</div>
+    <div class="rc-hero-lbl">Avg Margin Error (pts)</div>
   </div>
-  <div style="
-      padding:6px 12px;
-      border-radius:999px;
-      background:#022c22;
-      border:1px solid #16a34a33;
-      color:#bbf7d0;
-      font-size:12px;
-      font-weight:600;
-  ">
-    Avg margin error: <span style="color:#38bdf8;font-weight:700;">{mae_text} pts</span>
+  <div class="rc-hero-divider"></div>
+  <div class="rc-hero-stat">
+    <div class="rc-hero-val" style="color:#38bdf8;">{within5_text}</div>
+    <div class="rc-hero-lbl">Within 5 Points</div>
   </div>
-  <div style="
-      padding:6px 12px;
-      border-radius:999px;
-      background:#022c22;
-      border:1px solid #16a34a33;
-      color:#bbf7d0;
-      font-size:12px;
-      font-weight:600;
-  ">
-    Within 5 points: <span style="color:#4ade80;font-weight:700;">{within5_text}</span> of games
+  <div class="rc-hero-divider"></div>
+  <div class="rc-hero-stat">
+    <div class="rc-hero-val" style="color:#facc15;">{upset_count}</div>
+    <div class="rc-hero-lbl">Upsets ({upset_text})</div>
+  </div>
+  <div class="rc-hero-divider"></div>
+  <div class="rc-hero-stat">
+    <div class="rc-hero-val" style="color:#a78bfa;">{total_games:,}</div>
+    <div class="rc-hero-lbl">Games Analyzed</div>
   </div>
 </div>
-"""
-st.markdown(hero_html, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-st.divider()
+st.markdown(
+    '<div class="rc-callout rc-callout-blue">'
+    '<strong>How to read this page —</strong> '
+    '<strong>Accuracy</strong>: how often the favorite actually wins. '
+    '<strong>Margin error</strong>: how close the projected spread is to the final score. '
+    '<strong>Calibration</strong>: when the model says 70%, does it win ~7 out of 10? '
+    'All numbers use <em>completed regular-season games only</em> — playoffs, scrimmages, and exhibitions excluded.'
+    '</div>',
+    unsafe_allow_html=True,
+)
 
 # ----------------------------
 # TABS
@@ -376,56 +548,60 @@ tab_overview, tab_conf, tab_misses = st.tabs(
 # TAB 1 — OVERVIEW
 # ----------------------------
 with tab_overview:
-    st.markdown("#### Model record by group")
+    _rc_section("🏆", "Model Record by Group")
 
-    c1, c2 = st.columns(2)
+    boys_val  = f"{boys_wins}-{max(0, boys_games - boys_wins)}"   if boys_games  > 0 else "—"
+    boys_sub  = f"{boys_acc:.1f}% accuracy"                       if boys_games  > 0 else "no boys games"
+    girls_val = f"{girls_wins}-{max(0, girls_games - girls_wins)}" if girls_games > 0 else "—"
+    girls_sub = f"{girls_acc:.1f}% accuracy"                      if girls_games > 0 else "no girls games"
 
-    with c1:
-        st.metric(
-            "Boys model record",
-            f"{boys_wins}-{max(0, boys_games - boys_wins)}" if boys_games > 0 else "—",
-            f"{boys_acc:.1f}% accuracy" if boys_games > 0 else "no boys games yet",
-        )
-        st.metric(
-            "Girls model record",
-            f"{girls_wins}-{max(0, girls_games - girls_wins)}" if girls_games > 0 else "—",
-            f"{girls_acc:.1f}% accuracy" if girls_games > 0 else "no girls games yet",
-        )
+    if home_fav_games > 0:
+        home_acc = 100.0 * home_fav_wins / home_fav_games
+        hf_val   = f"{home_fav_wins}-{home_fav_games - home_fav_wins}"
+        hf_sub   = f"{home_acc:.1f}% accuracy"
+    else:
+        hf_val, hf_sub = "—", "no home favorites"
 
-    with c2:
-        if home_fav_games > 0:
-            home_acc = 100.0 * home_fav_wins / home_fav_games
-            st.metric("When favorite is home", f"{home_fav_wins}-{home_fav_games - home_fav_wins}", f"{home_acc:.1f}%")
-        else:
-            st.metric("When favorite is home", "—", "no home favorites yet")
+    if away_fav_games > 0:
+        away_acc = 100.0 * away_fav_wins / away_fav_games
+        af_val   = f"{away_fav_wins}-{away_fav_games - away_fav_wins}"
+        af_sub   = f"{away_acc:.1f}% accuracy"
+    else:
+        af_val, af_sub = "—", "no away favorites"
 
-        if away_fav_games > 0:
-            away_acc = 100.0 * away_fav_wins / away_fav_games
-            st.metric("When favorite is away", f"{away_fav_wins}-{away_fav_games - away_fav_wins}", f"{away_acc:.1f}%")
-        else:
-            st.metric("When favorite is away", "—", "no away favorites yet")
-
-    st.markdown("#### 📏 Margin accuracy (spread quality)")
-
-    mc1, mc2, mc3, mc4 = st.columns(4)
-    with mc1:
-        st.metric("MAE (points)",  f"{mae:.2f}"       if np.isfinite(mae)      else "—")
-    with mc2:
-        st.metric("RMSE (points)", f"{rmse:.2f}"      if np.isfinite(rmse)     else "—")
-    with mc3:
-        st.metric("Within 5 pts",  f"{within5:.1f}%"  if np.isfinite(within5)  else "—")
-    with mc4:
-        st.metric("Within 10 pts", f"{within10:.1f}%" if np.isfinite(within10) else "—")
-
-    st.caption(
-        "Think of MAE as: on average, the predicted margin is this many points off the final score. "
-        "Within 5 / 10 pts shows how often the spread was basically on the money."
+    st.markdown(
+        '<div class="rc-stat-grid rc-stat-grid-4">'
+        + _rc_stat_card("Boys Record",    boys_val,  boys_sub,  "#4ade80")
+        + _rc_stat_card("Girls Record",   girls_val, girls_sub, "#f472b6")
+        + _rc_stat_card("Home Favorite",  hf_val,    hf_sub,    "#60a5fa")
+        + _rc_stat_card("Away Favorite",  af_val,    af_sub,    "#38bdf8")
+        + '</div>',
+        unsafe_allow_html=True,
     )
 
-    st.markdown("#### How hard is it to pick winners?")
+    _rc_section("📏", "Margin Accuracy — Spread Quality")
+
+    st.markdown(
+        '<div class="rc-stat-grid rc-stat-grid-4">'
+        + _rc_stat_card("MAE (points)",   f"{mae:.2f}"       if np.isfinite(mae)      else "—", "avg margin error",         "#60a5fa")
+        + _rc_stat_card("RMSE (points)",  f"{rmse:.2f}"      if np.isfinite(rmse)     else "—", "root mean sq. error",      "#a78bfa")
+        + _rc_stat_card("Within 5 pts",   f"{within5:.1f}%"  if np.isfinite(within5)  else "—", "basically on the money",   "#4ade80")
+        + _rc_stat_card("Within 10 pts",  f"{within10:.1f}%" if np.isfinite(within10) else "—", "within two possessions",   "#34d399")
+        + '</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="rc-callout rc-callout-blue" style="margin-top:0;">'
+        'MAE = on average, the predicted margin is this many points off the final score. '
+        'Within 5/10 pts shows how often the spread was basically right.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    _rc_section("📡", "How Hard Is It to Pick Winners?")
 
     model_hit = overall_pct
-    home_hit = np.nan
+    home_hit  = np.nan
 
     if played is not None and not played.empty:
         scores_ok = played[["Home", "Away", "HomeScore", "AwayScore"]].copy()
@@ -446,78 +622,67 @@ with tab_overview:
                 home_hit = float((base.loc[mask_winner, "Home"] == base.loc[mask_winner, "Winner"]).mean()) * 100.0
 
     st.markdown(
-        '<p style="margin-bottom:2px;font-size:0.85rem;color:#4ade80;font-weight:600;">'
-        '📡 REAL‑TIME — picks made before tipoff, zero future information</p>',
+        '<div class="rc-callout rc-callout-green" style="margin-bottom:8px;">'
+        '📡 <strong>REAL-TIME</strong> — picks made before tipoff, using zero future information'
+        '</div>',
         unsafe_allow_html=True,
     )
-    r1c1, r1c2, r1c3 = st.columns(3)
-    with r1c1:
-        st.metric("Model favorite wins", f"{model_hit:.1f}%" if np.isfinite(model_hit) else "—")
-    with r1c2:
-        st.metric(
-            "Always pick home team",
-            f"{home_hit:.1f}%" if np.isfinite(home_hit) else "—",
-        )
-    with r1c3:
-        st.metric("Coin flip", "50.0%", "reference only")
+    st.markdown(
+        '<div class="rc-stat-grid rc-stat-grid-3">'
+        + _rc_stat_card("Model Favorite Wins", f"{model_hit:.1f}%" if np.isfinite(model_hit) else "—", "pre-tipoff picks only",       "#4ade80")
+        + _rc_stat_card("Always Pick Home",    f"{home_hit:.1f}%"  if np.isfinite(home_hit)  else "—", "naive home-team baseline",    "#60a5fa")
+        + _rc_stat_card("Coin Flip",           "50.0%",                                                  "reference baseline",          "#94a3b8")
+        + '</div>',
+        unsafe_allow_html=True,
+    )
 
     st.markdown(
-        '<p style="margin-bottom:2px;font-size:0.85rem;color:#f59e0b;font-weight:600;">'
-        '🔮 HINDSIGHT — these strategies use end‑of‑season data the model never had</p>',
+        '<div class="rc-callout rc-callout-amber" style="margin-top:4px;">'
+        '🔮 <strong>HINDSIGHT</strong> — these strategies use end-of-season data the model never had'
+        '</div>',
         unsafe_allow_html=True,
     )
-    r2c1, r2c2 = st.columns(2)
-    with r2c1:
-        st.metric(
-            "Higher TI (Heal) with hindsight",
-            f"{ti_hit:.1f}%" if np.isfinite(ti_hit) else "needs TI data",
-            f"{ti_games:,} games • uses final TI" if ti_games > 0 else None,
-        )
-    with r2c2:
-        st.metric(
-            "Better record with hindsight",
-            f"{rec_hit:.1f}%" if np.isfinite(rec_hit) else "needs record data",
-            f"{rec_games:,} games • uses final record" if rec_games > 0 else None,
-        )
+
+    ti_val  = f"{ti_hit:.1f}%"  if np.isfinite(ti_hit)  else "needs TI data"
+    ti_sub  = f"{ti_games:,} games · final TI" if ti_games > 0 else ""
+    rec_val = f"{rec_hit:.1f}%" if np.isfinite(rec_hit) else "needs record data"
+    rec_sub = f"{rec_games:,} games · final record" if rec_games > 0 else ""
 
     st.markdown(
-        """
-        <div style="
-            margin:12px 0 20px;
-            padding:12px 16px;
-            border-radius:8px;
-            background:rgba(245,158,11,0.08);
-            border:1px solid rgba(245,158,11,0.25);
-            font-size:0.82rem;
-            color:#fde68a;
-            line-height:1.55;
-        ">
-            <strong>💡 Why this matters:</strong> The hindsight strategies get to cheat —
-            they use each team's <em>final</em> Heal points and win–loss record,
-            information that didn't exist when the games were actually played.
-            Our model made every single pick <strong>before tipoff</strong>,
-            using only what was known at that moment — and still hit the mid‑80s.
-            That's nearly as good as reading tomorrow's newspaper.
-        </div>
-        """,
+        '<div class="rc-stat-grid rc-stat-grid-2">'
+        + _rc_stat_card("Higher TI (Heal) w/ Hindsight", ti_val,  ti_sub,  "#f59e0b")
+        + _rc_stat_card("Better Record w/ Hindsight",    rec_val, rec_sub, "#f59e0b")
+        + '</div>',
         unsafe_allow_html=True,
     )
 
-    st.markdown("#### 📅 Season-over-season scoreboard")
+    st.markdown(
+        '<div class="rc-callout rc-callout-amber">'
+        '<strong>💡 Why this matters:</strong> The hindsight strategies get to cheat — '
+        'they use each team\'s <em>final</em> Heal points and win-loss record, '
+        'information that didn\'t exist when the games were actually played. '
+        'Our model made every single pick <strong>before tipoff</strong>, '
+        'using only what was known at that moment — and still hit the mid-80s. '
+        'That\'s nearly as good as reading tomorrow\'s newspaper.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    _rc_section("📅", "Season-over-Season Scoreboard")
 
     season_rows = [
         {
             "Season":   "Current",
             "Games":    total_games,
-            "Accuracy": f"{overall_pct:.1f}%"    if np.isfinite(overall_pct)    else "—",
-            "Brier":    f"{overall_brier:.3f}"   if np.isfinite(overall_brier) else "—",
-            "MAE":      f"{mae:.2f}"             if np.isfinite(mae)           else "—",
+            "Accuracy": f"{overall_pct:.1f}%"   if np.isfinite(overall_pct)   else "—",
+            "Brier":    f"{overall_brier:.3f}"  if np.isfinite(overall_brier) else "—",
+            "MAE":      f"{mae:.2f}"            if np.isfinite(mae)           else "—",
             "Note":     "Updates from latest loaded bundle.",
         },
     ]
-    st.dataframe(pd.DataFrame(season_rows), hide_index=True, use_container_width=True)
+    st.markdown(_rc_df_html(pd.DataFrame(season_rows)), unsafe_allow_html=True)
 
-    st.markdown("#### Which teams are easiest (and hardest) to predict?")
+    _rc_section("🎲", "Which Teams Are Easiest (and Hardest) to Predict?")
 
     if played is None or played.empty:
         st.info("Team predictability will appear once per-game performance data is available.")
@@ -536,7 +701,7 @@ with tab_overview:
         team_long["Team"] = team_long["Team"].astype(str)
         team_long = team_long[team_long["Team"].str.len() > 0]
 
-        gp = team_long.groupby("Team").agg(
+        gp = team_long.groupby(["Team", "Gender"]).agg(
             Games=("Team", "size"),
             ModelWins=("ModelCorrect", lambda s: int(pd.to_numeric(s, errors="coerce").fillna(0).sum())),
         ).reset_index()
@@ -548,16 +713,18 @@ with tab_overview:
             ).abs()
             team_long["AbsError"] = diffs
             mae_by_team = (
-                team_long.groupby("Team")["AbsError"]
+                team_long.groupby(["Team", "Gender"])["AbsError"]
                 .mean()
                 .rename("MAE")
                 .reset_index()
             )
-            gp = gp.merge(mae_by_team, on="Team", how="left")
+            gp = gp.merge(mae_by_team, on=["Team", "Gender"], how="left")
         else:
             gp["MAE"] = np.nan
 
         gp["HitRate"] = 100.0 * gp["ModelWins"] / gp["Games"].replace(0, np.nan)
+        gp["HitRate"] = gp["HitRate"].round(1)
+        gp["MAE"]     = gp["MAE"].round(2)
 
         min_games = st.slider(
             "Minimum games to include a team in this view",
@@ -571,80 +738,78 @@ with tab_overview:
         if gp_filt.empty:
             st.info("No teams meet the minimum-games threshold yet.")
         else:
-            most_predictable = gp_filt.sort_values(
-                ["HitRate", "MAE"], ascending=[False, True]
-            ).head(10)
-            chaos = gp_filt.sort_values(
-                ["HitRate", "MAE"], ascending=[True, False]
-            ).head(10)
+            most_predictable = gp_filt.sort_values(["HitRate", "MAE"], ascending=[False, True]).head(10)
+            chaos            = gp_filt.sort_values(["HitRate", "MAE"], ascending=[True, False]).head(10)
 
             c_left, c_right = st.columns(2)
             with c_left:
-                st.markdown("Most predictable teams")
-                st.dataframe(
-                    most_predictable[["Team", "Games", "HitRate", "MAE"]]
-                    .rename(columns={
-                        "HitRate": "Model hit %",
-                        "MAE": "Avg margin error",
-                    }),
-                    hide_index=True,
-                    use_container_width=True,
+                st.markdown(
+                    '<div class="rc-section-head" style="font-size:0.68rem;padding:4px 12px;">🎯 Most Predictable</div>',
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    _rc_df_html(
+                        most_predictable[["Team", "Gender", "Games", "HitRate", "MAE"]]
+                        .rename(columns={"HitRate": "Model hit %", "MAE": "Avg margin error"})
+                    ),
+                    unsafe_allow_html=True,
                 )
             with c_right:
-                st.markdown("Chaos teams (hardest to model)")
-                st.dataframe(
-                    chaos[["Team", "Games", "HitRate", "MAE"]]
-                    .rename(columns={
-                        "HitRate": "Model hit %",
-                        "MAE": "Avg margin error",
-                    }),
-                    hide_index=True,
-                    use_container_width=True,
+                st.markdown(
+                    '<div class="rc-section-head" style="font-size:0.68rem;padding:4px 12px;'
+                    'border-color:rgba(250,204,21,0.35);background:rgba(250,204,21,0.07);color:#fde68a;">💥 Chaos Teams</div>',
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    _rc_df_html(
+                        chaos[["Team", "Gender", "Games", "HitRate", "MAE"]]
+                        .rename(columns={"HitRate": "Model hit %", "MAE": "Avg margin error"})
+                    ),
+                    unsafe_allow_html=True,
                 )
 
-            st.caption(
-                "High hit rate and low margin error → the model 'gets' that team. "
-                "Low hit rate or big errors → they're volatile, streaky, or just weird."
+            st.markdown(
+                '<div class="rc-callout rc-callout-blue">'
+                'High hit rate + low margin error → the model "gets" that team. '
+                'Low hit rate or big errors → they\'re volatile, streaky, or just weird.'
+                '</div>',
+                unsafe_allow_html=True,
             )
 
 # ----------------------------
 # TAB 2 — CONFIDENCE & CALIBRATION
 # ----------------------------
 with tab_conf:
-    st.markdown("#### How honest are the percentages?")
+    _rc_section("🎯", "How Honest Are the Percentages?")
 
-    bc1, bc2, bc3 = st.columns(3)
-    with bc1:
-        st.metric("Overall Brier score", f"{overall_brier:.3f}" if np.isfinite(overall_brier) else "—")
-    with bc2:
-        st.metric("Boys MAE (points)",   f"{boys_mae:.2f}"       if np.isfinite(boys_mae)       else "—")
-    with bc3:
-        st.metric("Girls MAE (points)",  f"{girls_mae:.2f}"      if np.isfinite(girls_mae)      else "—")
-
-    st.caption(
-        "Lower Brier is better. 0.00 would be perfect; ~0.25 is like always predicting a 50/50 coin flip."
+    st.markdown(
+        '<div class="rc-stat-grid rc-stat-grid-3">'
+        + _rc_stat_card("Overall Brier Score",   f"{overall_brier:.3f}" if np.isfinite(overall_brier) else "—", "lower is better · 0.25 = coin flip", "#a78bfa")
+        + _rc_stat_card("Boys MAE (points)",     f"{boys_mae:.2f}"      if np.isfinite(boys_mae)      else "—", "avg margin error · boys games",       "#60a5fa")
+        + _rc_stat_card("Girls MAE (points)",    f"{girls_mae:.2f}"     if np.isfinite(girls_mae)     else "—", "avg margin error · girls games",      "#f472b6")
+        + '</div>',
+        unsafe_allow_html=True,
     )
 
-    st.markdown("#### Accuracy by confidence band")
+    _rc_section("📊", "Accuracy by Confidence Band")
+
     if calibration_data is None or calibration_data.empty:
         st.info("Calibration table not available in this bundle.")
     else:
-        st.dataframe(
-            calibration_data.rename(columns={
-                "ConfBucket": "Confidence band",
-                "Games":      "Games",
-                "Correct":    "Model wins",
-                "HitRate":    "Actual win %",
-                "AvgProb":    "Avg predicted %",
-            }),
-            hide_index=True,
-            use_container_width=True,
-        )
+        cal_display = calibration_data.rename(columns={
+            "ConfBucket": "Confidence band",
+            "Games":      "Games",
+            "Correct":    "Model wins",
+            "HitRate":    "Actual win %",
+            "AvgProb":    "Avg predicted %",
+        })
+        st.markdown(_rc_df_html(cal_display), unsafe_allow_html=True)
         st.markdown(
-            """
-            - If **Actual win %** is higher than **Avg predicted %** in a band, the model is *under‑confident* there.
-            - If it's lower, the model is *over‑confident* in that range.
-            """
+            '<div class="rc-callout rc-callout-blue">'
+            'If <strong>Actual win %</strong> &gt; <strong>Avg predicted %</strong> in a band → model is <em>under-confident</em>. '
+            'If lower → model is <em>over-confident</em> in that range.'
+            '</div>',
+            unsafe_allow_html=True,
         )
 
         delta_df = calibration_data.copy()
@@ -653,45 +818,41 @@ with tab_conf:
             - pd.to_numeric(delta_df["AvgProb"], errors="coerce")
         )
 
-        st.markdown("#### Where is the model over or under-confident?")
-        st.dataframe(
-            delta_df[["ConfBucket", "Games", "AvgProb", "HitRate", "Delta (actual - predicted)"]]
-            .rename(columns={
-                "ConfBucket": "Confidence band",
-                "AvgProb": "Avg predicted %",
-                "HitRate": "Actual win %",
-            }),
-            hide_index=True,
-            use_container_width=True,
+        _rc_section("⚖️", "Where Is the Model Over or Under-Confident?")
+        delta_display = delta_df[["ConfBucket", "Games", "AvgProb", "HitRate", "Delta (actual - predicted)"]].rename(columns={
+            "ConfBucket": "Confidence band",
+            "AvgProb":    "Avg predicted %",
+            "HitRate":    "Actual win %",
+        })
+        st.markdown(_rc_df_html(delta_display), unsafe_allow_html=True)
+        st.markdown(
+            '<div class="rc-callout rc-callout-green">'
+            'Positive delta = favorites win more than predicted (model is under-confident). '
+            'Negative delta = favorites win less (model is over-confident).'
+            '</div>',
+            unsafe_allow_html=True,
         )
 
-        st.caption(
-            "Positive delta = favorites win more often than predicted (model is under‑confident). "
-            "Negative delta = favorites win less often (model is over‑confident)."
-        )
+    _rc_section("📐", "Record by Spread Size")
 
-    st.markdown("#### Record by spread size")
     if spread_performance is None or spread_performance.empty:
         st.info("Spread table not available in this bundle.")
     else:
-        st.dataframe(
-            spread_performance.rename(columns={
-                "SpreadBucket": "Spread band",
-                "Games":        "Games",
-                "Correct":      "Model wins",
-                "HitRate":      "Win %",
-                "AvgSpread":    "Avg spread",
-                "MAE":          "Avg margin error",
-            }),
-            hide_index=True,
-            use_container_width=True,
-        )
+        spread_display = spread_performance.rename(columns={
+            "SpreadBucket": "Spread band",
+            "Games":        "Games",
+            "Correct":      "Model wins",
+            "HitRate":      "Win %",
+            "AvgSpread":    "Avg spread",
+            "MAE":          "Avg margin error",
+        })
+        st.markdown(_rc_df_html(spread_display), unsafe_allow_html=True)
 
 # ----------------------------
 # TAB 3 — BIGGEST MISSES
 # ----------------------------
 with tab_misses:
-    st.markdown("#### When big favorites lose")
+    _rc_section("💥", "When Big Favorites Lose")
 
     if played is None or played.empty or "ModelCorrect" not in played.columns:
         st.info("Favorite-loss analysis will appear once per-game performance data is available.")
@@ -727,16 +888,19 @@ with tab_misses:
             true_shocks    = fav_losses[fav_losses["FavProbPct"] >= 90].copy()
             true_shocks_ct = int(len(true_shocks))
 
-            k1, k2, k3 = st.columns(3)
-            with k1:
-                st.metric("Favorite losses",      f"{loss_ct}",       f"{loss_rate:.1f}% of completed games")
-            with k2:
-                st.metric("Min confidence",       f"{min_conf}%",     "applied")
-            with k3:
-                st.metric("True shocks (90%+)",   f"{true_shocks_ct}", "unfiltered count")
-
-            st.caption(
-                "Raising the minimum confidence hides coin‑flip games and focuses on spots where the model really stuck its neck out."
+            st.markdown(
+                '<div class="rc-stat-grid rc-stat-grid-3">'
+                + _rc_stat_card("Favorite Losses",     str(loss_ct),       f"{loss_rate:.1f}% of completed games",         "#f87171")
+                + _rc_stat_card("Min Confidence",      f"{min_conf}%",     "applied filter",                               "#60a5fa")
+                + _rc_stat_card("True Shocks (90%+)",  str(true_shocks_ct), "unfiltered · high-confidence losses",         "#facc15")
+                + '</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                '<div class="rc-callout rc-callout-blue">'
+                'Raising the minimum confidence hides coin-flip games and focuses on spots where the model really stuck its neck out.'
+                '</div>',
+                unsafe_allow_html=True,
             )
 
             if fav_losses_filt.empty:
@@ -754,12 +918,12 @@ with tab_misses:
                     "FavProbPct": "Model conf. %",
                     "ScoreStr":   "Final score",
                 })
-                st.markdown("Biggest misses (favorite lost):")
-                st.dataframe(view, hide_index=True, use_container_width=True)
+                st.markdown("**Biggest misses (favorite lost):**")
+                st.markdown(_rc_df_html(view), unsafe_allow_html=True)
 
             if show_band_split and not d.empty:
                 bins   = [50, 60, 70, 80, 90, 101]
-                labels = ["50–59%", "60–69%", "70–79%", "80–89%", "90–100%"]
+                labels = ["50-59%", "60-69%", "70-79%", "80-89%", "90-100%"]
                 band_df = d.copy()
                 band_df["ConfBand"] = pd.cut(band_df["FavProbPct"], bins=bins, labels=labels, right=False)
 
@@ -773,14 +937,13 @@ with tab_misses:
                 )
                 band["Favorite loss %"] = 100.0 * band["FavoriteLosses"] / band["Games"].replace(0, np.nan)
 
-                st.markdown("Confidence bands (how often favorites lose):")
-                st.dataframe(
-                    band.rename(columns={"ConfBand": "Confidence band"}),
-                    hide_index=True,
-                    use_container_width=True,
+                _rc_section("📊", "Confidence Bands — How Often Favorites Lose")
+                st.markdown(
+                    _rc_df_html(band.rename(columns={"ConfBand": "Confidence band"})),
+                    unsafe_allow_html=True,
                 )
 
-            st.markdown("#### Spotlight games")
+            _rc_section("🔦", "Spotlight Games")
 
             sharp_game = None
             if {"PredMargin", "ActualMargin"}.issubset(d.columns):
@@ -796,9 +959,14 @@ with tab_misses:
 
             sc1, sc2 = st.columns(2)
             with sc1:
-                st.markdown("**Sharpest call so far**")
                 if sharp_game is None:
-                    st.write("Waiting on enough completed games.")
+                    st.markdown(
+                        '<div class="rc-spotlight">'
+                        '<div class="rc-spotlight-badge">🎯 Sharpest Call So Far</div>'
+                        '<div class="rc-spotlight-detail">Waiting on enough completed games.</div>'
+                        '</div>',
+                        unsafe_allow_html=True,
+                    )
                 else:
                     date_str = pd.to_datetime(sharp_game["Date"], errors="coerce").strftime("%b %d")
                     home = sharp_game["Home"]
@@ -807,15 +975,25 @@ with tab_misses:
                     pm   = sharp_game["PredMargin"]
                     am   = sharp_game["ActualMargin"]
                     st.markdown(
-                        f"{date_str}: **{home} vs {away}**  \n"
-                        f"Model edge: {conf:.0f}% favorite, spread {pm:+.1f}  \n"
-                        f"Final margin: {am:+.1f} (very close to the projection)."
+                        f'<div class="rc-spotlight" style="border-color:rgba(74,222,128,0.35);">'
+                        f'<div class="rc-spotlight-badge" style="color:#4ade80;">🎯 SHARPEST CALL SO FAR</div>'
+                        f'<div class="rc-spotlight-game">{home} vs {away}</div>'
+                        f'<div class="rc-spotlight-detail">'
+                        f'{date_str} &nbsp;·&nbsp; {conf:.0f}% favorite &nbsp;·&nbsp; spread {pm:+.1f}<br>'
+                        f'Final margin: <strong style="color:#4ade80;">{am:+.1f}</strong> — nearly perfect projection'
+                        f'</div></div>',
+                        unsafe_allow_html=True,
                     )
 
             with sc2:
-                st.markdown("**Biggest miss by the model**")
                 if miss_game is None:
-                    st.write("No completed games yet.")
+                    st.markdown(
+                        '<div class="rc-spotlight">'
+                        '<div class="rc-spotlight-badge">💥 Biggest Miss</div>'
+                        '<div class="rc-spotlight-detail">No completed games yet.</div>'
+                        '</div>',
+                        unsafe_allow_html=True,
+                    )
                 else:
                     date_str = pd.to_datetime(miss_game["Date"], errors="coerce").strftime("%b %d")
                     home = miss_game["Home"]
@@ -824,16 +1002,19 @@ with tab_misses:
                     hs   = pd.to_numeric(miss_game["HomeScore"], errors="coerce")
                     as_  = pd.to_numeric(miss_game["AwayScore"], errors="coerce")
                     if np.isnan(hs) or np.isnan(as_):
-                        margin_str = "margin N/A"
-                        score_str = "score unavailable"
+                        score_detail = "score unavailable"
                     else:
-                        am   = hs - as_
-                        margin_str = f"margin {am:+.1f}"
-                        score_str = f"{int(hs)}–{int(as_)}"
+                        am = hs - as_
+                        score_detail = f"{int(hs)}-{int(as_)} (margin {am:+.1f})"
                     st.markdown(
-                        f"{date_str}: **{home} vs {away}**  \n"
-                        f"Model was {conf:.0f}% confident and the favorite still lost.  \n"
-                        f"Final score: {score_str} ({margin_str})."
+                        f'<div class="rc-spotlight" style="border-color:rgba(248,113,113,0.35);">'
+                        f'<div class="rc-spotlight-badge" style="color:#f87171;">💥 BIGGEST MISS</div>'
+                        f'<div class="rc-spotlight-game">{home} vs {away}</div>'
+                        f'<div class="rc-spotlight-detail">'
+                        f'{date_str} &nbsp;·&nbsp; {conf:.0f}% confident &nbsp;·&nbsp; favorite still lost<br>'
+                        f'Final score: <strong style="color:#f87171;">{score_detail}</strong>'
+                        f'</div></div>',
+                        unsafe_allow_html=True,
                     )
 
             if show_true_shocks:
@@ -852,8 +1033,8 @@ with tab_misses:
                         "FavProbPct": "Model conf. %",
                         "ScoreStr":   "Final score",
                     })
-                    st.markdown("True shocks (90%+ favorites only):")
-                    st.dataframe(shock_view, hide_index=True, use_container_width=True)
+                    _rc_section("⚡", "True Shocks — 90%+ Favorites That Lost")
+                    st.markdown(_rc_df_html(shock_view), unsafe_allow_html=True)
 
 st.divider()
 st.caption("Data loaded from v50 performance parquets.")

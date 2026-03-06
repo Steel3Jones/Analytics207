@@ -21,12 +21,16 @@ from layout import (
 from auth import login_gate, logout_button, is_subscribed
 
 
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
+
+
+from sidebar_auth import render_sidebar_auth
+
+render_sidebar_auth()
+
+
+
 st.set_page_config(
-    page_title="📊 The Aftermath",
+    page_title="📊 The Aftermath - The Day After",
     page_icon="🏀",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -58,6 +62,151 @@ body {
 }
 </style>
 """
+
+
+def _inject_aftermath_css() -> None:
+    st.markdown("""
+<style>
+/* ── SECTION PILL HEADS ── */
+.am-section-head {
+    display: inline-block;
+    background: rgba(96,165,250,0.10);
+    border: 1px solid rgba(96,165,250,0.22);
+    border-radius: 999px;
+    padding: 0.20rem 0.85rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #93c5fd;
+    margin-bottom: 0.6rem;
+    margin-top: 1.4rem;
+}
+
+/* ── FILTER ROW ── */
+.am-filter-bar {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.18);
+    border-radius: 14px;
+    padding: 0.9rem 1.1rem 0.6rem;
+    margin-bottom: 0.8rem;
+}
+
+/* ── REPORT CARD ── */
+.am-report-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+.am-grade-card {
+    background: radial-gradient(circle at top left, #142040, #060c1a);
+    border: 1px solid rgba(96,165,250,0.22);
+    border-radius: 14px;
+    padding: 1.1rem 1.4rem;
+    text-align: center;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+.am-grade-val {
+    font-size: 3.2rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+.am-stat-card {
+    flex: 1;
+    min-width: 100px;
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.16);
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    text-align: center;
+}
+.am-stat-val {
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+.am-stat-lbl {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: #64748b;
+    margin-top: 3px;
+}
+.am-stat-sub {
+    font-size: 0.70rem;
+    color: #475569;
+    margin-top: 2px;
+}
+
+/* ── GAME CARDS (Tonight's Card / upset) ── */
+.am-game-card {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.16);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+.am-game-card-left { flex: 1; min-width: 0; }
+.am-game-tag {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    margin-bottom: 3px;
+}
+.am-game-matchup {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #f1f5f9;
+}
+.am-game-meta {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+.am-game-right {
+    text-align: right;
+    flex-shrink: 0;
+}
+.am-game-score {
+    font-size: 1.4rem;
+    font-weight: 900;
+}
+.am-game-winner {
+    font-size: 0.72rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* ── SEASON OVER CARD ── */
+.am-season-over {
+    background: radial-gradient(circle at top left, #0a1f12, #060c1a);
+    border: 1px solid rgba(34,197,94,0.25);
+    border-radius: 14px;
+    padding: 2rem 2rem;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+/* ── NO GAMES ── */
+.am-no-games {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.14);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    color: #475569;
+    font-size: 0.88rem;
+}
+</style>
+""", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -171,10 +320,8 @@ def _card_type(row) -> tuple[str, str]:
 
 def _section_header(icon: str, label: str) -> None:
     st.markdown(
-        f'<div style="font-size:0.72rem;font-weight:700;color:#38bdf8;text-transform:uppercase;'
-        f'letter-spacing:0.1em;border-bottom:1px solid #1e293b;padding-bottom:6px;margin:28px 0 16px;">'
-        f'{icon} {label}</div>',
-        unsafe_allow_html=True
+        f'<div class="am-section-head">{icon} {label}</div>',
+        unsafe_allow_html=True,
     )
 
 
@@ -236,24 +383,28 @@ def render_night_banner(dfy: pd.DataFrame, yday: dt.date, gender: str) -> None:
 
     html = f"""{_BASE_CSS}
 <div style="
-  background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);
-  border:1px solid #334155;border-radius:16px;
-  padding:28px 32px 22px;position:relative;overflow:hidden;
+  background: radial-gradient(circle at top left, #142040, #060c1a);
+  border: 1px solid rgba(96,165,250,0.25);
+  border-radius: 16px;
+  padding: 28px 32px 24px;
+  position: relative;
+  overflow: hidden;
 ">
-  <div style="position:absolute;right:24px;top:50%;transform:translateY(-50%);
-              font-size:5rem;opacity:0.07;pointer-events:none;">🏀</div>
-  <div style="font-size:0.78rem;color:#64748b;text-transform:uppercase;
-              letter-spacing:0.1em;margin-bottom:6px;">
-    {yday.strftime("%A, %B %d, %Y")} &nbsp;·&nbsp; {gender}
+  <div style="position:absolute;right:28px;top:50%;transform:translateY(-50%);
+              font-size:6rem;opacity:0.06;pointer-events:none;user-select:none;">🏀</div>
+  <div style="font-size:0.70rem;color:#475569;text-transform:uppercase;
+              letter-spacing:0.13em;margin-bottom:8px;font-weight:600;">
+    ⚡ The Aftermath &nbsp;·&nbsp; {yday.strftime("%A, %B %d, %Y")} &nbsp;·&nbsp; {gender}
   </div>
-  <div style="font-size:2.0rem;font-weight:900;color:#f8fafc;
-              line-height:1.1;margin-bottom:8px;">{headline}</div>
-  <div style="font-size:0.88rem;color:#94a3b8;">
+  <div style="font-size:1.85rem;font-weight:900;color:#f8fafc;
+              line-height:1.15;margin-bottom:10px;letter-spacing:-0.01em;">{headline}</div>
+  <div style="height:1px;background:rgba(96,165,250,0.12);margin-bottom:10px;"></div>
+  <div style="font-size:0.85rem;color:#94a3b8;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
     {detail_line}
   </div>
 </div>
 """
-    components.html(html, height=145, scrolling=False)
+    components.html(html, height=155, scrolling=False)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -285,39 +436,28 @@ def render_report_card(dfy: pd.DataFrame) -> None:
 
     _section_header("🧠", "Model Report Card")
 
-    c0, c1, c2, c3, c4, c5 = st.columns([1.2, 1, 1, 1, 1, 1])
+    def _stat_card(val, lbl, sub="", color="#60a5fa"):
+        return (
+            f'<div class="am-stat-card">'
+            f'<div class="am-stat-val" style="color:{color};">{val}</div>'
+            f'<div class="am-stat-lbl">{lbl}</div>'
+            f'<div class="am-stat-sub">{sub}</div>'
+            f'</div>'
+        )
 
-    with c0:
-        components.html(f"""{_BASE_CSS}
-<div style="background:#0f172a;border:1px solid #334155;border-radius:12px;
-            padding:20px 24px;text-align:center;">
-  <div style="font-size:3.5rem;font-weight:900;line-height:1;
-              margin-bottom:4px;color:{gcol};">{grade}</div>
-  <div style="font-size:0.68rem;color:#64748b;text-transform:uppercase;
-              letter-spacing:0.08em;">Model Grade</div>
-  <div style="font-size:0.82rem;color:#94a3b8;margin-top:4px;">
-    {n_correct}/{n} picks correct
-  </div>
-</div>
-""", height=130, scrolling=False)
-
-    def _pill(col, val, lbl, sub="", color="#f1f5f9"):
-        with col:
-            components.html(f"""{_BASE_CSS}
-<div style="background:#1e293b;border:1px solid #334155;border-radius:10px;
-            padding:16px 18px;text-align:center;">
-  <div style="font-size:1.8rem;font-weight:800;color:{color};line-height:1;">{val}</div>
-  <div style="font-size:0.65rem;color:#64748b;text-transform:uppercase;
-              letter-spacing:0.07em;margin-top:4px;">{lbl}</div>
-  <div style="font-size:0.74rem;color:#94a3b8;margin-top:2px;">{sub}</div>
-</div>
-""", height=100, scrolling=False)
-
-    _pill(c1, f"{acc:.0%}",  "Pick Accuracy",    f"{n_correct} of {n}", gcol)
-    _pill(c2, avg_s,         "Avg Miss (pts)",   med_s,                 "#94a3b8")
-    _pill(c3, str(nailed),   "Nailed (≤3 pts)",  "tight calls",         "#4ade80")
-    _pill(c4, str(blowout),  "Big Misses (≥15)", "whiffs",              "#f87171")
-    _pill(c5, str(n_upsets), "Upsets",           "fav lost",            "#f59e0b")
+    stats_html = (
+        f'<div class="am-stat-card" style="border-color:rgba(96,165,250,0.28);">'
+        f'<div class="am-grade-val" style="color:{gcol};">{grade}</div>'
+        f'<div class="am-stat-lbl">Model Grade</div>'
+        f'<div class="am-stat-sub">{n_correct}/{n} correct</div>'
+        f'</div>'
+        + _stat_card(f"{acc:.0%}",  "Pick Accuracy",    f"{n_correct} of {n}", gcol)
+        + _stat_card(avg_s,         "Avg Miss",         med_s,                 "#94a3b8")
+        + _stat_card(str(nailed),   "Nailed ≤3 pts",    "tight calls",         "#4ade80")
+        + _stat_card(str(blowout),  "Big Misses ≥15",   "whiffs",              "#f87171")
+        + _stat_card(str(n_upsets), "Upsets",           "fav lost",            "#f59e0b")
+    )
+    st.markdown(f'<div class="am-report-grid">{stats_html}</div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -391,6 +531,57 @@ def render_upset_spotlight(dfy: pd.DataFrame) -> None:
 # ══════════════════════════════════════════════════════════════════════════
 #  SPREAD PERFORMANCE
 # ══════════════════════════════════════════════════════════════════════════
+def _miss_color_css(val) -> str:
+    try:
+        v = float(val)
+        if v <= 3:  return "#4ade80"
+        if v <= 8:  return "#a3e635"
+        if v <= 15: return "#fb923c"
+        return "#f87171"
+    except Exception:
+        return "#64748b"
+
+
+def _spread_table_html(subset: pd.DataFrame, accent: str, title: str, title_icon: str) -> str:
+    rows_html = ""
+    for _, row in subset.iterrows():
+        mc      = row.get("ModelCorrect", np.nan)
+        pred    = row.get("PredMargin", np.nan)
+        act     = row.get("ActualMargin", np.nan)
+        err     = row.get("AbsSpreadError", np.nan)
+        correct = pd.notna(mc) and float(mc) == 1.0
+        mc_html  = '<span style="color:#4ade80;font-weight:700;">✓</span>' if correct else '<span style="color:#f87171;">✗</span>'
+        miss_col = _miss_color_css(err)
+        miss_s   = f'{float(err):.1f}' if pd.notna(err)  else "—"
+        pred_s   = f'{float(pred):+.1f}' if pd.notna(pred) else "—"
+        act_s    = f'{float(act):+.1f}'  if pd.notna(act)  else "—"
+        rows_html += (
+            f'<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">'
+            f'<td style="padding:0.30rem 0.4rem;text-align:center;width:28px;">{mc_html}</td>'
+            f'<td style="padding:0.30rem 0.5rem;text-align:left;color:#e2e8f0;font-size:0.82rem;">{_matchup(row)}</td>'
+            f'<td style="padding:0.30rem 0.5rem;color:#94a3b8;font-size:0.80rem;white-space:nowrap;">{_final(row)}</td>'
+            f'<td style="padding:0.30rem 0.5rem;text-align:center;color:#93c5fd;font-size:0.80rem;">{pred_s}</td>'
+            f'<td style="padding:0.30rem 0.5rem;text-align:center;color:#cbd5e1;font-size:0.80rem;">{act_s}</td>'
+            f'<td style="padding:0.30rem 0.5rem;text-align:center;color:{miss_col};font-weight:700;font-size:0.82rem;">{miss_s}</td>'
+            f'</tr>'
+        )
+    th_style = f'padding:0.26rem 0.5rem;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.10em;color:{accent};background:rgba(9,14,28,0.9);border-bottom:2px solid {accent}55;'
+    headers  = [("", "center", "28px"), ("Matchup", "left", "auto"), ("Final", "left", "auto"),
+                ("Pred", "center", "52px"), ("Actual", "center", "52px"), ("Miss", "center", "48px")]
+    thead    = "".join(f'<th style="{th_style}text-align:{a};width:{w};">{h}</th>' for h, a, w in headers)
+    return (
+        f'<div style="background:radial-gradient(circle at top left,#0f1e38,#080f1e);'
+        f'border:1px solid rgba(96,165,250,0.18);border-radius:12px;'
+        f'padding:0.85rem 0.85rem 0.5rem;overflow:hidden;">'
+        f'<div style="font-size:0.75rem;font-weight:700;color:{accent};margin-bottom:0.55rem;">'
+        f'{title_icon} {title}</div>'
+        f'<table style="width:100%;border-collapse:collapse;table-layout:auto;">'
+        f'<thead><tr>{thead}</tr></thead>'
+        f'<tbody>{rows_html}</tbody>'
+        f'</table></div>'
+    )
+
+
 def render_spread_performance(dfy: pd.DataFrame) -> None:
     if not is_subscribed():
         _render_lock_wall("Spread Performance")
@@ -402,63 +593,15 @@ def render_spread_performance(dfy: pd.DataFrame) -> None:
 
     _section_header("🎯", "Spread Performance")
 
-    def _build_spread_table(subset: pd.DataFrame) -> pd.DataFrame:
-        rows = []
-        for _, row in subset.iterrows():
-            mc      = row.get("ModelCorrect", np.nan)
-            pred    = row.get("PredMargin", np.nan)
-            act     = row.get("ActualMargin", np.nan)
-            err     = row.get("AbsSpreadError", np.nan)
-            correct = pd.notna(mc) and float(mc) == 1.0
-            rows.append({
-                "✓":       "✅" if correct else "❌",
-                "Matchup": _matchup(row),
-                "Final":   _final(row),
-                "Pred":    round(float(pred), 1) if pd.notna(pred) else None,
-                "Actual":  round(float(act),  1) if pd.notna(act)  else None,
-                "Miss":    round(float(err),  1) if pd.notna(err)  else None,
-            })
-        return pd.DataFrame(rows)
-
-    def _style_spread(df: pd.DataFrame, mode: str):
-        def _miss_color(val):
-            if val is None or (isinstance(val, float) and np.isnan(val)):
-                return "color: #64748b;"
-            if val <= 3:  return "color: #4ade80; font-weight: bold;"
-            if val <= 8:  return "color: #a3e635;"
-            if val <= 15: return "color: #fb923c;"
-            return "color: #f87171; font-weight: bold;"
-
-        bg = "#052e16" if mode == "nail" else "#2d0b0b"
-        return (
-            df.style
-            .applymap(_miss_color, subset=["Miss"])
-            .set_properties(**{
-                "background-color": bg,
-                "color": "#f1f5f9",
-                "text-align": "left",
-            })
-            .format({
-                "Pred":   lambda v: f"{v:+.1f}" if v is not None else "—",
-                "Actual": lambda v: f"{v:+.1f}" if v is not None else "—",
-                "Miss":   lambda v: f"{v:.1f}"  if v is not None else "—",
-            }, na_rep="—")
-            .hide(axis="index")
-        )
+    errs  = dfy[dfy["AbsSpreadError"].notna()]
+    best  = errs.sort_values("AbsSpreadError").head(5)
+    worst = errs.sort_values("AbsSpreadError", ascending=False).head(5)
 
     col_nail, col_miss = st.columns(2)
-
     with col_nail:
-        st.markdown("##### ✅ Closest Calls")
-        best = dfy[dfy["AbsSpreadError"].notna()].sort_values("AbsSpreadError").head(5)
-        tbl  = _build_spread_table(best)
-        st.dataframe(_style_spread(tbl, "nail"), use_container_width=True, hide_index=True)
-
+        st.markdown(_spread_table_html(best,  "#4ade80", "Closest Calls",  "✅"), unsafe_allow_html=True)
     with col_miss:
-        st.markdown("##### 💥 Biggest Misses")
-        worst = dfy[dfy["AbsSpreadError"].notna()].sort_values("AbsSpreadError", ascending=False).head(5)
-        tbl   = _build_spread_table(worst)
-        st.dataframe(_style_spread(tbl, "miss"), use_container_width=True, hide_index=True)
+        st.markdown(_spread_table_html(worst, "#f87171", "Biggest Misses", "💥"), unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -469,83 +612,67 @@ def render_full_game_log(dfy: pd.DataFrame) -> None:
         _render_lock_wall("Full Game Log")
         return
 
-    _section_header("📋", "Full Game Log")
-
     df = dfy.copy()
     if "AbsSpreadError" in df.columns:
         df = df.sort_values("AbsSpreadError", ascending=True)
 
-    rows = []
+    TAG_LABELS = {"upset": "⚠️ Upset", "nail": "🎯 Nailed", "miss": "💥 Miss", "normal": "—"}
+    TAG_COLS   = {"upset": "#f59e0b",  "nail": "#4ade80",   "miss": "#f87171",  "normal": "#475569"}
+    ROW_BG     = {"upset": "rgba(245,158,11,0.05)", "nail": "rgba(34,197,94,0.04)",
+                  "miss":  "rgba(239,68,68,0.05)",  "normal": "transparent"}
+
+    headers = [("", "center", "28px"), ("Matchup", "left", "auto"), ("Final", "center", "72px"),
+               ("Winner", "left", "auto"), ("Pred", "center", "52px"), ("Actual", "center", "52px"),
+               ("Miss", "center", "48px"), ("Fav%", "center", "52px"), ("Tag", "center", "80px")]
+    th_base = "padding:0.26rem 0.5rem;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.10em;color:#f59e0b;background:rgba(9,14,28,0.9);border-bottom:2px solid rgba(245,158,11,0.35);"
+    thead   = "".join(f'<th style="{th_base}text-align:{a};width:{w};">{h}</th>' for h, a, w in headers)
+
+    rows_html = ""
     for _, row in df.iterrows():
-        mc     = row.get("ModelCorrect", np.nan)
-        err    = row.get("AbsSpreadError", np.nan)
-        pred   = row.get("PredMargin", np.nan)
-        act    = row.get("ActualMargin", np.nan)
-        fp     = row.get("FavProb", np.nan)
-        ct, _  = _card_type(row)
+        mc      = row.get("ModelCorrect", np.nan)
+        err     = row.get("AbsSpreadError", np.nan)
+        pred    = row.get("PredMargin", np.nan)
+        act     = row.get("ActualMargin", np.nan)
+        fp      = row.get("FavProb", np.nan)
+        ct, _   = _card_type(row)
         correct = pd.notna(mc) and float(mc) == 1.0
 
-        rows.append({
-            "✓":        "✅" if correct else "❌",
-            "Matchup":  _matchup(row),
-            "Final":    _final(row),
-            "Winner":   row.get("Winner", "—"),
-            "Favorite": row.get("Favorite", "—"),
-            "Pred":     round(float(pred), 1) if pd.notna(pred) else None,
-            "Actual":   round(float(act),  1) if pd.notna(act)  else None,
-            "Miss":     round(float(err),  1) if pd.notna(err)  else None,
-            "Fav%":     round(float(fp) * 100) if pd.notna(fp)  else None,
-            "Tag":      {"upset":"⚠️ Upset","nail":"🎯 Nailed","miss":"💥 Miss","normal":"—"}[ct],
-        })
+        mc_html  = '<span style="color:#4ade80;font-weight:700;">✓</span>' if correct else '<span style="color:#f87171;">✗</span>'
+        miss_s   = f'{float(err):.1f}'  if pd.notna(err)  else "—"
+        pred_s   = f'{float(pred):+.1f}' if pd.notna(pred) else "—"
+        act_s    = f'{float(act):+.1f}'  if pd.notna(act)  else "—"
+        fp_s     = f'{float(fp)*100:.0f}%' if pd.notna(fp) else "—"
+        fp_col   = "#3b82f6" if pd.notna(fp) and float(fp)*100 >= 80 else ("#f59e0b" if pd.notna(fp) and float(fp)*100 < 65 else "#94a3b8")
+        miss_col = _miss_color_css(err)
+        tag_lbl  = TAG_LABELS.get(ct, "—")
+        tag_col  = TAG_COLS.get(ct, "#475569")
+        row_bg   = ROW_BG.get(ct, "transparent")
+        winner   = str(row.get("Winner", "—"))
 
-    tbl = pd.DataFrame(rows)
+        rows_html += (
+            f'<tr style="border-bottom:1px solid rgba(255,255,255,0.04);background:{row_bg};">'
+            f'<td style="padding:0.28rem 0.4rem;text-align:center;">{mc_html}</td>'
+            f'<td style="padding:0.28rem 0.5rem;color:#e2e8f0;font-size:0.82rem;">{_matchup(row)}</td>'
+            f'<td style="padding:0.28rem 0.5rem;color:#94a3b8;font-size:0.80rem;text-align:center;">{_final(row)}</td>'
+            f'<td style="padding:0.28rem 0.5rem;color:#f1f5f9;font-size:0.80rem;font-weight:600;">{winner}</td>'
+            f'<td style="padding:0.28rem 0.5rem;text-align:center;color:#93c5fd;font-size:0.80rem;">{pred_s}</td>'
+            f'<td style="padding:0.28rem 0.5rem;text-align:center;color:#cbd5e1;font-size:0.80rem;">{act_s}</td>'
+            f'<td style="padding:0.28rem 0.5rem;text-align:center;color:{miss_col};font-weight:700;font-size:0.82rem;">{miss_s}</td>'
+            f'<td style="padding:0.28rem 0.5rem;text-align:center;color:{fp_col};font-size:0.80rem;">{fp_s}</td>'
+            f'<td style="padding:0.28rem 0.5rem;text-align:center;color:{tag_col};font-size:0.72rem;font-weight:700;">{tag_lbl}</td>'
+            f'</tr>'
+        )
 
-    def _row_bg(row):
-        tag = row["Tag"]
-        if "Upset"  in str(tag): bg = "#2d1f00"
-        elif "Nail" in str(tag): bg = "#052e16"
-        elif "Miss" in str(tag): bg = "#2d0b0b"
-        else:                    bg = "#1e293b"
-        return [f"background-color: {bg}; color: #f1f5f9;"] * len(row)
-
-    def _miss_color(val):
-        if val is None or (isinstance(val, float) and np.isnan(val)):
-            return "color: #64748b;"
-        if val <= 3:  return "color: #4ade80; font-weight: bold;"
-        if val <= 8:  return "color: #a3e635;"
-        if val <= 15: return "color: #fb923c;"
-        return "color: #f87171; font-weight: bold;"
-
-    def _fav_color(val):
-        if val is None or (isinstance(val, float) and np.isnan(val)):
-            return "color: #64748b;"
-        if val >= 80: return "color: #3b82f6; font-weight: bold;"
-        if val >= 65: return "color: #94a3b8;"
-        return "color: #f59e0b; font-weight: bold;"
-
-    def _tag_color(val):
-        if "Upset"  in str(val): return "color: #f59e0b; font-weight: bold;"
-        if "Nailed" in str(val): return "color: #4ade80; font-weight: bold;"
-        if "Miss"   in str(val): return "color: #f87171; font-weight: bold;"
-        return "color: #64748b;"
-
-    styled = (
-        tbl.style
-        .apply(_row_bg, axis=1)
-        .applymap(_miss_color, subset=["Miss"])
-        .applymap(_fav_color,  subset=["Fav%"])
-        .applymap(_tag_color,  subset=["Tag"])
-        .format({
-            "Pred":   lambda v: f"{v:+.1f}" if v is not None else "—",
-            "Actual": lambda v: f"{v:+.1f}" if v is not None else "—",
-            "Miss":   lambda v: f"{v:.1f}"  if v is not None else "—",
-            "Fav%":   lambda v: f"{v:.0f}%" if v is not None else "—",
-        }, na_rep="—")
-        .set_properties(**{"text-align": "left"})
-        .hide(axis="index")
+    html = (
+        f'<div style="background:radial-gradient(circle at top left,#0f1e38,#080f1e);'
+        f'border:1px solid rgba(96,165,250,0.18);border-radius:12px;'
+        f'padding:0.85rem 0.85rem 0.5rem;overflow:auto;">'
+        f'<table style="width:100%;border-collapse:collapse;min-width:640px;">'
+        f'<thead><tr>{thead}</tr></thead>'
+        f'<tbody>{rows_html}</tbody>'
+        f'</table></div>'
     )
-
-    st.dataframe(styled, use_container_width=True, height=min(600, 38 + len(tbl) * 35))
+    st.markdown(html, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -573,12 +700,25 @@ def tag_games(df: pd.DataFrame) -> pd.DataFrame:
     return d
 
 
+def render_season_complete() -> None:
+    _section_header("🏆", "Season Complete")
+    st.markdown(
+        '<div class="am-season-over">'
+        '<div style="font-size:2.5rem;margin-bottom:10px;">🏆</div>'
+        '<div style="font-size:1.2rem;font-weight:800;color:#4ade80;margin-bottom:6px;">The Season Is Over</div>'
+        '<div style="font-size:0.88rem;color:#64748b;">The regular season has wrapped up. '
+        'Use the date picker above to look back at any night from the season.</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+
 def render_tonight(df_day: pd.DataFrame, day: dt.date, gender: str) -> None:
     _section_header("🔮", "Tonight's Card")
     st.caption(f"{day.strftime('%A, %B %d')} · {gender} · {len(df_day)} games on the slate")
 
     if df_day.empty:
-        st.info("No games on the card tonight for these filters.")
+        st.markdown('<div class="am-no-games">No games on the card for this date and filters.</div>', unsafe_allow_html=True)
         return
 
     if not is_subscribed():
@@ -590,6 +730,7 @@ def render_tonight(df_day: pd.DataFrame, day: dt.date, gender: str) -> None:
     tagged["_ord"] = tagged["Tag"].map(order).fillna(9)
     tagged = tagged.sort_values(["_ord", "_Closeness"]).head(8)
 
+    cards_html = ""
     for _, row in tagged.iterrows():
         tag   = row.get("Tag", "Featured")
         fp    = row.get("FavProb", np.nan)
@@ -597,36 +738,27 @@ def render_tonight(df_day: pd.DataFrame, day: dt.date, gender: str) -> None:
         total = row.get("PredTotalPoints", np.nan)
         fav   = row.get("Favorite", "—")
         fp_s  = f"{fp*100:.0f}% win prob" if pd.notna(fp)    else ""
-        pm_s  = f"Line: {pm:+.1f}"         if pd.notna(pm)    else ""
-        tot_s = f"O/U {total:.0f}"         if pd.notna(total) else ""
+        pm_s  = f"Line: {pm:+.1f}"        if pd.notna(pm)    else ""
+        tot_s = f"O/U {total:.0f}"        if pd.notna(total) else ""
+        meta  = " &nbsp;·&nbsp; ".join(x for x in [pm_s, fp_s, tot_s] if x)
         tcol  = TAG_COLOR.get(tag,  "#64748b")
-        tbord = TAG_BORDER.get(tag, "#334155")
+        tbord = TAG_BORDER.get(tag, "rgba(96,165,250,0.18)")
         emoj  = TAG_EMOJI.get(tag,  "⭐")
 
-        components.html(f"""{_BASE_CSS}
-<div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:12px;
-            padding:14px 18px;margin-bottom:8px;border-left:4px solid {tbord};">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;
-              flex-wrap:wrap;gap:8px;">
-    <div style="flex:1;min-width:0;">
-      <div style="font-size:0.64rem;font-weight:700;text-transform:uppercase;
-                  letter-spacing:0.06em;color:{tcol};margin-bottom:3px;">
-        {emoj} {tag}
-      </div>
-      <div style="font-size:0.95rem;font-weight:700;color:#f1f5f9;">
-        {_matchup(row)}
-      </div>
-      <div style="font-size:0.82rem;color:#94a3b8;margin-top:2px;">
-        {pm_s} &nbsp;·&nbsp; {fp_s} &nbsp;·&nbsp; {tot_s}
-      </div>
-    </div>
-    <div style="text-align:right;flex-shrink:0;">
-      <div style="font-size:0.78rem;color:#64748b;">Fav</div>
-      <div style="font-size:0.95rem;font-weight:700;color:#f1f5f9;">{fav}</div>
-    </div>
-  </div>
-</div>
-""", height=95, scrolling=False)
+        cards_html += (
+            f'<div class="am-game-card" style="border-left:4px solid {tbord};">'
+            f'<div class="am-game-card-left">'
+            f'<div class="am-game-tag" style="color:{tcol};">{emoj} {tag}</div>'
+            f'<div class="am-game-matchup">{_matchup(row)}</div>'
+            f'<div class="am-game-meta">{meta}</div>'
+            f'</div>'
+            f'<div class="am-game-right">'
+            f'<div style="font-size:0.68rem;color:#475569;">Favorite</div>'
+            f'<div style="font-size:0.92rem;font-weight:700;color:#f1f5f9;">{fav}</div>'
+            f'</div>'
+            f'</div>'
+        )
+    st.markdown(cards_html, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -634,6 +766,7 @@ def render_tonight(df_day: pd.DataFrame, day: dt.date, gender: str) -> None:
 # ══════════════════════════════════════════════════════════════════════════
 def main() -> None:
     apply_global_layout_tweaks()
+    _inject_aftermath_css()
 
     user = login_gate(required=False)
     logout_button()
@@ -660,13 +793,17 @@ def main() -> None:
         render_footer()
         return
 
-    available_dates = sorted(pd.Series(df_games["Date"].dropna().unique()).tolist())
-    default_date    = available_dates[-1] if available_dates else dt.date.today()
+    played_dates    = sorted(df_games[df_games["Played"] == True]["Date"].dropna().unique().tolist())
+    available_dates = sorted(df_games["Date"].dropna().unique().tolist())
+    last_played     = played_dates[-1] if played_dates else None
+    season_over     = last_played is not None and dt.date.today() > last_played
+    # Default to last played game date
+    default_date = last_played if last_played else (max(available_dates) if available_dates else dt.date.today())
 
     c1, c2, c3, c4 = st.columns([1.1, 1.0, 0.8, 0.9])
     with c1:
         day = st.date_input(
-            "Night", value=default_date,
+            "Game Date", value=default_date,
             min_value=min(available_dates) if available_dates else None,
             max_value=max(available_dates) if available_dates else None,
         )
@@ -677,9 +814,9 @@ def main() -> None:
     with c4:
         region = st.selectbox("Region", ["All","North","South"], index=0, key="aftermath_region")
 
-    yday = day - dt.timedelta(days=1)
-    dfy  = df_games[
-        (df_games["Date"] == yday) &
+    # Look up games on the selected date directly
+    dfy = df_games[
+        (df_games["Date"] == day) &
         (df_games["Gender"] == gender) &
         (df_games["Played"] == True)
     ].copy()
@@ -687,30 +824,39 @@ def main() -> None:
         dfy = dfy[dfy["HomeClass"] == cls]
     if region != "All" and "HomeRegion" in dfy.columns:
         dfy = dfy[dfy["HomeRegion"] == region]
+    display_date = day
 
-    df_day = df_games[
-        (df_games["Date"] == day) &
-        (df_games["Gender"] == gender) &
-        (df_games["Played"] == False)
-    ].copy()
-    if cls    != "All" and "HomeClass"  in df_day.columns:
-        df_day = df_day[df_day["HomeClass"] == cls]
-    if region != "All" and "HomeRegion" in df_day.columns:
-        df_day = df_day[df_day["HomeRegion"] == region]
-
-    st.markdown("---")
+    st.write("")
 
     if dfy.empty:
-        st.info(f"No completed games found for {yday.strftime('%b %d')} with these filters.")
+        st.markdown(
+            f'<div class="am-no-games">No completed games found for {day.strftime("%b %d")} — try a different date.</div>',
+            unsafe_allow_html=True,
+        )
     else:
-        render_night_banner(dfy, yday, gender)
+        render_night_banner(dfy, display_date, gender)
         render_report_card(dfy)
         render_upset_spotlight(dfy)
         render_spread_performance(dfy)
         with st.expander(f"📋 Full Game Log — {len(dfy)} games", expanded=False):
             render_full_game_log(dfy)
 
-    render_tonight(df_day, day, gender)
+    # Tonight's Card — only show if season is still active
+    if season_over:
+        render_season_complete()
+    else:
+        next_day = day + dt.timedelta(days=1)
+        df_day = df_games[
+            (df_games["Date"] == next_day) &
+            (df_games["Gender"] == gender) &
+            (df_games["Played"] == False)
+        ].copy()
+        if cls    != "All" and "HomeClass"  in df_day.columns:
+            df_day = df_day[df_day["HomeClass"] == cls]
+        if region != "All" and "HomeRegion" in df_day.columns:
+            df_day = df_day[df_day["HomeRegion"] == region]
+        render_tonight(df_day, next_day, gender)
+
     render_footer()
 
 

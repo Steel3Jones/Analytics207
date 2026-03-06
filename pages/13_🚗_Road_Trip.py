@@ -18,10 +18,14 @@ from components.cards import inject_card_css, render_card
 from auth import login_gate, logout_button
 
 # --- PAGE CONFIG ---
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
+
+
+from sidebar_auth import render_sidebar_auth
+
+render_sidebar_auth()
+
+
+
 st.set_page_config(
     page_title="🚌 Road Trips – Analytics207.com",
     page_icon="🚌",
@@ -132,6 +136,140 @@ st.divider()
 
 travel_core, teams_core, geo = load_data()
 inject_card_css()
+
+
+def _inject_rt_css() -> None:
+    st.markdown("""<style>
+/* ── UPGRADE analytics-card to dark radial gradient ── */
+.analytics-card {
+    background: radial-gradient(circle at top left, #0f1e38, #060c1a) !important;
+    border: 1px solid rgba(96,165,250,0.20) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.40) !important;
+    min-height: 160px !important;
+}
+.analytics-card .card-kicker { color: #94a3b8 !important; }
+.analytics-card .card-title  { color: #f1f5f9 !important; font-size: 0.92rem !important; }
+.analytics-card .card-sub    { color: #94a3b8 !important; font-size: 0.78rem !important; }
+.analytics-card .card-metric { font-size: 1.20rem !important; font-weight: 800 !important; color: #60a5fa !important; }
+
+/* ── UPGRADE ms-stat hero stats → dark gradient ── */
+div.ms-stat {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e) !important;
+    border: 1px solid rgba(96,165,250,0.18) !important;
+    border-radius: 12px !important;
+    padding: 0.9rem 1rem 0.75rem !important;
+    text-align: center !important;
+}
+div.ms-stat-val {
+    font-size: 1.70rem !important; font-weight: 900 !important;
+    color: #60a5fa !important; line-height: 1.1 !important; letter-spacing: -0.02em !important;
+}
+div.ms-stat-lbl {
+    font-size: 0.60rem !important; text-transform: uppercase !important;
+    letter-spacing: 0.10em !important; color: #94a3b8 !important; margin-top: 4px !important;
+}
+
+/* ── STYLE MARKDOWN H2/H3 AUTOMATICALLY ── */
+[data-testid="stMarkdownContainer"] h2 {
+    display: inline-block;
+    background: rgba(96,165,250,0.09);
+    border: 1px solid rgba(96,165,250,0.22);
+    border-radius: 999px;
+    padding: 0.22rem 1rem;
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+    color: #93c5fd !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 1.2rem !important;
+    margin-bottom: 0.5rem !important;
+}
+[data-testid="stMarkdownContainer"] h3 {
+    font-size: 0.70rem !important; font-weight: 700 !important;
+    color: #60a5fa !important; text-transform: uppercase !important;
+    letter-spacing: 0.12em !important;
+    border-bottom: 1px solid rgba(96,165,250,0.14) !important;
+    padding-bottom: 0.28rem !important;
+    margin-top: 0.9rem !important; margin-bottom: 0.4rem !important;
+}
+
+/* ── DARK TABLE CARD ── */
+.rt-table-wrap {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.18);
+    border-radius: 14px; padding: 0.85rem 0.85rem 0.5rem;
+    overflow-x: auto; margin-bottom: 0.8rem;
+}
+
+/* ── CALLOUT ── */
+.rt-callout {
+    background: rgba(34,197,94,0.05);
+    border: 1px solid rgba(34,197,94,0.18);
+    border-left: 4px solid #22c55e; border-radius: 10px;
+    padding: 0.65rem 1rem; font-size: 0.84rem; color: #94a3b8;
+    margin: 0.4rem 0 0.7rem; line-height: 1.5;
+}
+.rt-callout strong { color: #4ade80; }
+
+/* ── FUN STAT CARDS ── */
+.rt-fun-grid { display: flex; gap: 10px; flex-wrap: wrap; margin: 0.5rem 0 0.8rem; }
+.rt-fun-card {
+    flex: 1; min-width: 120px;
+    background: radial-gradient(circle at top left, #1a0f2e, #080f1e);
+    border: 1px solid rgba(168,85,247,0.22); border-radius: 12px;
+    padding: 0.85rem 0.9rem; text-align: center;
+}
+.rt-fun-val  { font-size: 1.50rem; font-weight: 900; color: #a78bfa; line-height: 1.1; }
+.rt-fun-lbl  { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.09em; color: #94a3b8; margin-top: 3px; }
+
+/* ── PASSPORT HERO ── */
+.rt-passport-hero {
+    background: radial-gradient(circle at top left, #142040, #060c1a);
+    border: 1px solid rgba(96,165,250,0.28); border-radius: 16px;
+    padding: 1.3rem 1.5rem; margin-bottom: 0.8rem;
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: stretch;
+}
+.rt-passport-stat {
+    flex: 1; min-width: 100px; text-align: center;
+    background: rgba(0,0,0,0.20); border-radius: 10px; padding: 0.7rem 0.5rem;
+}
+.rt-passport-val { font-size: 1.55rem; font-weight: 900; color: #60a5fa; line-height: 1.1; }
+.rt-passport-lbl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.09em; color: #475569; margin-top: 3px; }
+
+/* ── WEEK METRIC CARDS ── */
+.rt-week-grid { display: flex; gap: 10px; flex-wrap: wrap; margin: 0.5rem 0; }
+.rt-week-card {
+    flex: 1; min-width: 120px;
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.16); border-radius: 12px;
+    padding: 0.85rem 0.9rem; text-align: center;
+}
+.rt-week-val { font-size: 1.55rem; font-weight: 900; color: #34d399; line-height: 1.1; }
+.rt-week-lbl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.09em; color: #94a3b8; margin-top: 3px; }
+</style>""", unsafe_allow_html=True)
+
+
+def _rt_df_html(df: pd.DataFrame, max_rows: int = 25) -> str:
+    """Render a DataFrame as a dark-card HTML table."""
+    th_s = ("padding:0.26rem 0.5rem;font-size:0.65rem;text-transform:uppercase;"
+            "letter-spacing:0.10em;color:#60a5fa;background:rgba(9,14,28,0.9);"
+            "border-bottom:2px solid rgba(96,165,250,0.25);white-space:nowrap;font-weight:700;text-align:left;")
+    td_s = "padding:0.28rem 0.5rem;font-size:0.80rem;color:#e2e8f0;border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap;"
+    thead = "".join(f'<th style="{th_s}">{c}</th>' for c in df.columns)
+    rows  = ""
+    for _, row in df.head(max_rows).iterrows():
+        cells = "".join(f'<td style="{td_s}">{v}</td>' for v in row.values)
+        rows += f'<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">{cells}</tr>'
+    return (
+        f'<div class="rt-table-wrap">'
+        f'<table style="width:100%;border-collapse:collapse;min-width:480px;">'
+        f'<thead><tr>{thead}</tr></thead>'
+        f'<tbody>{rows}</tbody>'
+        f'</table></div>'
+    )
+
+
+_inject_rt_css()
 
 # Played-only slice for stats
 travel_played = travel_core[travel_core["Played"].fillna(False).astype(bool)].copy()
@@ -364,7 +502,7 @@ if not warriors.empty:
         wd["Away Win %"] = (pd.to_numeric(wd["Away Win %"], errors="coerce") * 100).round(1)
     if "Bus Hours (RT)" in wd.columns:
         wd["Bus Hours (RT)"] = pd.to_numeric(wd["Bus Hours (RT)"], errors="coerce").round(1)
-    st.dataframe(wd, hide_index=True, use_container_width=True)
+    st.markdown(_rt_df_html(wd), unsafe_allow_html=True)
 else:
     st.info("No teams in this view have 5+ away games.")
 
@@ -447,8 +585,8 @@ if "vs Typical %" in df.columns:
     df["vs Typical %"] = (pd.to_numeric(df["vs Typical %"], errors="coerce") * 100).round(0).astype("Int64")
 
 df = df.sort_values("Season Miles (RT)", ascending=False)
-st.dataframe(df, hide_index=True, use_container_width=True)
-st.caption("All mileage is round-trip unless labeled one-way. Estimates use simple assumptions.")
+st.markdown(_rt_df_html(df, max_rows=50), unsafe_allow_html=True)
+st.markdown('<div style="font-size:0.75rem;color:#475569;margin-top:0.3rem;">All mileage is round-trip unless labeled one-way. Estimates use simple assumptions.</div>', unsafe_allow_html=True)
 
 st.divider()
 
@@ -484,7 +622,7 @@ if not road_perf.empty:
         "RoadWins":    "Away Wins",
         "RoadWinPct":  "Win %",
     })
-    st.dataframe(rp.head(20), hide_index=True, use_container_width=True)
+    st.markdown(_rt_df_html(rp.head(20)), unsafe_allow_html=True)
 else:
     st.info("Not enough road games in this view.")
 
@@ -503,7 +641,7 @@ if "HomeRegion" in travel_played.columns:
     )
     hca_summary["Home Win %"] = (hca_summary["HomeWins"] / hca_summary["Games"] * 100).round(1)
     hca_summary = hca_summary.rename(columns={"HomeRegion":"Region","HomeWins":"Home Wins"})
-    st.dataframe(hca_summary, hide_index=True, use_container_width=True)
+    st.markdown(_rt_df_html(hca_summary), unsafe_allow_html=True)
 else:
     st.info("HomeRegion column not found.")
 
@@ -530,12 +668,16 @@ if "Upset" in travel_played.columns and "AwayShouldWin" in travel_played.columns
         "Upsets": [int(short_trip["Upset"].sum()), int(long_trip["Upset"].sum())],
         "Upset Rate %": [round(upset_rate(short_trip), 1), round(upset_rate(long_trip), 1)],
     })
-    st.dataframe(upset_data, hide_index=True, use_container_width=True)
+    st.markdown(_rt_df_html(upset_data), unsafe_allow_html=True)
 
     if len(long_trip) > 0 and len(short_trip) > 0:
         diff = upset_rate(long_trip) - upset_rate(short_trip)
         direction = "higher" if diff > 0 else "lower"
-        st.markdown(f"📍 Upset rate on long trips is **{abs(diff):.1f}% {direction}** than on short trips.")
+        st.markdown(
+            f'<div class="rt-callout">📍 Upset rate on long trips is '
+            f'<strong>{abs(diff):.1f}% {direction}</strong> than on short trips.</div>',
+            unsafe_allow_html=True,
+        )
 else:
     st.info("TI data needed for upset rate calculation.")
 
@@ -567,8 +709,8 @@ if b2b_list:
     b2b_df["Combined Miles"] = (b2b_df["Miles_G1"] + b2b_df["Miles_G2"]).round(0).astype("Int64")
     b2b_show = b2b_df[["Team","Gender","Class","Region","Game1","Game2","HoursApart","Combined Miles"]].copy()
     b2b_show = b2b_show.sort_values("HoursApart")
-    st.dataframe(b2b_show, hide_index=True, use_container_width=True)
-    st.caption(f"{len(b2b_df)} back-to-back away game pairs found statewide.")
+    st.markdown(_rt_df_html(b2b_show), unsafe_allow_html=True)
+    st.markdown(f'<div style="font-size:0.75rem;color:#475569;margin-top:0.3rem;">{len(b2b_df)} back-to-back away game pairs found statewide.</div>', unsafe_allow_html=True)
 else:
     st.info("No back-to-back away games found.")
 
@@ -605,8 +747,8 @@ if fatigue_rows:
     )
     fatigue_summary["Away Win %" ] = (fatigue_summary["Wins"] / fatigue_summary["Games"] * 100).round(1)
     fatigue_summary = fatigue_summary.rename(columns={"FatigueBucket":"Travel Load Prior 7 Days"})
-    st.dataframe(fatigue_summary, hide_index=True, use_container_width=True)
-    st.caption("Win % for away teams based on how many miles they logged in the 7 days before each game.")
+    st.markdown(_rt_df_html(fatigue_summary), unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.75rem;color:#475569;margin-top:0.3rem;">Win % for away teams based on how many miles they logged in the 7 days before each game.</div>', unsafe_allow_html=True)
 
 st.divider()
 
@@ -628,16 +770,19 @@ if not this_week.empty:
     week_games = len(this_week)
     week_gas   = this_week["BusGasCost"].sum(skipna=True)
     top_trip   = this_week.loc[this_week["MilesRoundTrip"].idxmax()]
-    wc1, wc2, wc3 = st.columns(3)
-    with wc1:
-        st.metric("Miles logged this week", f"{week_miles:,.0f} mi")
-    with wc2:
-        st.metric("Games played", f"{week_games}")
-    with wc3:
-        st.metric("Bus gas this week", f"${week_gas:,.0f}")
+    week_cards = (
+        f'<div class="rt-week-card"><div class="rt-week-val">{week_miles:,.0f} mi</div>'
+        f'<div class="rt-week-lbl">Miles This Week</div></div>'
+        f'<div class="rt-week-card"><div class="rt-week-val">{week_games}</div>'
+        f'<div class="rt-week-lbl">Games Played</div></div>'
+        f'<div class="rt-week-card"><div class="rt-week-val">${week_gas:,.0f}</div>'
+        f'<div class="rt-week-lbl">Bus Gas Cost</div></div>'
+    )
+    st.markdown(f'<div class="rt-week-grid">{week_cards}</div>', unsafe_allow_html=True)
     st.markdown(
-        f"🏆 **Longest trip this week:** {top_trip['Away']} @ {top_trip['Home']} — "
-        f"{top_trip['MilesRoundTrip']:,.0f} miles RT"
+        f'<div class="rt-callout">🏆 <strong>Longest trip this week:</strong> '
+        f'{top_trip["Away"]} @ {top_trip["Home"]} — {top_trip["MilesRoundTrip"]:,.0f} miles RT</div>',
+        unsafe_allow_html=True,
     )
 else:
     st.info("No games found in the last 7 days.")
@@ -661,11 +806,12 @@ if "AwayRegion" in travel_played.columns:
     south_avg = region_miles[region_miles["AwayRegion"] == "South"]["Avg Miles/Trip"].values
     if len(north_avg) and len(south_avg) and south_avg[0] > 0:
         st.markdown(
-            f"📍 North teams average **{north_avg[0]:.0f} miles per trip** vs "
-            f"South's **{south_avg[0]:.0f} miles** — "
-            f"North travels **{north_avg[0]/south_avg[0]:.1f}x more** per road game."
+            f'<div class="rt-callout">📍 North teams average <strong>{north_avg[0]:.0f} miles per trip</strong> vs '
+            f"South's <strong>{south_avg[0]:.0f} miles</strong> — "
+            f'North travels <strong>{north_avg[0]/south_avg[0]:.1f}x more</strong> per road game.</div>',
+            unsafe_allow_html=True,
         )
-    st.dataframe(region_miles, hide_index=True, use_container_width=True)
+    st.markdown(_rt_df_html(region_miles), unsafe_allow_html=True)
 else:
     st.info("AwayRegion column not found.")
 
@@ -702,10 +848,10 @@ cpw_display["Cost Per Win"] = cpw_display["Cost Per Win"].apply(lambda x: f"${x:
 cc1, cc2 = st.columns(2)
 with cc1:
     st.markdown("**🏆 Most Efficient (cheapest wins)**")
-    st.dataframe(cpw_display.head(10), hide_index=True, use_container_width=True)
+    st.markdown(_rt_df_html(cpw_display.head(10)), unsafe_allow_html=True)
 with cc2:
     st.markdown("**💸 Most Expensive Road Wins**")
-    st.dataframe(cpw_display.tail(10).iloc[::-1], hide_index=True, use_container_width=True)
+    st.markdown(_rt_df_html(cpw_display.tail(10).iloc[::-1]), unsafe_allow_html=True)
 
 st.write("")
 
@@ -755,7 +901,7 @@ try:
     ).sort_values("Nearest Opponent (mi)", ascending=False)
     top_iso = away_min.head(5)[["Team","Gender","Class","Region","Nearest Opponent (mi)"]].copy()
     top_iso["Nearest Opponent (mi)"] = top_iso["Nearest Opponent (mi)"].round(1)
-    st.dataframe(top_iso, hide_index=True, use_container_width=True)
+    st.markdown(_rt_df_html(top_iso), unsafe_allow_html=True)
 except Exception as e:
     st.info(f"Isolation data unavailable: {e}")
 
@@ -771,7 +917,7 @@ try:
     hb = homebodies[hb_cols].copy()
     hb["SeasonMiles"] = hb["SeasonMiles"].round(1)
     hb = hb.rename(columns={"SeasonMiles":"Total Away Miles","Trips":"Away Games"})
-    st.dataframe(hb, hide_index=True, use_container_width=True)
+    st.markdown(_rt_df_html(hb), unsafe_allow_html=True)
 except Exception as e:
     st.info(f"Unavailable: {e}")
 
@@ -929,15 +1075,18 @@ if not passport.empty:
     total_passport_games = len(passport)
     total_passport_gas   = passport["BusGasCost"].sum()
 
-    pa1, pa2, pa3, pa4 = st.columns(4)
-    with pa1:
-        st.metric("Road Miles", f"{total_passport_miles:,.0f} mi")
-    with pa2:
-        st.metric("Road Record", f"{int(total_passport_wins)}-{total_passport_games - int(total_passport_wins)}")
-    with pa3:
-        st.metric("Away Games", f"{total_passport_games}")
-    with pa4:
-        st.metric("Est. Bus Gas", f"${total_passport_gas:,.0f}")
+    record_str = f"{int(total_passport_wins)}–{total_passport_games - int(total_passport_wins)}"
+    passport_stats = (
+        f'<div class="rt-passport-stat"><div class="rt-passport-val">{total_passport_miles:,.0f} mi</div>'
+        f'<div class="rt-passport-lbl">Road Miles</div></div>'
+        f'<div class="rt-passport-stat"><div class="rt-passport-val">{record_str}</div>'
+        f'<div class="rt-passport-lbl">Road Record</div></div>'
+        f'<div class="rt-passport-stat"><div class="rt-passport-val">{total_passport_games}</div>'
+        f'<div class="rt-passport-lbl">Away Games</div></div>'
+        f'<div class="rt-passport-stat"><div class="rt-passport-val">${total_passport_gas:,.0f}</div>'
+        f'<div class="rt-passport-lbl">Est. Bus Gas</div></div>'
+    )
+    st.markdown(f'<div class="rt-passport-hero">{passport_stats}</div>', unsafe_allow_html=True)
 
     passport_show = passport[["Date","Home","Away","HomeScore","AwayScore","MilesRoundTrip","BusGasCost","AwayWin"]].copy()
     passport_show["Date"]           = passport_show["Date"].dt.strftime("%b %d")
@@ -949,7 +1098,7 @@ if not passport.empty:
         if pd.notna(r["AwayScore"]) and pd.notna(r["HomeScore"]) else "—", axis=1)
 
     cols_show = ["Date","Home","Score","Result","Miles (RT)","Est. Bus Gas"]
-    st.dataframe(passport_show[cols_show], hide_index=True, use_container_width=True)
+    st.markdown(_rt_df_html(passport_show[cols_show]), unsafe_allow_html=True)
 
     # Longest winning streak on the road
     streak = longest = current = 0
@@ -959,16 +1108,23 @@ if not passport.empty:
             longest = max(longest, current)
         else:
             current = 0
-    st.markdown(f"🔥 **Longest road winning streak this season:** {longest} games")
 
-    # Record when traveling 100+ miles
+    # Record on long trips
     long_road = passport[passport["MilesOneWay"] >= 100]
     if not long_road.empty:
-        lr_wins = int(long_road["AwayWin"].sum())
+        lr_wins  = int(long_road["AwayWin"].sum())
         lr_games = len(long_road)
-        st.markdown(f"✈️ **Record on trips 100+ miles away:** {lr_wins}-{lr_games - lr_wins} ({lr_games} games)")
+        long_road_s = f"Record on trips 100+ miles away: <strong>{lr_wins}–{lr_games - lr_wins}</strong> ({lr_games} games)"
     else:
-        st.markdown("✈️ No trips 100+ miles found for this school.")
+        long_road_s = "No trips 100+ miles found for this school."
+
+    st.markdown(
+        f'<div class="rt-callout">'
+        f'🔥 Longest road winning streak: <strong>{longest} games</strong>'
+        f'<br>✈️ {long_road_s}'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 else:
     st.info(f"No away games found for {selected_school}.")
 

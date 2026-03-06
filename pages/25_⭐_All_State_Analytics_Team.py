@@ -18,10 +18,10 @@ from layout import (
 )
 from auth import login_gate, logout_button, is_subscribed
 
-
-from sidebar_auth import render_sidebar_auth
-render_sidebar_auth()
-
+
+from sidebar_auth import render_sidebar_auth
+render_sidebar_auth()
+
 st.set_page_config(
     page_title="All-State Analytics Team | Analytics207",
     page_icon="medal",
@@ -149,20 +149,360 @@ render_page_header(
         "No committee. No politics. Just metrics and a model that doesn't play favorites."
     ),
 )
-st.write("")
 
+# ══════════════════════════════════════════════════════════════════════════
+#  VISUAL HELPERS
+# ══════════════════════════════════════════════════════════════════════════
+
+def _inject_as_css() -> None:
+    st.markdown("""<style>
+/* ── Section banner ──────────────────────────────────────────────────── */
+.as-section-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    margin: 24px 0 14px;
+    border: 1px solid;
+}
+.as-section-icon { font-size: 1.6rem; }
+.as-section-title {
+    font-size: 1.1rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+}
+.as-section-sub {
+    font-size: 0.75rem;
+    margin-top: 2px;
+    opacity: 0.75;
+}
+
+/* ── Tier cards ──────────────────────────────────────────────────────── */
+.as-card {
+    border-radius: 14px;
+    padding: 14px 16px 12px;
+    margin-bottom: 10px;
+    border: 1px solid;
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+.as-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.as-card-rank {
+    font-size: 1.3rem;
+    font-weight: 900;
+    min-width: 30px;
+    text-align: center;
+    flex-shrink: 0;
+}
+.as-card-name {
+    font-size: 1.0rem;
+    font-weight: 900;
+    color: #f1f5f9;
+    flex: 1;
+    line-height: 1.2;
+}
+.as-card-record {
+    font-size: 0.82rem;
+    color: #cbd5e1;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+.as-card-meta {
+    font-size: 0.70rem;
+    color: #94a3b8;
+    margin-left: 8px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.as-rating-pill {
+    font-size: 0.72rem;
+    font-weight: 900;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-left: 8px;
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+}
+.as-card-stats {
+    display: flex;
+    gap: 0;
+    flex-wrap: nowrap;
+    margin-bottom: 10px;
+    background: rgba(0,0,0,0.20);
+    border-radius: 8px;
+    padding: 8px 4px;
+    overflow-x: auto;
+}
+.as-stat-cell {
+    flex: 1;
+    text-align: center;
+    min-width: 60px;
+    padding: 0 4px;
+}
+.as-stat-val {
+    font-size: 0.88rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+.as-stat-lbl {
+    font-size: 0.58rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-top: 3px;
+}
+.as-card-bar-bg {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+}
+.as-card-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+}
+
+/* ── Snub rows ────────────────────────────────────────────────────────── */
+.as-snub-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+.as-snub-rank { color: #64748b; font-size: 0.80rem; font-weight: 700; min-width: 28px; }
+.as-snub-name { color: #f1f5f9; font-size: 0.90rem; font-weight: 800; flex: 1; }
+.as-snub-record { color: #94a3b8; font-size: 0.78rem; }
+.as-snub-meta { color: #64748b; font-size: 0.70rem; margin-left: 8px; }
+.as-snub-rating { color: #fde68a; font-size: 0.82rem; font-weight: 800; margin-left: 10px; }
+
+/* ── Method cards ─────────────────────────────────────────────────────── */
+.as-method-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(96,165,250,0.05);
+    border: 1px solid rgba(96,165,250,0.12);
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+.as-method-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(96,165,250,0.18);
+    color: #60a5fa;
+    font-size: 0.75rem; font-weight: 900;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.as-method-content { font-size: 0.84rem; color: #e2e8f0; line-height: 1.55; }
+.as-method-content strong { color: #93c5fd; }
+
+/* ── Weight table ─────────────────────────────────────────────────────── */
+.as-weight-card {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.15);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+/* ── Full rankings table ──────────────────────────────────────────────── */
+.as-table-wrap {
+    background: radial-gradient(circle at top left, #0f1e38, #080f1e);
+    border: 1px solid rgba(96,165,250,0.15);
+    border-radius: 12px;
+    overflow-x: auto;
+    margin: 8px 0 16px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+TIER_CONFIG = {
+    1: {
+        "label":   "First Team All-State",
+        "icon":    "🥇",
+        "bg":      "radial-gradient(circle at top left, #1c1400, #0f0c00)",
+        "border":  "rgba(245,158,11,0.45)",
+        "banner_bg":    "rgba(245,158,11,0.10)",
+        "banner_border":"rgba(245,158,11,0.40)",
+        "banner_color": "#fde68a",
+        "rank_color":   "#fbbf24",
+        "val_color":    "#fde68a",
+        "bar_start":    "#f59e0b",
+        "bar_end":      "#fde68a",
+        "pill_bg":      "rgba(245,158,11,0.25)",
+        "pill_color":   "#0f0c00",
+    },
+    2: {
+        "label":   "Second Team All-State",
+        "icon":    "🥈",
+        "bg":      "radial-gradient(circle at top left, #111827, #080f1e)",
+        "border":  "rgba(148,163,184,0.35)",
+        "banner_bg":    "rgba(148,163,184,0.08)",
+        "banner_border":"rgba(148,163,184,0.30)",
+        "banner_color": "#e2e8f0",
+        "rank_color":   "#cbd5e1",
+        "val_color":    "#e2e8f0",
+        "bar_start":    "#94a3b8",
+        "bar_end":      "#e2e8f0",
+        "pill_bg":      "rgba(148,163,184,0.20)",
+        "pill_color":   "#0f172a",
+    },
+    3: {
+        "label":   "Third Team All-State",
+        "icon":    "🥉",
+        "bg":      "radial-gradient(circle at top left, #160f06, #0d0906)",
+        "border":  "rgba(180,120,60,0.40)",
+        "banner_bg":    "rgba(180,120,60,0.08)",
+        "banner_border":"rgba(180,120,60,0.30)",
+        "banner_color": "#fed7aa",
+        "rank_color":   "#fdba74",
+        "val_color":    "#fed7aa",
+        "bar_start":    "#b47c3c",
+        "bar_end":      "#fed7aa",
+        "pill_bg":      "rgba(180,120,60,0.22)",
+        "pill_color":   "#160f06",
+    },
+}
+
+
+def _safe(val, fmt: str, suffix: str = "") -> str:
+    try:
+        v = float(val)
+        if np.isnan(v): return "--"
+        return fmt.format(v) + suffix
+    except (TypeError, ValueError):
+        return "--"
+
+
+def pct_fmt(val) -> str:
+    try:
+        v = float(val)
+        if np.isnan(v): return "--"
+        return f"{v*100:.1f}%" if abs(v) <= 1.5 else f"{v:.1f}%"
+    except (TypeError, ValueError):
+        return "--"
+
+
+def _section_banner(tier: int, subtitle: str) -> None:
+    cfg = TIER_CONFIG[tier]
+    st.markdown(
+        f'<div class="as-section-banner" style="'
+        f'background:{cfg["banner_bg"]};'
+        f'border-color:{cfg["banner_border"]};'
+        f'color:{cfg["banner_color"]};">'
+        f'<div class="as-section-icon">{cfg["icon"]}</div>'
+        f'<div>'
+        f'<div class="as-section-title">{cfg["label"]}</div>'
+        f'<div class="as-section-sub">{subtitle}</div>'
+        f'</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _tier_card(rank: int, row: pd.Series, tier: int) -> str:
+    cfg     = TIER_CONFIG[tier]
+    name    = str(row.get("Team",   ""))
+    record  = str(row.get("Record", ""))
+    cls     = str(row.get("Class",  ""))
+    region  = str(row.get("Region", ""))
+    rating  = row.get("AllStateRating", np.nan)
+
+    ti_s     = _safe(row.get("TI"),          "{:.4f}")
+    net_s    = _safe(row.get("NetEff"),       "{:+.2f}")
+    margin_s = _safe(row.get("MarginPG"),     "{:+.1f}")
+    wpct_s   = pct_fmt(row.get("WinPct"))
+    vstop_s  = pct_fmt(row.get("WinPctVsTop"))
+    sos_s    = _safe(row.get("SOS_EWP"),      "{:.3f}")
+    close_s  = pct_fmt(row.get("CloseWinPct"))
+    rating_s = _safe(rating,                  "{:.1f}")
+    bar_w    = f"{float(rating):.1f}%" if pd.notna(rating) else "50%"
+
+    stats = [
+        (ti_s,     "TI"),
+        (net_s,    "Net Eff"),
+        (margin_s, "Margin/G"),
+        (wpct_s,   "Win %"),
+        (vstop_s,  "vs Top"),
+        (sos_s,    "SOS"),
+        (close_s,  "Close W%"),
+    ]
+
+    stats_html = "".join(
+        f'<div class="as-stat-cell">'
+        f'<div class="as-stat-val" style="color:{cfg["val_color"]};">{val}</div>'
+        f'<div class="as-stat-lbl">{lbl}</div>'
+        f'</div>'
+        for val, lbl in stats
+    )
+
+    return (
+        f'<div class="as-card" style="background:{cfg["bg"]};border-color:{cfg["border"]};">'
+        f'<div class="as-card-header">'
+        f'<span class="as-card-rank" style="color:{cfg["rank_color"]};">#{rank}</span>'
+        f'<span class="as-card-name">{name}</span>'
+        f'<span class="as-card-record">{record}</span>'
+        f'<span class="as-card-meta">Class {cls} {region}</span>'
+        f'<span class="as-rating-pill" style="background:{cfg["pill_bg"]};color:{cfg["rank_color"]};">{rating_s}</span>'
+        f'</div>'
+        f'<div class="as-card-stats">{stats_html}</div>'
+        f'<div class="as-card-bar-bg">'
+        f'<div class="as-card-bar-fill" style="width:{bar_w};'
+        f'background:linear-gradient(90deg,{cfg["bar_start"]},{cfg["bar_end"]});"></div>'
+        f'</div>'
+        f'</div>'
+    )
+
+
+def _as_df_html(df: pd.DataFrame, max_rows: int = 100) -> str:
+    th_s = (
+        "padding:0.28rem 0.6rem;font-size:0.65rem;text-transform:uppercase;"
+        "letter-spacing:0.10em;color:#60a5fa;background:rgba(9,14,28,0.9);"
+        "border-bottom:2px solid rgba(96,165,250,0.20);white-space:nowrap;"
+        "font-weight:700;text-align:left;"
+    )
+    td_s = (
+        "padding:0.30rem 0.6rem;font-size:0.80rem;color:#e2e8f0;"
+        "border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap;"
+    )
+    thead = "".join(f'<th style="{th_s}">{c}</th>' for c in df.columns)
+    rows = ""
+    for _, row in df.head(max_rows).iterrows():
+        cells = "".join(f'<td style="{td_s}">{v}</td>' for v in row.values)
+        rows += f'<tr>{cells}</tr>'
+    return (
+        f'<div class="as-table-wrap">'
+        f'<table style="width:100%;border-collapse:collapse;min-width:600px;">'
+        f'<thead><tr>{thead}</tr></thead><tbody>{rows}</tbody></table></div>'
+    )
+
+
+_inject_as_css()
+
+# ── Filters ──────────────────────────────────────────────────────────────
+st.write("")
 fc1, fc2 = st.columns(2)
 with fc1:
     sel_gender = st.selectbox("Gender", ["Boys", "Girls"], key="as_gender")
 with fc2:
     sel_class = st.selectbox("Class", ["All", "A", "B", "C", "D", "S"], key="as_class")
-
 sel_region = "All"
-
 st.write("")
 
 # ══════════════════════════════════════════════════════════════════════════
-#  🔒 SUBSCRIBER GATE — everything below filters is locked
+#  🔒 SUBSCRIBER GATE
 # ══════════════════════════════════════════════════════════════════════════
 if not is_subscribed():
     components.html("""
@@ -184,11 +524,10 @@ body { background: transparent; font-family: ui-sans-serif, system-ui, -apple-sy
     render_footer()
     st.stop()
 
+# ── Data ─────────────────────────────────────────────────────────────────
 view = teams_df[teams_df["Gender"] == sel_gender].copy()
-
 if sel_class != "All":
     view = view[view["Class"] == sel_class]
-
 if "Games" in view.columns:
     view = view[view["Games"].fillna(0) >= MIN_GAMES]
 
@@ -202,191 +541,115 @@ view = view.sort_values("AllStateScore", ascending=False).reset_index(drop=True)
 n_total  = len(view)
 per_tier = max(3, min(5, n_total // 4))
 
-TIER_CONFIG = {
-    1: ("First Team All-State",  "rgba(245,158,11,0.18)",  "rgba(245,158,11,0.5)",  "#fde68a"),
-    2: ("Second Team All-State", "rgba(148,163,184,0.12)", "rgba(148,163,184,0.4)", "#e2e8f0"),
-    3: ("Third Team All-State",  "rgba(180,120,60,0.12)",  "rgba(180,120,60,0.4)",  "#fed7aa"),
-}
+class_label = "All Classes" if sel_class == "All" else f"Class {sel_class}"
 
-def _safe(val, fmt: str, suffix: str = "") -> str:
-    try:
-        v = float(val)
-        if np.isnan(v):
-            return "--"
-        return fmt.format(v) + suffix
-    except (TypeError, ValueError):
-        return "--"
+# ── Live season notice ───────────────────────────────────────────────────
+st.markdown(
+    '<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.30);'
+    'border-left:4px solid #f59e0b;border-radius:10px;padding:12px 18px;margin:0 0 18px;'
+    'display:flex;align-items:flex-start;gap:12px;">'
+    '<div style="font-size:1.2rem;flex-shrink:0;margin-top:1px;">📡</div>'
+    '<div>'
+    '<div style="font-size:0.80rem;font-weight:800;color:#fbbf24;letter-spacing:0.04em;margin-bottom:3px;">'
+    'LIVE RANKINGS — UPDATES THROUGHOUT THE SEASON'
+    '</div>'
+    '<div style="font-size:0.78rem;color:#fde68a;line-height:1.6;">'
+    'These selections are a <strong>moving target</strong> and recalculate automatically as new games are played. '
+    'A team ranked First Team today could move up, down, or off the list tomorrow. '
+    'Final All-State selections are locked at the <strong>end of the regular season</strong> — '
+    'playoffs, scrimmages, and exhibitions are not counted.'
+    '</div>'
+    '</div>'
+    '</div>',
+    unsafe_allow_html=True,
+)
 
-def pct_fmt(val) -> str:
-    try:
-        v = float(val)
-        if np.isnan(v):
-            return "--"
-        return f"{v*100:.1f}%" if abs(v) <= 1.5 else f"{v:.1f}%"
-    except (TypeError, ValueError):
-        return "--"
-
-def tier_card_html(rank: int, row: pd.Series, tier: int) -> str:
-    _, bg, border, text_color = TIER_CONFIG[tier]
-    name    = str(row.get("Team",       ""))
-    record  = str(row.get("Record",     ""))
-    cls     = str(row.get("Class",      ""))
-    region  = str(row.get("Region",     ""))
-    rating  = row.get("AllStateRating", np.nan)
-
-    ti_s     = _safe(row.get("TI"),          "{:.4f}")
-    net_s    = _safe(row.get("NetEff"),      "{:+.2f}")
-    margin_s = _safe(row.get("MarginPG"),    "{:+.1f}")
-    wpct_s   = pct_fmt(row.get("WinPct"))
-    vstop_s  = pct_fmt(row.get("WinPctVsTop"))
-    sos_s    = _safe(row.get("SOS_EWP"),     "{:.3f}")
-    close_s  = pct_fmt(row.get("CloseWinPct"))
-    rating_s = _safe(rating,                "{:.1f}")
-    bar_w    = f"{rating:.1f}%" if pd.notna(rating) else "50%"
-
-    stats = [
-        (ti_s,     "TI"),
-        (net_s,    "Net Eff"),
-        (margin_s, "Margin/G"),
-        (wpct_s,   "Win %"),
-        (vstop_s,  "vs Top"),
-        (sos_s,    "SOS"),
-        (close_s,  "Close W%"),
-    ]
-
-    stats_html = "".join(
-        f'<div style="text-align:center;">'
-        f'<div style="font-size:12px;font-weight:800;color:{text_color};">{val}</div>'
-        f'<div style="font-size:9px;color:rgba(148,163,184,0.5);text-transform:uppercase;'
-        f'letter-spacing:.07em;margin-top:1px;">{lbl}</div>'
-        f'</div>'
-        for val, lbl in stats
-    )
-
-    return (
-        f'<div style="background:{bg};border:1px solid {border};border-radius:14px;'
-        f'padding:13px 15px 11px;margin-bottom:8px;'
-        f'font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;">'
-        f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">'
-        f'<span style="color:{text_color};font-size:17px;font-weight:900;'
-        f'min-width:26px;text-align:center;">#{rank}</span>'
-        f'<span style="color:#f1f5f9;font-size:15px;font-weight:900;flex:1;">{name}</span>'
-        f'<span style="color:rgba(203,213,225,0.6);font-size:11px;">{record}</span>'
-        f'<span style="color:rgba(148,163,184,0.5);font-size:10px;margin-left:8px;">'
-        f'Class {cls} {region}</span>'
-        f'<span style="background:{border};color:#0f172a;font-size:10px;font-weight:900;'
-        f'padding:3px 10px;border-radius:999px;margin-left:10px;">{rating_s}</span>'
-        f'</div>'
-        f'<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:9px;">{stats_html}</div>'
-        f'<div style="height:3px;border-radius:999px;background:rgba(148,163,184,0.1);overflow:hidden;">'
-        f'<div style="height:100%;width:{bar_w};'
-        f'background:linear-gradient(90deg,{border},{text_color});'
-        f'border-radius:999px;"></div></div>'
-        f'</div>'
-    )
-
-def section_header_html(title: str, subtitle: str, color: str) -> str:
-    return (
-        f'<!doctype html><html><head><meta charset="utf-8"/></head>'
-        f'<body style="margin:0;background:transparent;'
-        f'font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;">'
-        f'<div style="border-left:4px solid {color};padding:8px 0 8px 16px;margin:8px 0 16px;">'
-        f'<div style="font-size:18px;font-weight:900;color:#f1f5f9;">{title}</div>'
-        f'<div style="font-size:11px;color:rgba(203,213,225,0.55);margin-top:3px;">{subtitle}</div>'
-        f'</div></body></html>'
-    )
-
+# ── Tabs ─────────────────────────────────────────────────────────────────
 tab_teams, tab_method, tab_full = st.tabs([
     "All-State Teams",
     "Methodology",
     "Full Rankings",
 ])
 
+# ════════════════════════════════════════════════════════════════════════
+# TAB 1 — ALL-STATE TEAMS
+# ════════════════════════════════════════════════════════════════════════
 with tab_teams:
     first_team  = view.iloc[0:per_tier]
     second_team = view.iloc[per_tier:per_tier*2]
     third_team  = view.iloc[per_tier*2:per_tier*3]
-    class_label = "All Classes" if sel_class == "All" else f"Class {sel_class}"
 
-    components.html(
-        section_header_html(
-            "First Team All-State",
-            f"The {per_tier} highest-rated teams -- {sel_gender} {class_label} (Statewide).",
-            "#f59e0b",
-        ),
-        height=70, scrolling=False,
-    )
+    # ── First Team ───────────────────────────────────────────────────────
+    _section_banner(1, f"The {per_tier} highest-rated teams — {sel_gender} {class_label} (Statewide)")
     col1, col2 = st.columns(2)
     for i, (_, row) in enumerate(first_team.iterrows()):
         with (col1 if i % 2 == 0 else col2):
-            components.html(tier_card_html(i + 1, row, tier=1), height=135, scrolling=False)
+            st.markdown(_tier_card(i + 1, row, tier=1), unsafe_allow_html=True)
 
-    st.write("")
-
+    # ── Second Team ──────────────────────────────────────────────────────
     if not second_team.empty:
-        components.html(
-            section_header_html(
-                "Second Team All-State",
-                "Honorable mentions that narrowly missed the first team.",
-                "#94a3b8",
-            ),
-            height=70, scrolling=False,
-        )
+        st.write("")
+        _section_banner(2, "Honorable mentions that narrowly missed the first team.")
         col1, col2 = st.columns(2)
         for i, (_, row) in enumerate(second_team.iterrows()):
             with (col1 if i % 2 == 0 else col2):
-                components.html(tier_card_html(per_tier + i + 1, row, tier=2), height=135, scrolling=False)
+                st.markdown(_tier_card(per_tier + i + 1, row, tier=2), unsafe_allow_html=True)
 
-        st.write("")
-
+    # ── Third Team ───────────────────────────────────────────────────────
     if not third_team.empty:
-        components.html(
-            section_header_html(
-                "Third Team All-State",
-                "Strong seasons that deserve recognition.",
-                "#b47c3c",
-            ),
-            height=70, scrolling=False,
-        )
+        st.write("")
+        _section_banner(3, "Strong seasons that deserve recognition.")
         col1, col2 = st.columns(2)
         for i, (_, row) in enumerate(third_team.iterrows()):
             with (col1 if i % 2 == 0 else col2):
-                components.html(tier_card_html(per_tier*2 + i + 1, row, tier=3), height=135, scrolling=False)
+                st.markdown(_tier_card(per_tier*2 + i + 1, row, tier=3), unsafe_allow_html=True)
 
-    st.write("")
-
+    # ── Notable Snubs ─────────────────────────────────────────────────────
     snubs = view.iloc[per_tier*3:per_tier*3+4]
     if not snubs.empty:
-        st.markdown("---")
-        st.markdown("### Notable Snubs")
-        st.caption("Just outside the third team -- the teams that will spark the most debate.")
         st.write("")
+        st.markdown(
+            '<div style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;'
+            'border-radius:999px;border:1px solid rgba(148,163,184,0.25);'
+            'background:rgba(148,163,184,0.05);font-size:0.73rem;font-weight:700;'
+            'letter-spacing:0.10em;text-transform:uppercase;color:#94a3b8;margin:16px 0 10px;">'
+            '💬 Notable Snubs</div>',
+            unsafe_allow_html=True,
+        )
+        st.caption("Just outside the third team — the teams that will spark the most debate.")
+
         col1, col2 = st.columns(2)
         for i, (_, row) in enumerate(snubs.iterrows()):
             rank     = per_tier * 3 + i + 1
-            name     = str(row.get("Team",       ""))
-            record   = str(row.get("Record",     ""))
-            cls      = str(row.get("Class",      ""))
-            region   = str(row.get("Region",     ""))
+            name     = str(row.get("Team",   ""))
+            record   = str(row.get("Record", ""))
+            cls      = str(row.get("Class",  ""))
+            region   = str(row.get("Region", ""))
             rating_s = _safe(row.get("AllStateRating"), "{:.1f}")
             html = (
-                f'<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;'
-                f'borderradius:10px;margin-bottom:6px;'
-                f'background:rgba(255,255,255,0.02);'
-                f'border:1px solid rgba(255,255,255,0.07);'
-                f'font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;">'
-                f'<span style="color:rgba(148,163,184,0.4);font-size:12px;font-weight:700;width:24px;">#{rank}</span>'
-                f'<span style="color:#f1f5f9;font-size:13px;font-weight:800;flex:1;">{name}</span>'
-                f'<span style="color:rgba(203,213,225,0.5);font-size:11px;">{record}</span>'
-                f'<span style="color:rgba(148,163,184,0.4);font-size:10px;margin-left:8px;">Class {cls} {region}</span>'
-                f'<span style="color:#fde68a;font-size:12px;font-weight:700;margin-left:10px;">{rating_s}</span>'
+                f'<div class="as-snub-row">'
+                f'<span class="as-snub-rank">#{rank}</span>'
+                f'<span class="as-snub-name">{name}</span>'
+                f'<span class="as-snub-record">{record}</span>'
+                f'<span class="as-snub-meta">Class {cls} {region}</span>'
+                f'<span class="as-snub-rating">{rating_s}</span>'
                 f'</div>'
             )
             with (col1 if i % 2 == 0 else col2):
-                components.html(html, height=52, scrolling=False)
+                st.markdown(html, unsafe_allow_html=True)
 
+# ════════════════════════════════════════════════════════════════════════
+# TAB 2 — METHODOLOGY
+# ════════════════════════════════════════════════════════════════════════
 with tab_method:
-    st.markdown("### How the All-State Score Works")
+    st.markdown(
+        '<div style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;'
+        'border-radius:999px;border:1px solid rgba(96,165,250,0.35);'
+        'background:rgba(96,165,250,0.07);font-size:0.73rem;font-weight:700;'
+        'letter-spacing:0.10em;text-transform:uppercase;color:#93c5fd;margin:8px 0 14px;">'
+        '📐 How the All-State Score Works</div>',
+        unsafe_allow_html=True,
+    )
     st.write("")
 
     col_explain, col_weights = st.columns([0.55, 0.45], gap="large")
@@ -395,42 +658,48 @@ with tab_method:
         available = [c for c in TEAM_WEIGHT_COLS if c in view.columns and view[c].notna().any()]
         missing   = [c for c in TEAM_WEIGHT_COLS if c not in available]
 
-        st.markdown("""
-**The Analytics207 All-State Score** is a composite ranking built from
-150+ metrics collected throughout the season. No human votes. No politics.
-Just the numbers.
+        st.markdown(
+            '<div style="background:radial-gradient(circle at top left,#0f1e38,#080f1e);'
+            'border:1px solid rgba(96,165,250,0.15);border-radius:12px;padding:16px 18px;margin-bottom:12px;">'
+            '<div style="font-size:0.84rem;color:#bfdbfe;line-height:1.65;">'
+            'The <strong style="color:#93c5fd;">Analytics207 All-State Score</strong> is a composite ranking built from '
+            '150+ metrics collected throughout the season. No human votes. No politics. Just the numbers.'
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
-
-#### The Process
-
-
-1. **Eligibility** -- Teams must have played at least 10 games to qualify.
-
-
-2. **Z-Score Normalization** -- Every metric is converted to a z-score
-   within the filtered group so teams are judged relative to peers.
-
-
-3. **Weighted Composite** -- Z-scores are weighted and summed into a
-   single All-State Score.
-
-
-4. **Penalty Deductions** -- Bad losses subtract from the score.
-
-
-5. **Statewide Pool** -- Rankings always use the full state pool for each class.
-   North/South splits are excluded to prevent small-pool inflation.
-        """)
+        steps = [
+            ("<strong>Eligibility</strong> — Teams must have played at least 10 games to qualify."),
+            ("<strong>Z-Score Normalization</strong> — Every metric is converted to a z-score within the filtered group so teams are judged relative to peers."),
+            ("<strong>Weighted Composite</strong> — Z-scores are weighted and summed into a single All-State Score."),
+            ("<strong>Penalty Deductions</strong> — Bad losses subtract from the score."),
+            ("<strong>Statewide Pool</strong> — Rankings always use the full state pool for each class. North/South splits are excluded to prevent small-pool inflation."),
+        ]
+        steps_html = "".join(
+            f'<div class="as-method-step">'
+            f'<div class="as-method-num">{i+1}</div>'
+            f'<div class="as-method-content">{s}</div>'
+            f'</div>'
+            for i, s in enumerate(steps)
+        )
+        st.markdown(steps_html, unsafe_allow_html=True)
 
         if missing:
             st.info(
-                f"**{len(missing)} metric(s) skipped** (not available): "
+                f"**{len(missing)} metric(s) skipped** (not available in current data): "
                 + ", ".join(f"`{m}`" for m in missing)
             )
 
     with col_weights:
-        st.markdown("#### Score Weights")
-        st.write("")
+        st.markdown(
+            '<div style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;'
+            'border-radius:999px;border:1px solid rgba(96,165,250,0.35);'
+            'background:rgba(96,165,250,0.07);font-size:0.73rem;font-weight:700;'
+            'letter-spacing:0.10em;text-transform:uppercase;color:#93c5fd;margin:0 0 10px;">'
+            '⚖️ Score Weights</div>',
+            unsafe_allow_html=True,
+        )
 
         weight_data = []
         for col, w in TEAM_WEIGHT_COLS.items():
@@ -452,13 +721,32 @@ Just the numbers.
                 "Status":      avail,
             })
 
-        st.dataframe(pd.DataFrame(weight_data), hide_index=True, use_container_width=True)
-        st.write("")
-        st.metric("Minimum Games Played", f"{MIN_GAMES} games")
+        st.markdown(_as_df_html(pd.DataFrame(weight_data)), unsafe_allow_html=True)
 
+        st.markdown(
+            f'<div style="background:radial-gradient(circle at top left,#0f1e38,#080f1e);'
+            f'border:1px solid rgba(96,165,250,0.15);border-radius:10px;padding:12px 16px;margin-top:4px;'
+            f'display:flex;align-items:center;gap:12px;">'
+            f'<div style="font-size:0.63rem;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;color:#94a3b8;">Min Games Played</div>'
+            f'<div style="font-size:1.4rem;font-weight:900;color:#60a5fa;">{MIN_GAMES}</div>'
+            f'<div style="font-size:0.75rem;color:#94a3b8;">games required to qualify</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+# ════════════════════════════════════════════════════════════════════════
+# TAB 3 — FULL RANKINGS
+# ════════════════════════════════════════════════════════════════════════
 with tab_full:
-    st.markdown("### Complete Rankings")
-    st.caption("Every eligible team ranked by All-State composite score. Score (0-100) normalized within filter.")
+    st.markdown(
+        '<div style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;'
+        'border-radius:999px;border:1px solid rgba(96,165,250,0.35);'
+        'background:rgba(96,165,250,0.07);font-size:0.73rem;font-weight:700;'
+        'letter-spacing:0.10em;text-transform:uppercase;color:#93c5fd;margin:8px 0 6px;">'
+        '📋 Complete Rankings</div>',
+        unsafe_allow_html=True,
+    )
+    st.caption("Every eligible team ranked by All-State composite score. Score (0–100) normalized within filter.")
     st.write("")
 
     full = view.copy()
@@ -505,6 +793,6 @@ with tab_full:
                 else (f"{v:.1f}%" if pd.notna(v) else "--")
             )
 
-    st.dataframe(disp, hide_index=True, use_container_width=True)
+    st.markdown(_as_df_html(disp), unsafe_allow_html=True)
 
 render_footer()
