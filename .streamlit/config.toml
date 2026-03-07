@@ -1,4 +1,7 @@
 # .streamlit/config.toml
+[client]
+toolbarMode = "minimal"
+
 [theme]
 base="dark"
 primaryColor="#f2c14f"
