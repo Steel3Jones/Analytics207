@@ -13,10 +13,10 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Girls,B,North,QF,2026-GB-N-QF2,4,Presque Isle,48.0,5,Hermon,37.0
 2026,Girls,B,South,Final,2026-GB-S-F1,1,Gray-New Gloucester,51.0,2,Oceanside,68.0
 2026,Girls,B,North,State,2026-GB-N-ST1,3,Lawrence,52.0,2,Oceanside,41.0
-2026,Girls,C,South,Prelim,2026-GC-S-P1,8,Mount View,51.0,9,Hall-Dale HS,23.0
 2026,Girls,C,North,Prelim,2026-GC-N-P1,8,Orono,54.0,9,Washington Academy,27.0
-2026,Girls,C,North,Prelim,2026-GC-N-P2,7,Sumner Memorial,55.0,10,Central,29.0
+2026,Girls,C,South,Prelim,2026-GC-S-P1,8,Mount View,51.0,9,Hall-Dale HS,23.0
 2026,Girls,C,South,Prelim,2026-GC-S-P2,7,Dirigo,56.0,10,Traip Academy,38.0
+2026,Girls,C,North,Prelim,2026-GC-N-P2,7,Sumner Memorial,55.0,10,Central,29.0
 2026,Girls,C,North,QF,2026-GC-N-QF1,1,Mattanawcook Academy,64.0,8,Orono,30.0
 2026,Girls,C,North,QF,2026-GC-N-QF2,4,Dexter/PCHS,40.0,5,Caribou,43.0
 2026,Girls,B,North,QF,2026-GB-N-QF3,3,Lawrence,74.0,6,Mount Desert Island,45.0
@@ -39,8 +39,8 @@ Season,Gender,Class,Region,Round,GameID,Seed1,Team1,Score1,Seed2,Team2,Score2
 2026,Girls,A,North,Final,2026-GA-N-F1,1,Mt. Ararat,26.0,2,Hampden Academy,33.0
 2026,Girls,A,South,Final,2026-GA-S-F1,1,Cheverus,46.0,3,South Portland,35.0
 2026,Girls,A,North,State,2026-GA-N-ST1,2,Hampden Academy,61.0,1,Cheverus,63.0
-2026,Girls,B,South,Prelim,2026-GB-S-P1,8,Freeport,47.0,9,Yarmouth,26.0
 2026,Girls,B,North,Prelim,2026-GB-N-P1,8,Erskine Academy,59.0,9,Cony HS,72.0
+2026,Girls,B,South,Prelim,2026-GB-S-P1,8,Freeport,47.0,9,Yarmouth,26.0
 2026,Girls,C,North,QF,2026-GC-N-QF3,3,Foxcroft Academy,32.0,6,Calais,22.0
 2026,Girls,C,South,QF,2026-GC-S-QF1,1,Spruce Mountain,58.0,8,Mount View,29.0
 2026,Boys,A,South,Prelim,2026-BA-S-P2,7,Westbrook,36.0,10,Bonny Eagle,47.0
