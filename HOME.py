@@ -7,12 +7,12 @@ import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
 
-from auth import logout_button
+from auth import logout_button, is_admin
 import layout as L
-from sidebar_auth import render_sidebar_auth
+from sidebar_auth import render_sidebar_auth  # used inside _home()
 
 # ─────────────────────────────────────────────
-# PAGE CONFIG
+# PAGE CONFIG  (runs once as the app shell)
 # ─────────────────────────────────────────────
 
 st.set_page_config(
@@ -22,15 +22,14 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-render_sidebar_auth()
-logout_button()
-
 render_logo   = getattr(L, "render_logo",   None)
 render_footer = getattr(L, "render_footer", None)
+
 
 def _sp(n: int = 1) -> None:
     for _ in range(max(0, int(n))):
         st.write("")
+
 
 def img_to_b64(path: str) -> str:
     data = Path(path).read_bytes()
@@ -38,31 +37,119 @@ def img_to_b64(path: str) -> str:
     b64  = base64.b64encode(data).decode()
     return f"data:image/{ext};base64,{b64}"
 
-# ─────────────────────────────────────────────
-# GLOBAL STREAMLIT STYLE OVERRIDES
-# (only things that affect Streamlit's own chrome)
-# ─────────────────────────────────────────────
-
-st.markdown("""
-<style>
-.block-container { padding-top: 0.5rem !important; padding-bottom: 0 !important; }
-[data-testid="stPlotlyChart"] > div { padding-top: 0 !important; }
-.js-plotly-plot .plotly, .js-plotly-plot .plotly div { background: transparent !important; }
-</style>
-""", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# HEADER / LOGO
+# HOME PAGE CONTENT (wrapped as a page function)
 # ─────────────────────────────────────────────
 
-if callable(render_logo):
-    render_logo()
+def _home() -> None:
+    render_sidebar_auth()
+    logout_button()
 
-# ─────────────────────────────────────────────
-# SHARED CSS — injected into every components.html block
-# ─────────────────────────────────────────────
+    st.markdown("""
+    <style>
+    .block-container { padding-top: 0.5rem !important; padding-bottom: 0 !important; }
+    [data-testid="stPlotlyChart"] > div { padding-top: 0 !important; }
+    .js-plotly-plot .plotly, .js-plotly-plot .plotly div { background: transparent !important; }
+    </style>
+    """, unsafe_allow_html=True)
 
-SHARED_CSS = """
+    # ── Logo + Sport Circles ──
+    _logo_path = Path(__file__).parent / "web" / "static" / "img" / "logo.png"
+    _logo_src = img_to_b64(str(_logo_path)) if _logo_path.exists() else ""
+    _logo_tag = f'<img src="{_logo_src}" style="width:420px;max-width:100%;display:block;">' if _logo_src else ""
+    st.markdown(f"""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&display=swap');
+    .sc-wrap {{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0.4rem 0 1rem 0;flex-wrap:wrap;width:100%;
+    }}
+    .sc-circles {{
+      display:flex;gap:1rem;align-items:center;flex-wrap:wrap;
+    }}
+    .sc-card {{
+      width:90px;height:90px;border-radius:50%;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      position:relative;
+      transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }}
+    .sc-card.live {{
+      background:radial-gradient(circle at 30% 30%,rgba(255,255,255,0.1),rgba(2,6,23,0.92));
+      border:2px solid rgba(249,115,22,0.7);
+      box-shadow:0 0 0 6px rgba(249,115,22,0.1),0 0 30px rgba(249,115,22,0.2);
+    }}
+    .sc-card.coming {{
+      background:rgba(15,23,42,0.7);
+      border:1px solid rgba(148,163,184,0.25);
+      opacity:0.75;
+    }}
+    .sc-pulse {{
+      position:absolute;inset:-8px;border-radius:50%;
+      border:2px solid rgba(249,115,22,0.3);
+      animation:sc-pulse-ring 2.5s ease-out infinite;
+      pointer-events:none;
+    }}
+    .sc-pulse-2 {{ animation-delay:0.9s; }}
+    @keyframes sc-pulse-ring {{
+      0%   {{ transform:scale(1);   opacity:0.5; }}
+      100% {{ transform:scale(1.5); opacity:0; }}
+    }}
+    .sc-icon  {{ font-size:1.5rem;margin-bottom:0.15rem; }}
+    .sc-name  {{
+      font-family:'Barlow Condensed',sans-serif;font-size:0.58rem;font-weight:800;
+      text-transform:uppercase;letter-spacing:0.08em;color:#f8fafc;text-align:center;
+      line-height:1.1;
+    }}
+    .sc-badge {{
+      margin-top:0.18rem;padding:0.08rem 0.4rem;border-radius:999px;
+      font-family:'Barlow Condensed',sans-serif;font-size:0.48rem;
+      font-weight:800;letter-spacing:0.1em;text-transform:uppercase;
+    }}
+    .badge-live {{
+      background:rgba(249,115,22,0.2);border:1px solid rgba(249,115,22,0.5);color:#f97316;
+    }}
+    .badge-soon {{
+      background:rgba(148,163,184,0.15);border:1px solid rgba(148,163,184,0.4);color:#94a3b8;
+    }}
+    .sc-coming-label {{
+      font-family:'Barlow Condensed',sans-serif;font-size:0.55rem;letter-spacing:0.22em;
+      text-transform:uppercase;color:#334155;margin-bottom:0.4rem;
+    }}
+    </style>
+    <div class="sc-wrap">
+      {_logo_tag}
+      <div style="display:flex;flex-direction:column;gap:0.4rem;">
+        <div class="sc-coming-label">Expanding Beyond Basketball</div>
+        <div class="sc-circles">
+          <div class="sc-card live">
+            <div class="sc-pulse"></div>
+            <div class="sc-pulse sc-pulse-2"></div>
+            <div class="sc-icon">🏀</div>
+            <div class="sc-name">Basketball</div>
+            <div class="sc-badge badge-live">● Live</div>
+          </div>
+          <div class="sc-card coming">
+            <div class="sc-icon">⚽</div>
+            <div class="sc-name">Soccer</div>
+            <div class="sc-badge badge-soon">Coming Soon</div>
+          </div>
+          <div class="sc-card coming">
+            <div class="sc-icon">🏃</div>
+            <div class="sc-name">Cross Country</div>
+            <div class="sc-badge badge-soon">Coming Soon</div>
+          </div>
+          <div class="sc-card coming">
+            <div class="sc-icon">🏒</div>
+            <div class="sc-name">Hockey</div>
+            <div class="sc-badge badge-soon">Coming Soon</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    SHARED_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
 
@@ -323,23 +410,20 @@ body { background: transparent; font-family: 'Barlow', sans-serif; color: #e2e8f
 </style>
 """
 
-# ─────────────────────────────────────────────
-# BLOCK 1 — TICKER + HERO + RHYTHM + FEATURES
-# ─────────────────────────────────────────────
+    # ── BLOCK 1: TICKER + HERO + RHYTHM + FEATURES ──
+    ticker_items = [
+        "🏀 <strong>Boys Model</strong> &nbsp;·&nbsp; 965–191 &nbsp;·&nbsp; <strong>83.5% Accuracy</strong>",
+        "🏀 <strong>Girls Model</strong> &nbsp;·&nbsp; 974–184 &nbsp;·&nbsp; <strong>84.1% Accuracy</strong>",
+        "📊 <strong>2,100+ Games</strong> Tracked Statewide This Season",
+        "⚡ <strong>Updated Mon–Sat</strong> &nbsp;·&nbsp; Every Game. Every Score. Every Shift.",
+        "🏆 <strong>Trophy Room</strong> &nbsp;·&nbsp; 20 Live Trophies &nbsp;·&nbsp; Updated Every Night",
+        "🎯 <strong>Spread Accuracy</strong> &nbsp;·&nbsp; 13.2 pts MAE &nbsp;·&nbsp; 17.0 pts RMSE",
+        "☠️ <strong>Survivor</strong> &nbsp;·&nbsp; Pick One Team Per Week &nbsp;·&nbsp; Don't Repeat",
+        "🤖 <strong>Fan vs. The Model</strong> &nbsp;·&nbsp; Can You Outpick the AI?",
+    ]
+    doubled_ticker = " &nbsp;&nbsp;&nbsp; ".join(ticker_items * 2)
 
-ticker_items = [
-    "🏀 <strong>Boys Model</strong> &nbsp;·&nbsp; 965–191 &nbsp;·&nbsp; <strong>83.5% Accuracy</strong>",
-    "🏀 <strong>Girls Model</strong> &nbsp;·&nbsp; 974–184 &nbsp;·&nbsp; <strong>84.1% Accuracy</strong>",
-    "📊 <strong>2,100+ Games</strong> Tracked Statewide This Season",
-    "⚡ <strong>Updated Mon–Sat</strong> &nbsp;·&nbsp; Every Game. Every Score. Every Shift.",
-    "🏆 <strong>Trophy Room</strong> &nbsp;·&nbsp; 20 Live Trophies &nbsp;·&nbsp; Updated Every Night",
-    "🎯 <strong>Spread Accuracy</strong> &nbsp;·&nbsp; 13.2 pts MAE &nbsp;·&nbsp; 17.0 pts RMSE",
-    "☠️ <strong>Survivor</strong> &nbsp;·&nbsp; Pick One Team Per Week &nbsp;·&nbsp; Don't Repeat",
-    "🤖 <strong>Fan vs. The Model</strong> &nbsp;·&nbsp; Can You Outpick the AI?",
-]
-doubled_ticker = " &nbsp;&nbsp;&nbsp; ".join(ticker_items * 2)
-
-components.html(SHARED_CSS + f"""
+    components.html(SHARED_CSS + f"""
 <!-- TICKER -->
 <div class="a207-ticker">
   <div class="a207-ticker-inner">
@@ -481,127 +565,121 @@ components.html(SHARED_CSS + f"""
 </div>
 """, height=1400, scrolling=False)
 
-# ─────────────────────────────────────────────
-# BLOCK 2 — PRICING SECTION HEADER
-# ─────────────────────────────────────────────
-
-components.html(SHARED_CSS + """
+    # ── BLOCK 2: PRICING HEADER ──
+    components.html(SHARED_CSS + """
 <div class="sec-label">Pricing</div>
 <div class="sec-title">Plans &amp; Pricing</div>
 <div class="sec-sub">Start free. Upgrade when you're ready. No credit card required for the free tier.</div>
 """, height=100, scrolling=False)
 
-# ─────────────────────────────────────────────
-# BLOCK 3 — DOT MATRIX CHART (Plotly — stays as st)
-# ─────────────────────────────────────────────
+    # ── BLOCK 3: DOT MATRIX CHART ──
+    _features = [
+        ("🏟️ Fan Hub",                True,  True,  True,  True),
+        ("🤖 Fan vs. The Model",       True,  True,  True,  True),
+        ("☠️ Survivor",                True,  True,  True,  True),
+        ("🧠 Stump The Model",         True,  True,  True,  True),
+        ("💎 Pick 5 Challenge",        True,  True,  True,  True),
+        ("📋 The Slate",               True,  True,  True,  True),
+        ("💊 Heal Points",             True,  True,  True,  True),
+        ("🏅 Milestones & Records",    True,  True,  True,  True),
+        ("📈 Insights & Trends",       True,  True,  True,  True),
+        ("🚗 Road Trip Planner",       True,  True,  True,  True),
+        ("⚡ Power Index Rankings",    False, True,  True,  True),
+        ("🤖 The Model – Predictions", False, True,  True,  True),
+        ("📊 The Aftermath",           False, True,  True,  True),
+        ("🏀 Team Center",             False, True,  True,  True),
+        ("🏆 Bracketology",            False, True,  True,  True),
+        ("📋 Report Card",             False, True,  True,  True),
+        ("🥇 Trophy Room",             False, True,  True,  True),
+        ("🗳️ Team of the Week",       False, True,  True,  True),
+        ("📉 The Mover Board",         False, True,  True,  True),
+        ("⭐ All-State Analytics",     False, True,  True,  True),
+        ("📰 The Press Box",           False, True,  True,  True),
+        ("🔭 Scouting Report",         False, False, False, False),
+    ]
 
-_features = [
-    ("🏟️ Fan Hub",                True,  True,  True,  True),
-    ("🤖 Fan vs. The Model",       True,  True,  True,  True),
-    ("☠️ Survivor",                True,  True,  True,  True),
-    ("🧠 Stump The Model",         True,  True,  True,  True),
-    ("💎 Pick 5 Challenge",        True,  True,  True,  True),
-    ("📋 The Slate",               True,  True,  True,  True),
-    ("💊 Heal Points",             True,  True,  True,  True),
-    ("🏅 Milestones & Records",    True,  True,  True,  True),
-    ("📈 Insights & Trends",       True,  True,  True,  True),
-    ("🚗 Road Trip Planner",       True,  True,  True,  True),
-    ("⚡ Power Index Rankings",    False, True,  True,  True),
-    ("🤖 The Model – Predictions", False, True,  True,  True),
-    ("📊 The Aftermath",           False, True,  True,  True),
-    ("🏀 Team Center",             False, True,  True,  True),
-    ("🏆 Bracketology",            False, True,  True,  True),
-    ("📋 Report Card",             False, True,  True,  True),
-    ("🥇 Trophy Room",             False, True,  True,  True),
-    ("🗳️ Team of the Week",       False, True,  True,  True),
-    ("📉 The Mover Board",         False, True,  True,  True),
-    ("⭐ All-State Analytics",     False, True,  True,  True),
-    ("📰 The Press Box",           False, True,  True,  True),
-    ("🔭 Scouting Report",         False, False, False, False),
-]
+    feat_names = [f[0] for f in _features]
+    feat_data  = [f[1:] for f in _features]
+    feat_rev   = list(reversed(feat_names))
+    data_rev   = list(reversed(feat_data))
 
-feat_names = [f[0] for f in _features]
-feat_data  = [f[1:] for f in _features]
-feat_rev   = list(reversed(feat_names))
-data_rev   = list(reversed(feat_data))
+    _plan_colors = [
+        "rgba(148,163,184,0.85)",
+        "rgba(96,165,250,0.95)",
+        "rgba(251,191,36,0.95)",
+        "rgba(167,139,250,0.95)",
+    ]
+    _plan_names = ["Free", "Monthly", "Season Pass", "Annual Pass"]
 
-_plan_colors = [
-    "rgba(148,163,184,0.85)",
-    "rgba(96,165,250,0.95)",
-    "rgba(251,191,36,0.95)",
-    "rgba(167,139,250,0.95)",
-]
-_plan_names = ["Free", "Monthly", "Season Pass", "Annual Pass"]
+    dot_fig = go.Figure()
+    for pi in range(4):
+        xf, yf, xe, ye = [], [], [], []
+        for fi, row in enumerate(data_rev):
+            if row[pi]: xf.append(pi); yf.append(fi)
+            else:       xe.append(pi); ye.append(fi)
+        if xf:
+            dot_fig.add_trace(go.Scatter(
+                x=xf, y=yf, mode="markers",
+                marker=dict(size=13, color=_plan_colors[pi],
+                            line=dict(width=1, color="rgba(255,255,255,0.2)")),
+                name=_plan_names[pi],
+                hovertemplate=f"<b>{_plan_names[pi]}</b><br>%{{customdata}}<extra></extra>",
+                customdata=[feat_rev[i] for i in yf],
+            ))
+        if xe:
+            dot_fig.add_trace(go.Scatter(
+                x=xe, y=ye, mode="markers",
+                marker=dict(size=13, color="rgba(15,23,42,0.9)",
+                            line=dict(width=1, color="rgba(148,163,184,0.08)")),
+                hovertemplate="<b>Not included</b><br>%{customdata}<extra></extra>",
+                customdata=[feat_rev[i] for i in ye],
+                showlegend=False,
+            ))
 
-dot_fig = go.Figure()
-for pi in range(4):
-    xf, yf, xe, ye = [], [], [], []
-    for fi, row in enumerate(data_rev):
-        if row[pi]: xf.append(pi); yf.append(fi)
-        else:       xe.append(pi); ye.append(fi)
-    if xf:
-        dot_fig.add_trace(go.Scatter(
-            x=xf, y=yf, mode="markers",
-            marker=dict(size=13, color=_plan_colors[pi],
-                        line=dict(width=1, color="rgba(255,255,255,0.2)")),
-            name=_plan_names[pi],
-            hovertemplate=f"<b>{_plan_names[pi]}</b><br>%{{customdata}}<extra></extra>",
-            customdata=[feat_rev[i] for i in yf],
-        ))
-    if xe:
-        dot_fig.add_trace(go.Scatter(
-            x=xe, y=ye, mode="markers",
-            marker=dict(size=13, color="rgba(15,23,42,0.9)",
-                        line=dict(width=1, color="rgba(148,163,184,0.08)")),
-            hovertemplate="<b>Not included</b><br>%{customdata}<extra></extra>",
-            customdata=[feat_rev[i] for i in ye],
-            showlegend=False,
-        ))
+    dot_fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="'Barlow Condensed', ui-sans-serif, sans-serif", color="#cbd5e1", size=13),
+        xaxis=dict(
+            tickvals=list(range(4)),
+            ticktext=[
+                "<b>Free</b><br><span style='font-size:11px;color:#94a3b8;'>account req.</span>",
+                "<b>Monthly</b><br><span style='font-size:11px;color:#86efac;'>$6.99/mo</span>",
+                "<b>Season Pass</b><br><span style='font-size:11px;color:#86efac;'>$19.99 · 28% off</span>",
+                "<b>Annual Pass</b><br><span style='font-size:11px;color:#86efac;'>$49.99 · 40% off</span>",
+            ],
+            side="top", showgrid=False, zeroline=False,
+            tickfont=dict(size=13), title_text="", fixedrange=True,
+            range=[-0.6, 3.6],
+        ),
+        yaxis=dict(
+            tickvals=list(range(len(feat_names))),
+            ticktext=feat_rev,
+            showgrid=True, gridcolor="rgba(255,255,255,0.04)",
+            zeroline=False, tickfont=dict(size=12),
+            title_text="", autorange=True, fixedrange=True,
+        ),
+        legend=dict(
+            orientation="h", yanchor="top", y=-0.02,
+            xanchor="center", x=0.5,
+            font=dict(size=12), bgcolor="rgba(0,0,0,0)",
+            itemsizing="constant",
+        ),
+        margin=dict(l=185, r=20, t=80, b=50),
+        height=620,
+        dragmode=False,
+    )
 
-dot_fig.update_layout(
-    paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(family="'Barlow Condensed', ui-sans-serif, sans-serif", color="#cbd5e1", size=13),
-    xaxis=dict(
-        tickvals=list(range(4)),
-        ticktext=[
-            "<b>Free</b><br><span style='font-size:11px;color:#94a3b8;'>account req.</span>",
-            "<b>Monthly</b><br><span style='font-size:11px;color:#86efac;'>$6.99/mo</span>",
-            "<b>Season Pass</b><br><span style='font-size:11px;color:#86efac;'>$19.99 · 28% off</span>",
-            "<b>Annual Pass</b><br><span style='font-size:11px;color:#86efac;'>$49.99 · 40% off</span>",
-        ],
-        side="top", showgrid=False, zeroline=False,
-        tickfont=dict(size=13), title_text="", fixedrange=True,
-        range=[-0.6, 3.6],
-    ),
-    yaxis=dict(
-        tickvals=list(range(len(feat_names))),
-        ticktext=feat_rev,
-        showgrid=True, gridcolor="rgba(255,255,255,0.04)",
-        zeroline=False, tickfont=dict(size=12),
-        title_text="", autorange=True, fixedrange=True,
-    ),
-    legend=dict(
-        orientation="h", yanchor="top", y=-0.02,
-        xanchor="center", x=0.5,
-        font=dict(size=12), bgcolor="rgba(0,0,0,0)",
-        itemsizing="constant",
-    ),
-    margin=dict(l=185, r=20, t=80, b=50),
-    height=620,
-    dragmode=False,
-)
+    price_left, price_right = st.columns([1.6, 1.0], gap="large")
 
-price_left, price_right = st.columns([1.6, 1.0], gap="large")
+    with price_left:
+        st.plotly_chart(dot_fig, use_container_width=True, config={
+            "displayModeBar": False,
+            "staticPlot": False,
+        })
 
-with price_left:
-    st.plotly_chart(dot_fig, use_container_width=True, config={
-        "displayModeBar": False,
-        "staticPlot": False,
-    })
-
-with price_right:
-    components.html(SHARED_CSS + """
+    with price_right:
+        components.html(SHARED_CSS + """
 <style>
 .plan-box {
   background: rgba(15,23,42,0.85);
@@ -659,11 +737,8 @@ with price_right:
 </div>
 """, height=380, scrolling=False)
 
-# ─────────────────────────────────────────────
-# BLOCK 4 — WHO IT'S FOR + BOTTOM CTA
-# ─────────────────────────────────────────────
-
-components.html(SHARED_CSS + """
+    # ── BLOCK 4: WHO IT'S FOR + BOTTOM CTA ──
+    components.html(SHARED_CSS + """
 <div class="sec-label">Audience</div>
 <div class="sec-title">Built for Everyone in the 207</div>
 <div class="sec-sub">Whether you're a die-hard fan, a coach hunting an edge, or a parent tracking your kid's school.</div>
@@ -715,12 +790,64 @@ components.html(SHARED_CSS + """
 </div>
 """, height=620, scrolling=False)
 
+    _sp(1)
+    if callable(render_footer):
+        render_footer()
+    else:
+        st.caption("© 2026 Analytics207")
+
+
 # ─────────────────────────────────────────────
-# FOOTER
+# NAVIGATION
 # ─────────────────────────────────────────────
 
-_sp(1)
-if callable(render_footer):
-    render_footer()
-else:
-    st.caption("© 2026 Analytics207")
+def _p(path: str, title: str, icon: str) -> st.Page:
+    return st.Page(f"pages/{path}", title=title, icon=icon)
+
+
+_analytics = [
+    _p("01_📋_The_Slate.py",               "The Slate",          "📋"),
+    _p("02_📊_The_Aftermath.py",            "The Aftermath",      "📊"),
+    _p("04_💊_Heal_Points.py",              "Heal Points",        "💊"),
+    _p("05_⚡_Power_Index_Ratings.py",      "Power Index",        "⚡"),
+    _p("06_🏀_Team_Center.py",              "Team Center",        "🏀"),
+    _p("08_🏆_Bracketology.py",             "Bracketology",       "🏆"),
+    _p("12_🏅_Milestones.py",               "Milestones",         "🏅"),
+    _p("13_🚗_Road_Trip.py",                "Road Trip",          "🚗"),
+    _p("14_📈_Insights.py",                 "Insights",           "📈"),
+    _p("15_📋_The_Report_Card.py",          "The Report Card",    "📋"),
+    _p("18_🥇_Trophy_Room.py",              "Trophy Room",        "🥇"),
+    _p("19_🗳️_Team_of_the_Week.py",        "Team of the Week",   "🗳️"),
+    _p("20_🔬_The_Matchup_Lab.py",          "The Matchup Lab",    "🔬"),
+    _p("20_🧠_The_Model.py",                "The Model",          "🧠"),
+    _p("22_🔭_The_Projector.py",            "The Projector",      "🔭"),
+    _p("23_📉_The_Mover_Board.py",          "The Mover Board",    "📉"),
+    _p("25_⭐_All_State_Analytics_Team.py", "All-State Team",     "⭐"),
+]
+
+_fan_games = [
+    _p("13_🏟️_Fan_Hub.py",                "Fan Hub",            "🏟️"),
+    _p("12_🤖_Fan_Vs_TheModel.py",          "Fan Vs The Model",   "🤖"),
+    _p("14_☠️_Survivor.py",                "Survivor",           "☠️"),
+    _p("17_💎_Pick_5_Challenge.py",         "Pick 5 Challenge",   "💎"),
+    _p("18_🥊_Stump_The_Model.py",          "Stump The Model",    "🥊"),
+]
+
+_nav: dict = {
+    "🏀 Analytics207": [st.Page(_home, title="Home", icon="🏀", default=True)],
+    "Analytics": _analytics,
+    "Fan Games": _fan_games,
+    "Info": [
+        _p("21_📰_The_Press_Box.py", "The Press Box", "📰"),
+        _p("26_👤_My_Account.py",    "My Account",    "👤"),
+    ],
+}
+
+if is_admin():
+    _nav["Admin"] = [
+        st.Page("pages/admin.py",           title="Admin",           icon="⚙️"),
+        st.Page("pages/coach_dashboard.py", title="Coach Dashboard", icon="🏀"),
+    ]
+
+pg = st.navigation(_nav)
+pg.run()

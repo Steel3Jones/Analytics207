@@ -286,13 +286,16 @@ if not teams:
     st.info("No teams found. Ask your admin to set up your team.")
     st.stop()
 
-with st.sidebar:
-    st.markdown(f"### 🏀 {coach['name']}")
-    st.caption(coach["school"])
-    st.divider()
+# ── Page Header ───────────────────────────────────────────────
+hdr_left, hdr_right = st.columns([2, 1])
+with hdr_left:
+    st.markdown(f"## 🏀 {coach['name']}")
+    st.caption(coach["school"] + "  ·  Private Dashboard")
+with hdr_right:
     team_names = [f"{t['name']} ({t['season']})" for t in teams]
     selected_idx = st.selectbox("Team", range(len(teams)), format_func=lambda i: team_names[i])
     selected_team = teams[selected_idx]
+st.divider()
 
 # ── Load data ─────────────────────────────────────────────────
 metrics_df  = load_player_metrics(selected_team["id"])
@@ -302,11 +305,6 @@ game_stats  = load_game_stats(selected_team["id"])
 wins   = sum(1 for g in games if g.get("team_score") and g["team_score"] > g["opponent_score"])
 losses = sum(1 for g in games if g.get("team_score") and g["team_score"] < g["opponent_score"])
 logged = sum(1 for g in games if g.get("processed"))
-
-# ── Page Header ───────────────────────────────────────────────
-st.markdown(f"## {selected_team['name']}")
-st.caption(f"Season {selected_team['season']}  ·  Private Dashboard")
-st.divider()
 
 # ── Metrics Banner ────────────────────────────────────────────
 c1, c2, c3, c4, c5 = st.columns(5)
