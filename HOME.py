@@ -447,7 +447,7 @@ body { background: transparent; font-family: 'Barlow', sans-serif; color: #e2e8f
     <div class="a207-sub">
       Six days a week, every score, every shift in the rankings —
       Analytics207 tracks all of Maine high school basketball so you
-      never miss a moment that matters.
+      never miss the data that matters.
     </div>
     <div class="a207-accuracy-strip">
       <div class="a207-pill"><span class="num">83.5%</span> Boys Accuracy</div>
@@ -486,9 +486,8 @@ body { background: transparent; font-family: 'Barlow', sans-serif; color: #e2e8f
   <div class="a207-rhythm-text">
     <div class="a207-rhythm-title">Updated Six Days a Week — All Season Long</div>
     <div class="a207-rhythm-body">
-      Every game night, Analytics207 scrapes results, recalculates rankings, updates Heal Points,
-      reassigns trophies, and refreshes predictions — automatically. No manual updates. No delays.
-      Fresh data every morning.
+      Every game night, Analytics207 recalculates rankings, updates Heal Points,
+      reassigns trophies, and refreshes predictions — automatically. Fresh data every morning.
     </div>
   </div>
   <div class="a207-rhythm-days">
